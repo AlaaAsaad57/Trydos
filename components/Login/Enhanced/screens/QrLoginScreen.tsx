@@ -8,13 +8,19 @@ import CustomQRCode from '../ui/CustomQRCode';
 import {
     createQrSession,
     getQrStatus,
+    isTouchPhone,
+    MAX_QR_CODES,
+    QR_POLL_MS,
     QrStatusResult,
 } from 'services/qrLogin';
 import { translateFunction } from 'utils/functions';
 
 interface QrLoginScreenProps {
-    /** Called with the session/user token once the phone approves the login. */
-    onApproved?: (sessionToken: string) => void;
+    /**
+     * Called with the request ID once the app approves. It signs this browser
+     * in. When it throws, the screen shows "Something went wrong".
+     */
+    onApproved?: (requestId: string) => Promise<void> | void;
     onClose?: () => void;
     onBack?: () => void;
     onCancel?: () => void;
@@ -22,20 +28,23 @@ interface QrLoginScreenProps {
     lang?: string;
 }
 
-// No 'expired' state: an expired attempt auto-regenerates (→ 'loading' → 'pending')
-// rather than parking on a manual retry screen.
-type QrStatus = 'loading' | 'pending' | 'scanned' | 'rejected' | 'error';
+// An expired code makes a new one by itself (→ 'loading' → 'pending'), up to
+// MAX_QR_CODES in a row. After that the screen stops on 'stopped' and waits for
+// "Show a new code", so an open tab doesn't make codes for ever.
+// 'completing' = the app approved, and this browser is signing in.
+type QrStatus =
+    | 'loading'
+    | 'pending'
+    | 'scanned'
+    | 'completing'
+    | 'rejected'
+    | 'stopped'
+    | 'error';
 
 interface QrSession {
     linkId: string;
     qrToken: string;
     expiresAt: number;
-}
-
-interface ScannedInfo {
-    sameCity?: boolean;
-    webCity?: string | null;
-    appCity?: string | null;
 }
 
 const QR_CARD = '#FCFCFC';
@@ -53,7 +62,8 @@ export default function QrLoginScreen({
     const [status, setStatus] = useState<QrStatus>('loading');
     const [session, setSession] = useState<QrSession | null>(null);
     const [qrToken, setQrToken] = useState<string>('');
-    const [scanned, setScanned] = useState<ScannedInfo | null>(null);
+    // Codes made in a row without a scan. Reset by "Show a new code".
+    const codesRef = useRef(0);
     // Guards against re-firing completion
     const completedRef = useRef(false);
     // Guards the initial auto-start so React StrictMode's double-mount doesn't create duplicate sessions
@@ -61,8 +71,12 @@ export default function QrLoginScreen({
 
     // ── Create / regenerate a QR session ──────────────────────────────────────
     const startSession = useCallback(async () => {
+        if (codesRef.current >= MAX_QR_CODES) {
+            setStatus('stopped');
+            return;
+        }
+        codesRef.current += 1;
         setStatus('loading');
-        setScanned(null);
         completedRef.current = false;
         try {
             const data = await createQrSession();
@@ -82,6 +96,11 @@ export default function QrLoginScreen({
         }
     }, []);
 
+    const showNewCode = () => {
+        codesRef.current = 0;
+        startSession();
+    };
+
     useEffect(() => {
         if (autoStartedRef.current) return;
         autoStartedRef.current = true;
@@ -93,39 +112,72 @@ export default function QrLoginScreen({
         if (status !== 'pending' && status !== 'scanned') return;
         if (!session?.linkId) return;
 
-        const interval = setInterval(async () => {
+        // The next call starts 2 seconds after the last one answered, so only one
+        // status call is ever waiting. Overlapping calls could each see
+        // "expired" and make two codes.
+        let stopped = false;
+        let timer: ReturnType<typeof setTimeout>;
+        const poll = async () => {
             try {
                 const res: QrStatusResult = await getQrStatus(session.linkId);
+                if (stopped) return;
                 if (res.status === 'expired') {
                     startSession();
                     return;
                 }
                 if (res.status === 'scanned' && status !== 'scanned') {
-                    setScanned({ sameCity: true });
+                    // Someone scanned, so the code limit starts again.
+                    codesRef.current = 0;
                     setStatus('scanned');
                 } else if (res.status === 'approved') {
                     if (completedRef.current) return;
                     completedRef.current = true;
-                    onApproved?.(session.linkId);
+                    setStatus('completing');
+                    try {
+                        await onApproved?.(session.linkId);
+                    } catch {
+                        setStatus('error');
+                    }
+                    return;
                 } else if (res.status === 'denied') {
                     setStatus('rejected');
+                    return;
                 }
-            } catch {
-                // network / storage blip — keep polling
+            } catch (e) {
+                if (stopped) return;
+                // 403: this browser no longer holds the secret for this code,
+                // for example because another tab made a newer code. This code
+                // can never sign in here, so make a new one. MAX_QR_CODES still
+                // limits it, so two tabs can't take turns for ever.
+                if ((e as { status?: number })?.status === 403) {
+                    startSession();
+                    return;
+                }
+                // any other failure, such as a network blip — keep polling
             }
-        }, 1000);
+            if (!stopped) timer = setTimeout(poll, QR_POLL_MS);
+        };
+        timer = setTimeout(poll, QR_POLL_MS);
 
-        return () => clearInterval(interval);
+        return () => {
+            stopped = true;
+            clearTimeout(timer);
+        };
     }, [status, session, startSession, onApproved]);
 
     // Manual retry only for terminal states a user must act on: a phone-side
     // rejection, or a hard error creating/reviving a session. Expiry is handled
     // automatically (regenerate), so it never lands here.
-    const showRetry = status === 'rejected' || status === 'error';
+    const showRetry = status === 'rejected' || status === 'error' || status === 'stopped';
     const retryMessage =
         status === 'rejected'
             ? translate('Login was declined on your phone')
-            : translate('Something went wrong');
+            : status === 'stopped'
+              ? ''
+              : translate('Something went wrong');
+    // A phone can't scan its own screen, so phones get a button that opens
+    // the same link in the app.
+    const showOpenInApp = isTouchPhone() && status === 'pending' && Boolean(qrToken);
 
     return (
         <div className="w-full h-full flex flex-col bg-white font-quicksand relative">
@@ -178,17 +230,17 @@ export default function QrLoginScreen({
                 >
                     {/* QR stays on screen once generated. While we wait for the
                         phone to approve (scanned), it's only dimmed — never hidden. */}
-                    {(status === 'pending' || status === 'scanned') && qrToken && (
+                    {(status === 'pending' || status === 'scanned' || status === 'completing') && qrToken && (
                         <div
                             className={`transition-opacity duration-300 ${
-                                status === 'scanned' ? 'opacity-30' : 'opacity-100'
+                                status === 'pending' ? 'opacity-100' : 'opacity-30'
                             }`}
                         >
                             <CustomQRCode value={qrToken} size={232} bg={QR_CARD} />
                         </div>
                     )}
 
-                    {status === 'loading' && (
+                    {(status === 'loading' || status === 'completing') && (
                         <span className="w-7 h-7 rounded-full border-2 border-[#388CFF] border-t-transparent animate-spin" />
                     )}
 
@@ -210,19 +262,31 @@ export default function QrLoginScreen({
 
                     {showRetry && (
                         <button
-                            onClick={startSession}
+                            onClick={showNewCode}
                             data-pw="qr-show-new-code"
                             className="flex flex-col items-center gap-xd-12 px-xd-24 text-center cursor-pointer"
                         >
-                            <p className="text-xd-14 font-medium text-[#1D1D1D] leading-[1.4]">
-                                {retryMessage}
-                            </p>
+                            {retryMessage && (
+                                <p className="text-xd-14 font-medium text-[#1D1D1D] leading-[1.4]">
+                                    {retryMessage}
+                                </p>
+                            )}
                             <span className="text-xd-13 text-[#388CFF] underline">
                                 {translate('Show a new code')}
                             </span>
                         </button>
                     )}
                 </div>
+
+                {showOpenInApp && (
+                    <a
+                        href={qrToken}
+                        data-pw="qr-open-in-app"
+                        className="mt-xd-16 text-xd-14 font-medium text-[#388CFF] underline"
+                    >
+                        {translate('Open in app')}
+                    </a>
+                )}
 
                 <FlexibleSpace size={26} share={0.03} />
 
@@ -238,12 +302,6 @@ export default function QrLoginScreen({
                     </p>
                 )}
 
-                {/* Soft same-city warning (informational only — never blocks) */}
-                {status === 'scanned' && scanned?.sameCity === false && (
-                    <p className="text-xd-12 mt-xd-12 text-center font-medium text-[#D89B00]">
-                        {translate('This device appears to be in a different city')}
-                    </p>
-                )}
             </div>
 
             <FlexibleSpace grow />

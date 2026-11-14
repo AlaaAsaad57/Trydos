@@ -30,18 +30,12 @@ vi.mock("components/setting/profile/VerifyUser", () => ({
 }));
 // The QR stand-ins expose their callbacks as buttons, so a case can finish or
 // close them the way the real ones would.
-vi.mock("components/Login/QrScannerModal", () => ({
-  default: ({ onDetected, onClose }: any) => (
-    <div data-testid="qr-scanner">
-      <button onClick={() => onDetected("request-1")}>qr detected</button>
+// The Settings QR sheet (QR login, Direction B) has its own test. Here it is a
+// stand-in with a close button.
+vi.mock("components/Login/QrDeviceSheet", () => ({
+  default: ({ onClose }: any) => (
+    <div data-testid="qr-device-sheet">
       <button onClick={onClose}>qr close</button>
-    </div>
-  ),
-}));
-vi.mock("components/Login/QrApprovalSheet", () => ({
-  default: ({ requestId, onDone }: any) => (
-    <div data-testid="qr-approval" data-request={requestId}>
-      <button onClick={onDone}>approval done</button>
     </div>
   ),
 }));
@@ -64,6 +58,7 @@ const show = (overrides: Record<string, unknown> = {}, storeUser?: unknown) =>
 
 afterEach(() => {
   vi.clearAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("a signed-in shopper", () => {
@@ -167,30 +162,34 @@ describe("the placeholder names the app stores instead of a picture", () => {
   });
 });
 
-describe("signing in another device with the QR code", () => {
-  const qrButton = () => screen.getByLabelText("Scan QR To Sign In");
+describe("signing in a phone with the QR code", () => {
+  const qrButton = () => screen.getByLabelText("Sign In On Your Phone");
 
-  it("opens the scanner, and closing it closes it", async () => {
-    const user = userEvent.setup();
+  // The core backend has no QR login yet, so the button stays hidden until
+  // NEXT_PUBLIC_QR_LOGIN_ENABLED is "true".
+  it("hides the QR button while QR login is off", async () => {
+    vi.stubEnv("NEXT_PUBLIC_QR_LOGIN_ENABLED", "");
     await show();
-    await user.click(qrButton());
-    expect(screen.getByTestId("qr-scanner"), "the QR button did not open the scanner").toBeInTheDocument();
-    await user.click(screen.getByText("qr close"));
-    expect(screen.queryByTestId("qr-scanner"), "closing the scanner left it open").not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Sign In On Your Phone"),
+      "the QR button shows while QR login is off",
+    ).not.toBeInTheDocument();
   });
 
-  it("a scanned code opens the approval for that request, and done closes it", async () => {
+  it("opens the QR sheet, and closing it closes it", async () => {
+    vi.stubEnv("NEXT_PUBLIC_QR_LOGIN_ENABLED", "true");
     const user = userEvent.setup();
     await show();
     await user.click(qrButton());
-    await user.click(screen.getByText("qr detected"));
-    expect(screen.queryByTestId("qr-scanner"), "the scanner stayed open after a scan").not.toBeInTheDocument();
-    expect(
-      screen.getByTestId("qr-approval").dataset.request,
-      "the approval did not open for the scanned request",
-    ).toBe("request-1");
-    await user.click(screen.getByText("approval done"));
-    expect(screen.queryByTestId("qr-approval"), "done left the approval open").not.toBeInTheDocument();
+    expect(screen.getByTestId("qr-device-sheet"), "the QR button did not open the QR sheet").toBeInTheDocument();
+    await user.click(screen.getByText("qr close"));
+    expect(screen.queryByTestId("qr-device-sheet"), "closing the QR sheet left it open").not.toBeInTheDocument();
+  });
+
+  it("shows the QR button on computers too", async () => {
+    vi.stubEnv("NEXT_PUBLIC_QR_LOGIN_ENABLED", "true");
+    await show();
+    expect(qrButton().className, "the QR button is still hidden on computers").not.toContain("lg:hidden");
   });
 });
 

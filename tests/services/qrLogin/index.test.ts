@@ -1,138 +1,137 @@
-// services/qrLogin/index.ts — the stand-in QR sign-in. The desktop opens a
-// session, the phone scans it and approves or denies, and the desktop polls the
-// status. Until the real endpoints exist, the record lives in localStorage.
+// services/qrLogin/index.ts — the browser side of QR login. It calls only our
+// own routes under /api/qr-login (docs/qr-login-tasks.md, section 3). On a 401
+// it runs the app's shared market refresh once and sends the call again,
+// because the market access token lives 60 seconds.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { makeMockFetch, jsonReply } from "../../mocks/mockFetch";
+
+const RefreshSession = vi.fn();
+vi.mock("services/auth", () => ({ default: { RefreshSession } }));
+
 import {
-  approveQrLogin,
+  approveDevice,
+  completeQrLogin,
+  createDeviceQrSession,
   createQrSession,
-  denyQrLogin,
+  denyDevice,
+  getDeviceQrStatus,
   getQrStatus,
-  markScanned,
-  parseQrPayload,
+  QrLoginError,
 } from "services/qrLogin";
 
-const NOW = new Date("2026-09-01T10:00:00Z").getTime();
-const realUA = navigator.userAgent;
-
-const setUA = (ua: string) =>
-  Object.defineProperty(navigator, "userAgent", { value: ua, configurable: true });
+const ID = "3f1c2a7e-8b4d-4c1a-9e2f-6a7b8c9d0e1f";
+let net: ReturnType<typeof makeMockFetch>;
 
 beforeEach(() => {
-  vi.useFakeTimers();
-  vi.setSystemTime(NOW);
-  localStorage.clear();
+  net = makeMockFetch();
+  vi.stubGlobal("fetch", net.fetch);
+  RefreshSession.mockResolvedValue({ refreshed: true, eligible: true });
 });
 
 afterEach(() => {
-  vi.useRealTimers();
   vi.unstubAllGlobals();
-  setUA(realUA);
+  vi.clearAllMocks();
 });
 
-describe("createQrSession", () => {
-  it("opens a pending session that lasts one minute", async () => {
-    setUA("Mozilla/5.0 (Windows NT 10.0) Chrome/120");
-    const session = await createQrSession();
-    expect(session.qrPayload, "the QR text does not carry the request id").toBe(`trydos://qr/${session.requestId}`);
-    expect(session.expiresAt, "the session does not last one minute").toBe(NOW + 60_000);
-    expect(await getQrStatus(session.requestId), "the new session is not pending").toEqual({
-      status: "pending",
-      user: undefined,
-      context: { browser: "Chrome", os: "Windows" },
-    });
+describe("Direction A calls", () => {
+  it("createQrSession posts to /api/qr-login/create and returns the session", async () => {
+    const session = { requestId: ID, qrPayload: `trydos://qr/web/${ID}`, expiresAt: 1 };
+    net.queueReply(jsonReply(session));
+    const result = await createQrSession();
+    expect(net.calls[0]?.url, "createQrSession called the wrong route").toBe("/api/qr-login/create");
+    expect(net.calls[0]?.method, "createQrSession did not POST").toBe("POST");
+    expect(result, "createQrSession did not return the route's session").toEqual(session);
   });
 
-  it("builds an id from the clock when crypto.randomUUID is missing", async () => {
-    vi.stubGlobal("crypto", {});
-    const session = await createQrSession();
-    expect(session.requestId, "the fallback id is wrong").toMatch(/^\d+-\d+$/);
-    expect(session.requestId.startsWith(`${NOW}-`), "the fallback id does not start with the clock").toBe(true);
+  it("getQrStatus asks /api/qr-login/status for this ID", async () => {
+    net.queueReply(jsonReply({ status: "scanned" }));
+    const result = await getQrStatus(ID);
+    expect(net.calls[0]?.url, "getQrStatus called the wrong route").toBe(`/api/qr-login/status?id=${ID}`);
+    expect(result, "getQrStatus did not return the status").toEqual({ status: "scanned" });
+  });
+
+  it.each([410, 404])("getQrStatus reads %s as expired, so the screen makes a new code", async (code) => {
+    net.queueReply(jsonReply({ error: "expired" }, code));
+    expect(await getQrStatus(ID), `a ${code} was not read as expired`).toEqual({ status: "expired" });
+  });
+
+  it("completeQrLogin posts the request ID to /api/qr-login/complete", async () => {
+    net.queueReply(jsonReply({ data: { user: { id: 1 } } }));
+    await completeQrLogin(ID);
+    expect(net.calls[0]?.url, "completeQrLogin called the wrong route").toBe("/api/qr-login/complete");
+    expect(net.calls[0]?.body, "completeQrLogin did not send the request ID").toEqual({ requestId: ID });
+  });
+
+  it("throws a QrLoginError with the route's error word", async () => {
+    net.queueReply(jsonReply({ error: "conflict" }, 409));
+    const error = await completeQrLogin(ID).catch((e) => e);
+    expect(error, "a refused complete did not throw a QrLoginError").toBeInstanceOf(QrLoginError);
+    expect(error.status, "the QrLoginError lost the HTTP code").toBe(409);
+    expect(error.code, "the QrLoginError lost the error word").toBe("conflict");
+  });
+});
+
+describe("Direction B calls", () => {
+  it("createDeviceQrSession posts to /api/qr-login/device/create", async () => {
+    net.queueReply(jsonReply({ requestId: ID, qrPayload: `trydos://qr/app/${ID}`, expiresAt: 1 }));
+    await createDeviceQrSession();
+    expect(net.calls[0]?.url, "createDeviceQrSession called the wrong route").toBe(
+      "/api/qr-login/device/create",
+    );
+  });
+
+  it("getDeviceQrStatus returns the device name", async () => {
+    net.queueReply(jsonReply({ status: "claimed", deviceName: "Alaa's iPhone", platform: "ios" }));
+    const result = await getDeviceQrStatus(ID);
+    expect(net.calls[0]?.url, "getDeviceQrStatus called the wrong route").toBe(
+      `/api/qr-login/device/status?id=${ID}`,
+    );
+    expect(result.deviceName, "getDeviceQrStatus lost the device name").toBe("Alaa's iPhone");
+  });
+
+  it("getDeviceQrStatus reads 410 as expired", async () => {
+    net.queueReply(jsonReply({ error: "expired" }, 410));
+    expect((await getDeviceQrStatus(ID)).status, "a 410 was not read as expired").toBe("expired");
   });
 
   it.each([
-    ["Mozilla/5.0 (Windows NT 10.0) Edg/120", { browser: "Edge", os: "Windows" }],
-    ["Mozilla/5.0 (Macintosh; Mac OS X) Firefox/120", { browser: "Firefox", os: "macOS" }],
-    ["Mozilla/5.0 (Linux; Android 14) Safari/605", { browser: "Safari", os: "Android" }],
-    ["Mozilla/5.0 (iPhone) Safari/605", { browser: "Safari", os: "iOS" }],
-    ["Mozilla/5.0 (X11; Linux x86_64) Opera", { browser: "Browser", os: "Linux" }],
-    ["curl/8", { browser: "Browser", os: "Device" }],
-  ])("names %s as the right browser and system", async (ua, context) => {
-    setUA(ua);
-    const { requestId } = await createQrSession();
-    expect((await getQrStatus(requestId)).context, `the device for "${ua}" is named wrongly`).toEqual(context);
+    ["approveDevice", approveDevice, "/api/qr-login/device/approve"],
+    ["denyDevice", denyDevice, "/api/qr-login/device/deny"],
+  ])("%s posts the request ID to its route", async (_name, fn, url) => {
+    net.queueReply(jsonReply({ status: "approved" }));
+    await fn(ID);
+    expect(net.calls[0]?.url, `${_name} called the wrong route`).toBe(url);
+    expect(net.calls[0]?.body, `${_name} did not send the request ID`).toEqual({ requestId: ID });
   });
 });
 
-describe("getQrStatus", () => {
-  it("says expired for an unknown id, a broken record, or a pending session past its time", async () => {
-    localStorage.setItem("qr:broken", "{not json");
-    const { requestId } = await createQrSession();
-    vi.setSystemTime(NOW + 60_001);
-    expect(await getQrStatus("nope"), "an unknown id is not expired").toEqual({ status: "expired" });
-    expect(await getQrStatus("broken"), "a broken record is not expired").toEqual({ status: "expired" });
-    expect(await getQrStatus(requestId), "a timed-out session is not expired").toEqual({ status: "expired" });
+describe("a 401 from a route (the 60-second token ran out)", () => {
+  it("runs the shared market refresh once and sends the call again", async () => {
+    net.queueReply(jsonReply({ error: "unauthorized" }, 401));
+    net.queueReply(jsonReply({ status: "claimed", deviceName: null, platform: null }));
+    const result = await getDeviceQrStatus(ID);
+    expect(RefreshSession, "a 401 did not start the shared market refresh").toHaveBeenCalledOnce();
+    expect(RefreshSession.mock.calls[0]?.[1], "the refresh was not for the market pair").toBe("market");
+    expect(net.calls[1]?.url, "the call was not sent again after the refresh").toBe(
+      `/api/qr-login/device/status?id=${ID}`,
+    );
+    expect(result.status, "the retried call's answer was not returned").toBe("claimed");
   });
 
-  it("keeps an approved or denied answer after the time runs out", async () => {
-    const a = await createQrSession();
-    const b = await createQrSession();
-    await approveQrLogin(a.requestId, { name: "Alaa" });
-    await denyQrLogin(b.requestId);
-    vi.setSystemTime(NOW + 120_000);
-    expect(await getQrStatus(a.requestId), "the approval was lost after expiry").toMatchObject({
-      status: "approved",
-      user: { name: "Alaa" },
-    });
-    expect((await getQrStatus(b.requestId)).status, "the denial was lost after expiry").toBe("denied");
-  });
-});
-
-describe("parseQrPayload", () => {
-  it("reads the id from the app link or from a web link, and nothing from other text", () => {
-    expect(parseQrPayload("trydos://qr/abc-123"), "the app link was not read").toBe("abc-123");
-    expect(parseQrPayload("https://trydos.com/qr?req=xyz"), "the web link was not read").toBe("xyz");
-    expect(parseQrPayload("https://trydos.com/qr"), "a web link with no id gave one").toBeNull();
-    expect(parseQrPayload("hello"), "plain text gave an id").toBeNull();
-  });
-});
-
-describe("markScanned, approveQrLogin, denyQrLogin", () => {
-  it("moves a pending session to scanned, and only a pending one", async () => {
-    const { requestId } = await createQrSession();
-    await markScanned(requestId);
-    expect((await getQrStatus(requestId)).status, "the scan was not recorded").toBe("scanned");
-    await denyQrLogin(requestId);
-    await markScanned(requestId);
-    expect((await getQrStatus(requestId)).status, "a denied session went back to scanned").toBe("denied");
-    await markScanned("nope");
-    expect(localStorage.getItem("qr:nope"), "a scan created a session").toBeNull();
+  it("gives up after one retry, so polling never loops on refresh", async () => {
+    net.queueReply(jsonReply({ error: "unauthorized" }, 401));
+    net.queueReply(jsonReply({ error: "unauthorized" }, 401));
+    const error = await createDeviceQrSession().catch((e) => e);
+    expect(RefreshSession, "a second 401 started a second refresh").toHaveBeenCalledOnce();
+    expect(error?.status, "the second 401 did not reach the caller").toBe(401);
   });
 
-  it("approves a scanned session in time, but not an expired one", async () => {
-    const a = await createQrSession();
-    await markScanned(a.requestId);
-    expect(await approveQrLogin(a.requestId, { name: "A" }), "approve did not answer ok").toEqual({ ok: true });
-    expect((await getQrStatus(a.requestId)).status, "the scanned session was not approved").toBe("approved");
-
-    const b = await createQrSession();
-    vi.setSystemTime(NOW + 60_001);
-    await approveQrLogin(b.requestId, { name: "B" });
-    await approveQrLogin("nope", { name: "C" });
-    const raw = JSON.parse(localStorage.getItem(`qr:${b.requestId}`)!);
-    expect(raw.status, "an expired session was approved").toBe("pending");
-  });
-
-  it("records a bare denial for an id it never saw", async () => {
-    await denyQrLogin("ghost");
-    expect(JSON.parse(localStorage.getItem("qr:ghost")!), "the deny wrote a bare record").toEqual({
-      status: "denied",
-    });
-  });
-
-  it("does nothing on the server", async () => {
-    vi.stubGlobal("window", undefined);
-    await denyQrLogin("srv");
-    expect(await getQrStatus("srv"), "the server read a record").toEqual({ status: "expired" });
+  it("does not retry when the refresh is not allowed (a logout is running)", async () => {
+    RefreshSession.mockResolvedValue({ refreshed: false, eligible: false });
+    net.queueReply(jsonReply({ error: "unauthorized" }, 401));
+    const error = await createQrSession().catch((e) => e);
+    expect(net.callCount, "the call was sent again during a logout").toBe(1);
+    expect(error?.status, "the 401 did not reach the caller").toBe(401);
   });
 });

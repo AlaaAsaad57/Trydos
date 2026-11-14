@@ -23,6 +23,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
 import { GetTicket } from "utils/UploadUtils";
+import { completeQrLogin, QrLoginError } from "services/qrLogin";
 
 // Helper to update user metadata in HttpOnly cookies via server route
 async function updateSecureUserData(
@@ -38,6 +39,114 @@ async function updateSecureUserData(
   } catch (err) {
     // Non-critical — store state is the source of truth for client
   }
+}
+
+/**
+ * Stores the signed-in shopper after a sign-in route answered: the OTP login
+ * (`/api/auth/login`) or the QR login (`/api/qr-login/complete`). Both routes
+ * answer in the same shape and set every token as an HttpOnly cookie, so this
+ * only updates the store and the analytics.
+ *
+ * Returns `[already_exists, name]`.
+ */
+function applySignedIn(response: any, old_geust_id: unknown): [boolean, string] {
+  const {
+    setTempUser,
+    loginSuccess,
+    loginSuccessChat,
+    loginSuccessStories,
+    loginSuccessWallet,
+    setReAuthResult,
+    setShouldAuthinticated,
+  } = useAppStore.getState();
+  if (response?.is_failed) {
+    LogError({
+      source: "login server api",
+      userId: response.data?.user?.id,
+      error: response.is_failed,
+      page: window.location.href,
+      url: "/auth/login",
+      method: "POST",
+      body: response.is_failed,
+    });
+  }
+
+  // Tokens are now set as HttpOnly cookies by the server route.
+  // Only store non-sensitive user data in Zustand.
+  checkWallet({
+    id: response?.WalletUser?.id,
+  });
+
+  const user = response.data.user;
+  if (old_geust_id !== user.id) {
+    GAevent({
+      action: GA_EVENT_NAMES.CUSTOM_USER_MAPPING,
+      params: {
+        user_id_guest: old_geust_id,
+        user_id_verify: user.id,
+      },
+    });
+  }
+  localStorage.removeItem("FBID");
+  SetGAUser(user, !response.data.already_exists);
+  setTempUser({
+    ...user,
+    already_exists: response.data.already_exists,
+    is_verified: false,
+  });
+
+  let userChat = { ...response.ChatUser, need_auth: false };
+  let userStories = { ...response.StoriesUser, need_auth: false };
+  let userWallet = { ...response.WalletUser, need_auth: false };
+
+  localStorage.setItem("LAST-VERIFY", new Date().toISOString());
+  loginSuccess({
+    id: user.id,
+    name: user.name,
+    phone: user.phone,
+    image: user.image,
+    already_exists: response.data.already_exists,
+    is_verified: 1,
+    is_phone_verified: 1,
+  });
+  loginSuccessChat({
+    ...userChat,
+    is_verified: 1,
+    is_phone_verified: 1,
+  });
+  loginSuccessStories({
+    ...userStories,
+    is_verified: 1,
+    is_phone_verified: 1,
+  });
+  loginSuccessWallet({
+    ...userWallet,
+    is_verified: 1,
+    is_phone_verified: 1,
+  });
+
+  // Signal re-auth completed (used by handleUnauthorized polling)
+  setReAuthResult("success");
+  setShouldAuthinticated(false);
+  if (user) {
+    posthogIdentify(user.id, {
+      name: user.name,
+      phone: user.mobilePhone,
+    });
+  }
+  try {
+    home.getNotificationPermissionStatus();
+    home.getClientData();
+    // On /seller, do NOT reload: setReAuthResult("success") above lets the
+    // pending fetchData re-auth poll retry the original request so the seller
+    // continues in place (mirrors the chat/stories flow).
+  } catch (error) {}
+  // not exist and has no name
+  // return [false, ""];
+  // // not exist and has no name
+  // return [true, ""];
+
+  return [response.data.already_exists, user.name];
 }
 
 /**
@@ -157,17 +266,7 @@ class AuthService {
   async VerifyOtp(code: string, verficationID: string) {
     const { userProfile } = useAppStore.getState();
     let old_geust_id = userProfile?.id;
-    const {
-      setTempUser,
-      setWrongNumber,
-      loginFailed,
-      loginSuccess,
-      loginSuccessChat,
-      loginSuccessStories,
-      loginSuccessWallet,
-      setReAuthResult,
-      setShouldAuthinticated,
-    } = useAppStore.getState();
+    const { setWrongNumber, loginFailed } = useAppStore.getState();
     try {
       let response = await fetchData({
         url:
@@ -236,94 +335,7 @@ class AuthService {
         throw serverError;
       }
 
-      if (response?.is_failed) {
-        LogError({
-          source: "login server api",
-          userId: response.data?.user?.id,
-          error: response.is_failed,
-          page: window.location.href,
-          url: "/auth/login",
-          method: "POST",
-          body: response.is_failed,
-        });
-      }
-
-      // Tokens are now set as HttpOnly cookies by the server route.
-      // Only store non-sensitive user data in Zustand.
-      checkWallet({
-        id: response?.WalletUser?.id,
-      });
-
-      const user = response.data.user;
-      if (old_geust_id !== user.id) {
-        GAevent({
-          action: GA_EVENT_NAMES.CUSTOM_USER_MAPPING,
-          params: {
-            user_id_guest: old_geust_id,
-            user_id_verify: user.id,
-          },
-        });
-      }
-      localStorage.removeItem("FBID");
-      SetGAUser(user, !response.data.already_exists);
-      setTempUser({
-        ...user,
-        already_exists: response.data.already_exists,
-        is_verified: false,
-      });
-
-      let userChat = { ...response.ChatUser, need_auth: false };
-      let userStories = { ...response.StoriesUser, need_auth: false };
-      let userWallet = { ...response.WalletUser, need_auth: false };
-
-      localStorage.setItem("LAST-VERIFY", new Date().toISOString());
-      loginSuccess({
-        id: user.id,
-        name: user.name,
-        phone: user.phone,
-        image: user.image,
-        already_exists: response.data.already_exists,
-        is_verified: 1,
-        is_phone_verified: 1,
-      });
-      loginSuccessChat({
-        ...userChat,
-        is_verified: 1,
-        is_phone_verified: 1,
-      });
-      loginSuccessStories({
-        ...userStories,
-        is_verified: 1,
-        is_phone_verified: 1,
-      });
-      loginSuccessWallet({
-        ...userWallet,
-        is_verified: 1,
-        is_phone_verified: 1,
-      });
-
-      // Signal re-auth completed (used by handleUnauthorized polling)
-      setReAuthResult("success");
-      setShouldAuthinticated(false);
-      if (user) {
-        posthogIdentify(user.id, {
-          name: user.name,
-          phone: user.mobilePhone,
-        });
-      }
-      try {
-        home.getNotificationPermissionStatus();
-        home.getClientData();
-        // On /seller, do NOT reload: setReAuthResult("success") above lets the
-        // pending fetchData re-auth poll retry the original request so the seller
-        // continues in place (mirrors the chat/stories flow).
-      } catch (error) {}
-      // not exist and has no name
-      // return [false, ""];
-      // // not exist and has no name
-      // return [true, ""];
-
-      return [response.data.already_exists, user.name];
+      return applySignedIn(response, old_geust_id);
     } catch (e) {
       if (e.message === "user not found") {
         setWrongNumber("user not found");
@@ -341,6 +353,30 @@ class AuthService {
       LogServerError({
         error: e,
         scenario: "Error In VerifyOtp in services/auth",
+      });
+      throw e;
+    }
+  }
+  /**
+   * QR login, Direction A: the app approved this browser's QR. The route
+   * collects this browser's own tokens and signs in to the services, then the
+   * store is updated the same way as after an OTP login.
+   *
+   * Returns `[already_exists, name]`. Throws a `QrLoginError` when the route
+   * refuses.
+   */
+  async CompleteQrLogin(requestId: string) {
+    const old_guest_id = useAppStore.getState().userProfile?.id;
+    try {
+      const response = await completeQrLogin(requestId);
+      if (!response?.data?.user) {
+        throw new QrLoginError(502, "server_error");
+      }
+      return applySignedIn(response, old_guest_id);
+    } catch (e) {
+      LogError({
+        error: e,
+        scenario: "Error In CompleteQrLogin in services/auth",
       });
       throw e;
     }

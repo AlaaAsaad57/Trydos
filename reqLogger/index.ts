@@ -44,6 +44,10 @@ const CREDENTIAL_KEYS = new Set([
   "token",
   "id_token",
   "otp_id_token",
+  // QR login: the one-time token the services check, and the secret that
+  // proves which browser started the login.
+  "qr_id_token",
+  "secret",
   "otp",
   "password",
   "access_token",

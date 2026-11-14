@@ -3312,6 +3312,12 @@ const translations = {
   "You read and agreed to the <m>policies</m> and <m>terms</m>": "<m>Politikaları</m> ve <m>şartları</m> okudunuz ve kabul ettiniz",
   "I <m>read</m> and <m>agree</m> to the <a>policies</a> and <a>terms</a>": "<a>Politikaları</a> ve <a>şartları</a> <m>okudum</m> ve <m>kabul ediyorum</m>",
   "Policies and terms": "Politikalar ve şartlar",
+  // QR login
+  "Open in app": "Uygulamada aç",
+  "Sign in on your phone": "Telefonunda giriş yap",
+  "In the Trydos app, tap Sign in with QR, then scan this code.": "Trydos uygulamasında QR ile giriş yap'a dokun, ardından bu kodu tara.",
+  "Your phone is now signed in": "Telefonunda giriş yapıldı",
+  "The sign-in was denied": "Giriş reddedildi",
 };
 
 export default translations;

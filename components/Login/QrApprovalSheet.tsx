@@ -1,73 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import { translateFunction } from "utils/functions";
-import {
-  getQrStatus,
-  markScanned,
-  approveQrLogin,
-  denyQrLogin,
-  type QrContext,
-  type QrUser,
-} from "services/qrLogin";
 import "public/styles/qrLogin.css";
 
 type Props = {
-  requestId: string;
-  user: QrUser;
-  isRtl: boolean;
+  /** What the user approves, such as the phone's name. */
+  deviceLine: string;
   language: string;
-  onDone: (result: "approved" | "denied") => void;
+  onApprove: () => Promise<void> | void;
+  onDeny: () => Promise<void> | void;
 };
 
-function QrApprovalSheet({ requestId, user, isRtl, language, onDone }: Props) {
-  const [ctx, setCtx] = useState<QrContext | null>(null);
+/**
+ * "Log in on this device?" with Approve and Deny. It never approves by itself:
+ * a QR link can be sent to someone, so the user must always see the device
+ * and choose.
+ */
+function QrApprovalSheet({ deviceLine, language, onApprove, onDeny }: Props) {
   const [busy, setBusy] = useState(false);
   const t = (key: string) => translateFunction(key, language);
 
-  // Mark the desktop session as scanned, then read its context to show here.
-  useEffect(() => {
-    (async () => {
-      await markScanned(requestId);
-      const res = await getQrStatus(requestId);
-      setCtx(res.context || null);
-    })();
-  }, [requestId]);
-
-  const deviceLine = ctx
-    ? [ctx.browser, ctx.os, ctx.city].filter(Boolean).join(" · ")
-    : t("a device");
-
-  const approve = async () => {
+  const run = (action: () => Promise<void> | void) => async () => {
+    if (busy) return;
     setBusy(true);
-    await approveQrLogin(requestId, user);
-    onDone("approved");
-  };
-  const deny = async () => {
-    setBusy(true);
-    await denyQrLogin(requestId);
-    onDone("denied");
+    try {
+      await action();
+    } finally {
+      setBusy(false);
+    }
   };
 
-  if (typeof document === "undefined") return null;
-
-  return createPortal(
-    <div className="qr-sheet-backdrop" dir={isRtl ? "rtl" : "ltr"} onClick={deny}>
-      <div className="qr-sheet" onClick={(e) => e.stopPropagation()}>
-        <h3>{t("Log in on this device?")}</h3>
-        <div className="qr-sheet-ctx">{deviceLine}</div>
-        <div className="qr-sheet-actions">
-          <button className="qr-sheet-deny" data-pw="qr-deny" onClick={deny} disabled={busy}>
-            {t("Deny")}
-          </button>
-          <button className="qr-sheet-approve" data-pw="qr-approve" onClick={approve} disabled={busy}>
-            {t("Approve")}
-          </button>
-        </div>
+  return (
+    <div className="qr-sheet-approval">
+      <h3>{t("Log in on this device?")}</h3>
+      <div className="qr-sheet-ctx" data-pw="qr-device">
+        {deviceLine || t("a device")}
       </div>
-    </div>,
-    document.body,
+      <div className="qr-sheet-actions">
+        <button className="qr-sheet-deny" data-pw="qr-deny" onClick={run(onDeny)} disabled={busy}>
+          {t("Deny")}
+        </button>
+        <button className="qr-sheet-approve" data-pw="qr-approve" onClick={run(onApprove)} disabled={busy}>
+          {t("Approve")}
+        </button>
+      </div>
+    </div>
   );
 }
 

@@ -37,6 +37,7 @@ import NotFoundScreen from './screens/NotFoundScreen';
 import AuthSuccessScreen from './screens/AuthSuccessScreen';
 import InputNameScreen from './screens/InputNameScreen';
 import QrLoginScreen from './screens/QrLoginScreen';
+import { isQrLoginEnabled } from 'services/qrLogin';
 import SplashScreen from './screens/SplashScreen';
 
 type AuthStep =
@@ -503,18 +504,31 @@ export default function FullEnhancedLoginWidget() {
     };
 
     /**
-     * The phone approved the QR login. `services/qrLogin` is still the
-     * localStorage mock, so no session is issued here — re-sync and close so the
-     * screen is never a dead end. When the real endpoints land, exchange the
-     * request id for a session BEFORE closing.
+     * The app approved the QR login. Collect this browser's own tokens and
+     * sign in, the same way as after an OTP login. When this throws, the QR
+     * screen shows "Something went wrong" with "Show a new code".
      */
-    const handleQrApproved = () => {
-        GAevent({
-            action: GA_EVENT_NAMES.LOGIN,
-            params: { method_otp: 'qr', success: true },
-        });
-        refreshAfterAuth();
-        close();
+    const handleQrApproved = async (requestId: string) => {
+        try {
+            const [, userName] = await AuthService.CompleteQrLogin(requestId);
+            GAevent({
+                action: GA_EVENT_NAMES.LOGIN,
+                params: { method_otp: 'qr', success: true },
+            });
+            refreshAfterAuth();
+            // An account with no name still owes us the name, as after OTP login.
+            if (!hasRealName(userName)) {
+                goTo('input-name', 1);
+            } else {
+                close();
+            }
+        } catch (e) {
+            GAevent({
+                action: GA_EVENT_NAMES.LOGIN,
+                params: { method_otp: 'qr', success: false },
+            });
+            throw e;
+        }
     };
 
     const getScreenBg = () => {
@@ -594,7 +608,9 @@ export default function FullEnhancedLoginWidget() {
                                             goTo('terms', 1);
                                         }}
                                         onLater={handleLater}
-                                        onScanQr={() => {
+                                        // No handler, no QR button: hidden
+                                        // until the backend has QR login.
+                                        onScanQr={isQrLoginEnabled() ? () => {
                                             GAevent({
                                                 action: GA_EVENT_NAMES.LOGIN_START,
                                                 params: {
@@ -604,7 +620,7 @@ export default function FullEnhancedLoginWidget() {
                                                 },
                                             });
                                             goTo('qr-login', 1);
-                                        }}
+                                        } : undefined}
                                         lang={langCode}
                                         variant="fullscreen"
                                     />

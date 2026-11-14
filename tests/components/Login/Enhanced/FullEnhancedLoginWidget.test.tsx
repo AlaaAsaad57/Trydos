@@ -17,6 +17,8 @@ vi.mock("services/auth", () => ({
     SendOtp: vi.fn(),
     VerifyOtp: vi.fn(),
     UpdateName: vi.fn(),
+    // QR login: signs this browser in after the app approved.
+    CompleteQrLogin: vi.fn(async () => [true, "Sara"]),
   },
 }));
 
@@ -47,9 +49,9 @@ vi.mock("serverRequests", () => ({
 // its own test; here it is two buttons, so the widget's QR hand-offs (approved,
 // back) can be pressed.
 vi.mock("components/Login/Enhanced/screens/QrLoginScreen", () => ({
-  default: ({ onApproved, onBack }: { onApproved: () => void; onBack: () => void }) => (
+  default: ({ onApproved, onBack }: { onApproved: (id: string) => void; onBack: () => void }) => (
     <div>
-      <button onClick={onApproved}>qr approved</button>
+      <button onClick={() => onApproved("req-1")}>qr approved</button>
       <button onClick={onBack}>qr back</button>
     </div>
   ),
@@ -189,6 +191,7 @@ beforeEach(() => {
 afterEach(() => {
   resetDevice();
   vi.clearAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("the three-try cap on the login and signup screen", () => {
@@ -601,13 +604,29 @@ describe("FullEnhancedLoginWidget — the screens and their hand-offs", () => {
     );
   }, 15000);
 
+  // The core backend has no QR login yet, so the button stays hidden until
+  // NEXT_PUBLIC_QR_LOGIN_ENABLED is "true".
+  it("QR login: the QR button is hidden while QR login is off", async () => {
+    vi.stubEnv("NEXT_PUBLIC_QR_LOGIN_ENABLED", "");
+    await openWidget();
+    expect(
+      document.querySelector('[data-pw="scan-qr-code"]'),
+      "the QR button shows on the first screen while QR login is off",
+    ).toBeNull();
+  });
+
   it("QR login: back returns to the first screen, approval closes the widget", async () => {
+    vi.stubEnv("NEXT_PUBLIC_QR_LOGIN_ENABLED", "true");
     const { user } = await openWidget();
     await user.click(pw("scan-qr-code"));
     await user.click(await screen.findByText("qr back"));
     await user.click(pw("scan-qr-code"));
     await user.click(await screen.findByText("qr approved"));
-    expect(isOpen(), "QR approval did not close").toBe(false);
+    expect(
+      AuthService.CompleteQrLogin,
+      "the approval did not sign this browser in with the request ID",
+    ).toHaveBeenCalledWith("req-1");
+    await waitFor(() => expect(isOpen(), "QR approval did not close").toBe(false));
     expect(
       gaEvent.mock.calls.some(
         ([p]: [{ action: string; params: { method_otp?: string } }]) =>

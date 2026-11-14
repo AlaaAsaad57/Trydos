@@ -19,3 +19,21 @@ export const LOG_IN_COMMENTS_ENDPOINT = "/public_comment/auth/exchange_token";
 export const LOG_IN_CHAT_ENDPOINT = "/api/v1/users/login";
 export const LOG_IN_STORIES_ENDPOINT = "/api/v1/users/login";
 export const LOG_IN_WALLET_ENDPOINT = "/auth/phone/login-with-id-token";
+// QR login: each service checks `qr_id_token` with the market backend
+// (docs/qr-login-tasks.md, section 2). The paths are a proposal until each
+// service ships them.
+export const QR_LOG_IN_CHAT_ENDPOINT = "/api/v1/users/login-qr";
+export const QR_LOG_IN_STORIES_ENDPOINT = "/api/v1/users/login-qr";
+export const QR_LOG_IN_COMMENTS_ENDPOINT =
+  "/public_comment/auth/exchange_qr_token";
+// QR login on the market backend (core, BACKEND_URL). See
+// docs/qr-login-tasks.md, section 1.
+export const QR_LOGIN_ENDPOINTS = {
+  webCreate: "/qr-login/web/create",
+  webStatus: (id: string) => `/qr-login/web/${encodeURIComponent(id)}/status`,
+  webCollect: (id: string) => `/qr-login/web/${encodeURIComponent(id)}/collect`,
+  appCreate: "/qr-login/app/create",
+  appStatus: (id: string) => `/qr-login/app/${encodeURIComponent(id)}/status`,
+  appApprove: (id: string) => `/qr-login/app/${encodeURIComponent(id)}/approve`,
+  appDeny: (id: string) => `/qr-login/app/${encodeURIComponent(id)}/deny`,
+};

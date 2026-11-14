@@ -3329,6 +3329,12 @@ const translations = {
   "You read and agreed to the <m>policies</m> and <m>terms</m>": "<m>سیاسەتەکان</m> و <m>مەرجەکان</m>ت خوێندەوە و ڕازی بوویت",
   "I <m>read</m> and <m>agree</m> to the <a>policies</a> and <a>terms</a>": "<a>سیاسەتەکان</a> و <a>مەرجەکان</a>م <m>خوێندەوە</m> و <m>ڕازیم</m>",
   "Policies and terms": "سیاسەت و مەرجەکان",
+  // QR login
+  "Open in app": "لە ئەپەکەدا بیکەرەوە",
+  "Sign in on your phone": "لە مۆبایلەکەتدا بچۆ ژوورەوە",
+  "In the Trydos app, tap Sign in with QR, then scan this code.": "لە ئەپی Trydos، لەسەر چوونەژوورەوە بە QR دابگرە، پاشان ئەم کۆدە سکان بکە.",
+  "Your phone is now signed in": "ئێستا مۆبایلەکەت چووەتە ژوورەوە",
+  "The sign-in was denied": "چوونەژوورەوەکە ڕەتکرایەوە",
 };
 
 export default translations;

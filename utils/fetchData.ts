@@ -36,6 +36,10 @@ type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 const CREDENTIAL_FIELDS = [
   "id_token",
   "otp_id_token",
+  // QR login: the one-time token the services check, and the secret that
+  // proves which browser started the login.
+  "qr_id_token",
+  "secret",
   "otp",
   "password",
   // The confirmation carries the SAME value as the password, so masking one
