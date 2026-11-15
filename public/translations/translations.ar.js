@@ -2330,6 +2330,7 @@ const translations = {
   "Choose file from device": "اختر ملفاً من الجهاز",
   "a device": "جهاز",
   "Log in on this device?": "تسجيل الدخول على هذا الجهاز؟",
+  "Approve only if you started this sign-in yourself.": "وافق فقط إذا كنت أنت من بدأ تسجيل الدخول هذا.",
   "Deny": "رفض",
   "Approve": "موافقة",
   "Camera unavailable — allow camera access to scan": "الكاميرا غير متاحة — اسمح بالوصول إلى الكاميرا للمسح",

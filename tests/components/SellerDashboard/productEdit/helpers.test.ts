@@ -562,6 +562,91 @@ describe("followProductPrice — variants follow a product price change", () => 
     expect(next.Red.price, "30 after a -50 change was not kept as -20").toBe("-20");
   });
 
+  // The QA path of the ticket "Move Variant Prices With Product Price Changes",
+  // with its exact numbers. Each step is what the editor does when the seller
+  // leaves a product price field: followProductPrice(from, to).
+  it("walks the ticket's QA path step by step", () => {
+    const row = (price: string) => ({ ...fullRow({ price, discount: "80", luck: "60" }) });
+    let form = validForm({
+      unit_price: "100",
+      discount_price: "80",
+      luck_price: "60",
+      purchase_price: "5",
+      colors: [red, blue],
+      variations: { Red: { ...row("105"), sku: "R" }, Blue: { ...row("100"), sku: "B" } },
+    });
+    const saved = form;
+    const leave = (field: "unit_price" | "discount_price" | "luck_price", to: string) => {
+      form = { ...form, variations: followProductPrice(form, field, form[field], to), [field]: to };
+    };
+
+    // Step 2: unit price 100 -> 120.
+    leave("unit_price", "120");
+    expect(form.variations.Red.price, "step 2: Red is not 125").toBe("125");
+    expect(form.variations.Blue.price, "step 2: Blue is not 120").toBe("120");
+    expect(form.variations.Red.discount, "step 2: a unit price change moved a discount").toBe("80");
+    expect(form.variations.Red.luck, "step 2: a unit price change moved a luck price").toBe("60");
+
+    // Step 3: discount 80 -> 90.
+    leave("discount_price", "90");
+    expect(form.variations.Red.discount, "step 3: Red discount is not 90").toBe("90");
+    expect(form.variations.Blue.discount, "step 3: Blue discount is not 90").toBe("90");
+    expect(form.variations.Red.price, "step 3: a discount change moved a price").toBe("125");
+
+    // Step 4: Blue's discount emptied, then product discount 90 -> 95.
+    form = { ...form, variations: { ...form.variations, Blue: { ...form.variations.Blue, discount: "" } } };
+    leave("discount_price", "95");
+    expect(form.variations.Red.discount, "step 4: Red discount is not 95").toBe("95");
+    expect(form.variations.Blue.discount, "step 4: Blue got a discount it did not have").toBe("");
+
+    // Step 5: product discount cleared.
+    const before5 = form.variations;
+    leave("discount_price", "");
+    expect(form.variations, "step 5: clearing the product discount changed a variant").toBe(before5);
+
+    // Step 6: Blue's price typed by hand.
+    form = { ...form, variations: { ...form.variations, Blue: { ...form.variations.Blue, price: "70" } } };
+
+    // Step 7: unit price 120 -> 10, then save.
+    leave("unit_price", "10");
+    expect(form.variations.Red.price, "step 7: Red is not 15").toBe("15");
+    expect(form.variations.Blue.price, "step 7: Blue is not -40 (it must not be clamped to 0)").toBe("-40");
+    const e = validate(form);
+    expect(e.variation_price_Blue, "step 7: the save was not refused for Blue's price").toBe(
+      "Variant price cannot be negative",
+    );
+    expect(e.variation_price_Red, "step 7: Red's price 15 below its discount 95 was not refused").toBe(
+      "Unit price must be greater than discount price",
+    );
+    expect(e.luck_price, "step 7: the product luck price 60 above the unit price 10 was not marked").toBe(
+      "Luck price cannot be greater than unit price",
+    );
+    expect(e.unit_price, "step 7: with purchase price 5, unit price 10 must not be marked").toBeUndefined();
+
+    // Step 8: unit price 10 -> 120, then save: no variant error, and the
+    // confirm dialog lists the moved prices against the saved product.
+    leave("unit_price", "120");
+    expect(form.variations.Red.price, "step 8: Red is not 125").toBe("125");
+    expect(form.variations.Blue.price, "step 8: Blue is not 70").toBe("70");
+    const e8 = validate(form);
+    expect(
+      Object.keys(e8).filter((k) => k.startsWith("variation")),
+      "step 8: a variant still has an error",
+    ).toEqual([]);
+    const variants = buildDiff(saved, form, lookupsWith()).find((d) => d.key === "variations")?.variantsDetails ?? [];
+    const changesOf = (k: string) => variants.find((v) => v.key === k)?.changes;
+    expect(changesOf("Red"), "step 8: the dialog does not list Red's price 105 -> 125").toContainEqual({
+      fieldLabel: "Price",
+      from: "105",
+      to: "125",
+    });
+    expect(changesOf("Blue"), "step 8: the dialog does not list Blue's price 100 -> 70").toContainEqual({
+      fieldLabel: "Price",
+      from: "100",
+      to: "70",
+    });
+  });
+
   it("rounds to the currency's decimal digits", () => {
     const form = priced({ Red: { price: "0.1" } });
     expect(followProductPrice(form, "unit_price", "1", "1.2").Red.price, "0.1 + 0.2 kept float noise").toBe("0.3");

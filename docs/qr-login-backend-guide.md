@@ -217,6 +217,13 @@ Request:
 | `secret_hash` | required, 64 hex characters |
 | `device_name` | optional, max 100 |
 | `platform` | optional, max 20 (for example `ios`, `android`) |
+| `browser`, `os`, `country`, `city`, `region`, `ip` | optional, text, max 100. Same fields and rules as `web/create` (section 3.1). **Requested change: store them.** |
+
+The web phone scanner (`/api/qr-login/scan/claim`) already sends the extra fields. A web claim looks like this:
+```json
+{ "secret_hash": "4b1d…", "device_name": "Chrome, iOS", "platform": "web", "browser": "Chrome", "os": "iOS", "ip": "5.0.0.11", "country": "SY", "city": "Aleppo", "region": "Aleppo Governorate" }
+```
+Read every value from the body, not from your own headers, because the caller is the web server.
 
 Response **200**: `{ "data": { "status": "claimed", "expires_at": "…" } }`
 - The first claim wins. A second device gets **409**.
@@ -225,6 +232,9 @@ Response **200**: `{ "data": { "status": "claimed", "expires_at": "…" } }`
 There are two callers:
 - **The side that showed the QR** sends its **user token**. It gets:
   `{ "data": { "status": "claimed", "device_name": "Alaa's iPhone", "platform": "ios" } }`
+- **Requested change:** also answer the claim's `browser`, `os`, `country`, `city` and `region` (each can be `null`), so the approve sheet can show the phone's flag and city:
+  `{ "data": { "status": "claimed", "device_name": "Chrome, iOS", "platform": "web", "browser": "Chrome", "os": "iOS", "country": "SY", "city": "Aleppo", "region": "Aleppo Governorate" } }`
+  Never answer `ip` here. Checked on staging on 2026-11-15: the claim accepts the extra fields with 200, but `app/status` does not answer them yet.
 - **The phone that claimed** sends `X-QR-Secret-Hash: <secret_hash>`. It gets: `{ "data": { "status": "approved" } }`
 - Anyone else gets **403**.
 - If the header is sent, the backend checks the hash first.

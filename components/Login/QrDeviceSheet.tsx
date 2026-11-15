@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { translateFunction } from "utils/functions";
 import CustomQRCode from "components/Login/Enhanced/ui/CustomQRCode";
 import QrApprovalSheet from "components/Login/QrApprovalSheet";
+import type { QrDeviceInfo } from "components/Login/QrDeviceDetails";
 import {
   approveDevice,
   createDeviceQrSession,
@@ -44,7 +45,7 @@ function QrDeviceSheet({ isRtl, language, onClose, onScan }: Props) {
   const t = (key: string) => translateFunction(key, language);
   const [step, setStep] = useState<Step>("loading");
   const [session, setSession] = useState<QrSession | null>(null);
-  const [deviceLine, setDeviceLine] = useState("");
+  const [device, setDevice] = useState<QrDeviceInfo>({});
   const codesRef = useRef(0);
   const startedRef = useRef(false);
 
@@ -95,7 +96,15 @@ function QrDeviceSheet({ isRtl, language, onClose, onScan }: Props) {
           return;
         } else if (res.status === "claimed" && step === "pending") {
           codesRef.current = 0;
-          setDeviceLine([res.deviceName, res.platform].filter(Boolean).join(" · "));
+          setDevice({
+            name: res.deviceName,
+            platform: res.platform,
+            browser: res.browser,
+            os: res.os,
+            city: res.city,
+            region: res.region,
+            country: res.country,
+          });
           setStep("claimed");
         } else if (res.status === "approved" || res.status === "denied") {
           // Decided in another tab of the same account.
@@ -147,7 +156,7 @@ function QrDeviceSheet({ isRtl, language, onClose, onScan }: Props) {
       <div className="qr-sheet" data-pw="qr-device-sheet" onClick={(e) => e.stopPropagation()}>
         {step === "claimed" ? (
           <QrApprovalSheet
-            deviceLine={deviceLine}
+            device={device}
             language={language}
             onApprove={decide("approve")}
             onDeny={decide("deny")}

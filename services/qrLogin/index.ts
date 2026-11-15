@@ -21,6 +21,12 @@ export type QrDeviceStatusResult = {
   status: QrDeviceStatus;
   deviceName: string | null;
   platform: string | null;
+  /** The phone that claimed. Null while the core backend does not answer them. */
+  browser?: string | null;
+  os?: string | null;
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
 };
 
 /**

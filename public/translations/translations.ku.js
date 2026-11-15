@@ -2369,6 +2369,7 @@ const translations = {
   "Choose file from device": "فایل هەڵبژێرە لە ئامێرەکە",
   "a device": "ئامێرێک",
   "Log in on this device?": "چوونەژوورەوە لەم ئامێرەدا؟",
+  "Approve only if you started this sign-in yourself.": "تەنها ئەگەر خۆت ئەم چوونەژوورەوەیەت دەستپێکردبێت، ڕەزامەندی بدە.",
   "Deny": "ڕەتکردنەوە",
   "Approve": "پەسەندکردن",
   "Camera unavailable — allow camera access to scan": "کامێرا بەردەست نییە — ڕێگە بدە بە دەستگەیشتن بە کامێرا بۆ سکان",

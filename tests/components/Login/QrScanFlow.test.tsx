@@ -92,7 +92,22 @@ describe("QrScanFlow, signed in (Direction A)", () => {
     await open(true);
     await scan("web");
     expect(qr.markWebQrScanned, "scanning did not tell the backend this phone scanned").toHaveBeenCalledWith("web-1");
-    expect(screen.getByText("Chrome · Windows · Mumbai"), "the browser's place is not on the approve sheet").toBeTruthy();
+    expect(
+      document.querySelector('[data-pw="qr-device-place"]')?.textContent,
+      "the browser's city and country are not on the approve sheet",
+    ).toBe("Mumbai, India");
+    expect(
+      document.querySelector('[data-pw="qr-device-flag"]')?.getAttribute("src"),
+      "the browser's flag is not on the approve sheet",
+    ).toContain("/icons/flag/in.svg");
+    expect(
+      document.querySelector('[data-pw="qr-device-browser"] [data-icon]')?.getAttribute("data-icon"),
+      "the browser has no Chrome icon on the approve sheet",
+    ).toBe("chrome");
+    expect(
+      document.querySelector('[data-pw="qr-device-os"] [data-icon]')?.getAttribute("data-icon"),
+      "the browser's system has no Windows icon on the approve sheet",
+    ).toBe("windows");
   });
 
   it("approves on tap and says the browser is signed in", async () => {

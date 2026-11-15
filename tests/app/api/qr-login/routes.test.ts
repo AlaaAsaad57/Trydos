@@ -414,7 +414,36 @@ describe("Direction B routes (the signed-in web signs in a phone)", () => {
       status: "claimed",
       deviceName: "Alaa's iPhone",
       platform: "ios",
+      browser: null,
+      os: null,
+      city: null,
+      region: null,
+      country: null,
     });
+  });
+
+  it("device/status passes on the phone's browser, system and place when the core backend answers them", async () => {
+    net.queueReply(
+      ok({
+        status: "claimed",
+        device_name: "Chrome, iOS",
+        platform: "web",
+        browser: "Chrome",
+        os: "iOS",
+        city: "Damascus",
+        region: "Damascus Governorate",
+        country: "SY",
+      }),
+    );
+    const { GET } = await import("app/api/qr-login/device/status/route");
+    const body = await (await GET(makeRequest(`/api/qr-login/device/status?id=${REQUEST_ID}`))).json();
+    expect(body.browser, "device/status dropped the browser from the core backend's app/status").toBe("Chrome");
+    expect(body.os, "device/status dropped the system from the core backend's app/status").toBe("iOS");
+    expect(body.city, "device/status dropped the city from the core backend's app/status").toBe("Damascus");
+    expect(body.region, "device/status dropped the region from the core backend's app/status").toBe(
+      "Damascus Governorate",
+    );
+    expect(body.country, "device/status dropped the country from the core backend's app/status").toBe("SY");
   });
 
   // The settings sheet polls every 2 seconds for a signed-in user. If this route
@@ -521,14 +550,14 @@ describe("phone scanner routes, Direction B (a signed-out phone claims a signed-
   const IPHONE_UA =
     "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 
-  const claim = async () => {
+  const claim = async (extraHeaders: Record<string, string> = {}) => {
     net.queueReply(ok({ status: "claimed", expires_at: "2026-11-14T10:01:00Z" }));
     const { POST } = await import("app/api/qr-login/scan/claim/route");
     return POST(
       makeRequest("/api/qr-login/scan/claim", {
         method: "POST",
         body: { requestId: REQUEST_ID },
-        headers: { "user-agent": IPHONE_UA },
+        headers: { "user-agent": IPHONE_UA, ...extraHeaders },
       }),
     );
   };
@@ -555,6 +584,25 @@ describe("phone scanner routes, Direction B (a signed-out phone claims a signed-
       "Mobile Safari, iOS",
     );
     expect(body?.platform, "app/claim was not sent the web platform").toBe("web");
+  });
+
+  // Same fields as web/create (Direction A), so the signed-in device can show
+  // the phone's flag, city, browser and system, not only "Mobile Safari, iOS".
+  it("scan/claim sends the phone's browser, system and Cloudflare location", async () => {
+    await claim({
+      "cf-connecting-ip": "5.0.0.1",
+      "cf-ipcountry": "SY",
+      "cf-ipcity": "Damascus",
+      "cf-region": "Damascus Governorate",
+      "x-vercel-ip-city": "Frankfurt",
+    });
+    const body = net.calls[0]?.body;
+    expect(body?.browser, "app/claim was not sent the phone's browser").toBe("Mobile Safari");
+    expect(body?.os, "app/claim was not sent the phone's system").toBe("iOS");
+    expect(body?.ip, "app/claim was not sent the IP from cf-connecting-ip").toBe("5.0.0.1");
+    expect(body?.country, "app/claim was not sent the country from cf-ipcountry").toBe("SY");
+    expect(body?.city, "app/claim must get the city from cf-ipcity, not from x-vercel-ip-city").toBe("Damascus");
+    expect(body?.region, "app/claim was not sent the region from cf-region").toBe("Damascus Governorate");
   });
 
   it("scan/claim keeps the secret in its own HttpOnly cookie, never in the login screen's cookie", async () => {

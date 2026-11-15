@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
   if (!requestId) return errorReply(400);
 
   const { secret, secretHash } = makeSecret();
-  const { browser, os } = readClientContext(request);
+  const context = readClientContext(request);
+  const { browser, os } = context;
   const result = await callInventory({
     path: QR_LOGIN_ENDPOINTS.appClaim(requestId),
     method: "POST",
@@ -31,6 +32,10 @@ export async function POST(request: NextRequest) {
       // no words, so it needs no translation.
       device_name: [browser, os].filter(Boolean).join(", ") || null,
       platform: "web",
+      // The same fields as web/create (Direction A), so the signed-in device
+      // can show this phone's flag, city, browser and system. See
+      // docs/qr-login-backend-guide.md, section 4.2.
+      ...context,
     },
     request,
   });

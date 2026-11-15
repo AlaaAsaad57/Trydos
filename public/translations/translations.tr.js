@@ -2337,6 +2337,7 @@ const translations = {
   "Choose file from device": "Cihazdan dosya seçin",
   "a device": "bir cihaz",
   "Log in on this device?": "Bu cihazda oturum açılsın mı?",
+  "Approve only if you started this sign-in yourself.": "Yalnızca bu oturum açma işlemini kendiniz başlattıysanız onaylayın.",
   "Deny": "Reddet",
   "Approve": "Onayla",
   "Camera unavailable — allow camera access to scan": "Kamera kullanılamıyor — taramak için kamera erişimine izin verin",

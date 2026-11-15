@@ -82,12 +82,41 @@ describe("QrDeviceSheet", () => {
     qr.getDeviceQrStatus.mockResolvedValue({ status: "claimed", deviceName: "Alaa's iPhone", platform: "ios" });
     await open();
     await tick();
-    expect(screen.getByText("Alaa's iPhone · ios"), "the claimed phone's name is not shown").toBeTruthy();
+    expect(screen.getByText("Alaa's iPhone"), "the claimed phone's name is not shown").toBeTruthy();
     await act(async () => {
       fireEvent.click(screen.getByText(/^approve$/i));
     });
     expect(qr.approveDevice, "Approve did not approve this request").toHaveBeenCalledWith("id-1");
     expect(screen.getByText(/^your phone is now signed in$/i), "the sheet did not say the phone is signed in").toBeTruthy();
+  });
+
+  it("shows the claimed phone's flag, place, browser and system when device/status answers them", async () => {
+    qr.getDeviceQrStatus.mockResolvedValue({
+      status: "claimed",
+      deviceName: "Chrome, iOS",
+      platform: "web",
+      browser: "Chrome",
+      os: "iOS",
+      city: "Damascus",
+      region: null,
+      country: "SY",
+    });
+    await open();
+    await tick();
+    const place = document.querySelector('[data-pw="qr-device-place"]');
+    expect(place?.textContent, "the claimed phone's city and country are not shown").toBe("Damascus, Syria");
+    expect(
+      document.querySelector('[data-pw="qr-device-flag"]')?.getAttribute("src"),
+      "the claimed phone's flag is not the SY flag",
+    ).toContain("/icons/flag/sy.svg");
+    expect(
+      document.querySelector('[data-pw="qr-device-browser"] [data-icon]')?.getAttribute("data-icon"),
+      "the claimed phone's browser has no Chrome icon",
+    ).toBe("chrome");
+    expect(
+      document.querySelector('[data-pw="qr-device-os"] [data-icon]')?.getAttribute("data-icon"),
+      "the claimed phone's system has no Apple icon",
+    ).toBe("apple");
   });
 
   it("makes a new code when one expires, and stops after 3 codes", async () => {

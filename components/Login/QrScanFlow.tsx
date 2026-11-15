@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { translateFunction } from "utils/functions";
 import QrScannerModal from "components/Login/QrScannerModal";
 import QrApprovalSheet from "components/Login/QrApprovalSheet";
+import type { QrDeviceInfo } from "components/Login/QrDeviceDetails";
 import {
   approveWebQr,
   claimAppQr,
@@ -59,7 +60,7 @@ function QrScanFlow({ isRtl, language, signedIn, onSignIn, onClose }: Props) {
   const t = (key: string) => translateFunction(key, language);
   const [step, setStep] = useState<Step>("scanning");
   const [requestId, setRequestId] = useState("");
-  const [deviceLine, setDeviceLine] = useState("");
+  const [device, setDevice] = useState<QrDeviceInfo>({});
   const [failKey, setFailKey] = useState("");
 
   const fail = (key: string) => {
@@ -79,9 +80,13 @@ function QrScanFlow({ isRtl, language, signedIn, onSignIn, onClose }: Props) {
     try {
       if (signedIn) {
         const where = await markWebQrScanned(qr.requestId);
-        setDeviceLine(
-          [where.browser, where.os, where.city, where.region].filter(Boolean).join(" · "),
-        );
+        setDevice({
+          browser: where.browser,
+          os: where.os,
+          city: where.city,
+          region: where.region,
+          country: where.country,
+        });
         setStep("confirm");
       } else {
         await claimAppQr(qr.requestId);
@@ -173,7 +178,7 @@ function QrScanFlow({ isRtl, language, signedIn, onSignIn, onClose }: Props) {
       <div className="qr-sheet" data-pw="qr-scan-sheet" onClick={(e) => e.stopPropagation()}>
         {step === "confirm" && (
           <QrApprovalSheet
-            deviceLine={deviceLine}
+            device={device}
             language={language}
             onApprove={decide("approve")}
             onDeny={decide("deny")}

@@ -3,14 +3,15 @@
 import { describe, expect, it, vi } from "vitest";
 
 import QrApprovalSheet from "components/Login/QrApprovalSheet";
+import type { QrDeviceInfo } from "components/Login/QrDeviceDetails";
 
 import { act, fireEvent, renderWithProviders, screen } from "../../render";
 
-async function openSheet(deviceLine = "Alaa's iPhone · ios") {
+async function openSheet(device: QrDeviceInfo = { name: "Alaa's iPhone", platform: "ios" }) {
   const onApprove = vi.fn();
   const onDeny = vi.fn();
   await renderWithProviders(
-    <QrApprovalSheet deviceLine={deviceLine} language="en" onApprove={onApprove} onDeny={onDeny} />,
+    <QrApprovalSheet device={device} language="en" onApprove={onApprove} onDeny={onDeny} />,
   );
   return { onApprove, onDeny };
 }
@@ -18,11 +19,21 @@ async function openSheet(deviceLine = "Alaa's iPhone · ios") {
 describe("QrApprovalSheet", () => {
   it("names the phone that asks to sign in", async () => {
     await openSheet();
-    expect(screen.getByText("Alaa's iPhone · ios"), "the sheet does not name the phone").toBeTruthy();
+    expect(screen.getByText("Alaa's iPhone"), "the sheet does not name the phone").toBeTruthy();
+  });
+
+  // QRLjacking: an attacker can show the user the attacker's own QR, or send
+  // its link. The sheet warns before the user approves a sign-in they did not start.
+  it("warns to approve only a sign-in the user started", async () => {
+    await openSheet();
+    expect(
+      screen.getByText(/^approve only if you started this sign-in yourself\.?$/i),
+      "the approve sheet has no warning about sign-ins the user did not start",
+    ).toBeTruthy();
   });
 
   it("says 'a device' when the phone sent no name", async () => {
-    await openSheet("");
+    await openSheet({});
     expect(screen.getByText(/^a device$/i), "the sheet shows an empty device line").toBeTruthy();
   });
 

@@ -25,8 +25,50 @@
 .qr-sheet-actions { display: flex; gap: 10px; }
 .qr-sheet-actions button { flex: 1; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: 0; }
 .qr-sheet-deny { background: #f1efef; color: #1d1d1d; }
+.qr-sheet-warning { margin: -6px 0 16px; text-align: center; font-size: 12px; color: #f85555; }
 .qr-sheet-approve { background: #1b8f4d; color: #fff; }
 .qr-sheet-approve:disabled { opacity: 0.6; cursor: default; }
+
+/* The other device on an approve sheet (components/Login/QrDeviceDetails.tsx). */
+.qr-device {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 14px 12px;
+  border-radius: 14px;
+  background: #f7f7f7;
+}
+.qr-device-place-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d1d1d;
+}
+.qr-device-flag {
+  width: 24px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.qr-device-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.qr-device-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #ececec;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1d1d1d;
+}
+.qr-device-chip svg { width: 16px; height: 16px; flex: none; }
 
 /* Direction B: the QR in Settings (components/Login/QrDeviceSheet.tsx). */
 .qr-sheet-code {

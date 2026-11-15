@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { translateFunction } from "utils/functions";
+import QrDeviceDetails, { type QrDeviceInfo } from "components/Login/QrDeviceDetails";
 import "public/styles/qrLogin.css";
 
 type Props = {
-  /** What the user approves, such as the phone's name. */
-  deviceLine: string;
+  /** The device the user approves: its place, browser and system. */
+  device: QrDeviceInfo;
   language: string;
   onApprove: () => Promise<void> | void;
   onDeny: () => Promise<void> | void;
@@ -17,7 +18,7 @@ type Props = {
  * a QR link can be sent to someone, so the user must always see the device
  * and choose.
  */
-function QrApprovalSheet({ deviceLine, language, onApprove, onDeny }: Props) {
+function QrApprovalSheet({ device, language, onApprove, onDeny }: Props) {
   const [busy, setBusy] = useState(false);
   const t = (key: string) => translateFunction(key, language);
 
@@ -34,9 +35,12 @@ function QrApprovalSheet({ deviceLine, language, onApprove, onDeny }: Props) {
   return (
     <div className="qr-sheet-approval">
       <h3>{t("Log in on this device?")}</h3>
-      <div className="qr-sheet-ctx" data-pw="qr-device">
-        {deviceLine || t("a device")}
-      </div>
+      <QrDeviceDetails device={device} language={language} />
+      {/* Someone can show the user their own QR, or send its link. If the user
+          approves, that person's device signs in to the user's account. */}
+      <p className="qr-sheet-warning" data-pw="qr-approve-warning">
+        {t("Approve only if you started this sign-in yourself.")}
+      </p>
       <div className="qr-sheet-actions">
         <button className="qr-sheet-deny" data-pw="qr-deny" onClick={run(onDeny)} disabled={busy}>
           {t("Deny")}
