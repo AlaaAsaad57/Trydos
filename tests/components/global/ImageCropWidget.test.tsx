@@ -54,6 +54,16 @@ const setup = async () => {
 const save = () => fireEvent.click(document.querySelector('[data-pw="image-crop-save-button"]') as HTMLElement);
 
 describe("the image crop editor", () => {
+  it("never renders an empty src while the picture is still being read", async () => {
+    // FileReader answers later, so the first render has no picture yet. React 19
+    // leaves an empty src out of the DOM, but warns in the console, so the
+    // warning is what this test looks for.
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    await renderWithProviders(<ImageCropWidget image={photo} onSave={vi.fn()} onClose={vi.fn()} />);
+    const warned = consoleError.mock.calls.some((args) => String(args[0]).includes("An empty string"));
+    expect(warned, "the picture was rendered with an empty src before it was read").toBe(false);
+  });
+
   it("shows the chosen picture and closes on the cross", async () => {
     const { onClose, img } = await setup();
     await waitFor(() =>

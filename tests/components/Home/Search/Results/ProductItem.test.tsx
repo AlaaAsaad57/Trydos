@@ -50,6 +50,17 @@ describe("ProductItem", () => {
     expect(JSON.parse(params.search_item_select).position, "analytics got the wrong position").toBe(2);
   });
 
+  it("opens a photo search result on the matched color, and a text result without one", async () => {
+    const product = { product_id: 18, name: "Jacket", slug: "jacket", color: "Light Blue" };
+    const { unmount } = await renderWithProviders(<ProductItem product={product} onClick={() => {}} index={1} openOnColor />);
+    expect(screen.getByRole("link").getAttribute("href"), "the photo result does not open on the matched color").toBe(
+      "/gb-en/products/jacket?color=Light%20Blue",
+    );
+    unmount();
+    await renderWithProviders(<ProductItem product={product} onClick={() => {}} index={1} />);
+    expect(screen.getByRole("link").getAttribute("href"), "a text result must keep its plain link").toBe("/gb-en/products/jacket");
+  });
+
   it("lays out right to left in Arabic and falls back to the product image", async () => {
     const { container } = await renderWithProviders(
       <ProductItem product={{ product_id: 2, slug: "s", images: [{ file_path: "p.png" }] }} onClick={() => {}} index={0} />,

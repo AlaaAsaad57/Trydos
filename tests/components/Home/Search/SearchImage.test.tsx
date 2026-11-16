@@ -20,6 +20,10 @@ vi.mock("components/global/CameraWidget", () => ({
   ),
 }));
 
+// jsdom never loads an <img>, so the real resize would wait for its timeout.
+// The resize maths is tested in tests/utils/imageToSearchJpeg.test.ts.
+vi.mock("utils/imageToSearchJpeg", () => ({ imageToSearchJpeg: async (f: File) => f }));
+
 const showErrorNotification = vi.fn();
 vi.mock("@/store/notifications/reducer", async (importOriginal) => ({
   ...(await importOriginal<any>()),
@@ -32,6 +36,7 @@ vi.mock("utils/functions", async (importOriginal) => ({
 }));
 
 import SearchImage from "components/Home/Search/SearchImage";
+import { photoFiltersKey } from "components/Home/Search/requestSimilarProducts";
 
 const camIcon = () => document.querySelector('img[src="/icons/SearchCamIcon.svg"]') as HTMLImageElement;
 const fileInputs = () => Array.from(document.body.querySelectorAll('input[type="file"].opacity-0')) as HTMLInputElement[];
@@ -160,6 +165,80 @@ describe("SearchImage", () => {
     await act(async () => fireEvent.click(screen.getByText("save crop")));
     await waitFor(() => expect(showErrorNotification, "the refusal was not shown").toHaveBeenCalledWith(shown));
     expect(LogError, "the refusal was not logged").toHaveBeenCalled();
+  });
+
+  describe("with photo results (search by vector first)", () => {
+    const reply = (status: number, body: any) => ({ ok: status < 300, status, json: async () => body });
+    const sendPhoto = async (onPhotoResults = vi.fn(), setSearchValue = vi.fn(), filters?: any) => {
+      setAgent("android mobile");
+      await renderWithProviders(
+        <SearchImage setSearchValue={setSearchValue} onPhotoResults={onPhotoResults} filters={filters} />,
+      );
+      fireEvent.click(camIcon());
+      choose(fileInputs()[0], png());
+      await act(async () => fireEvent.click(screen.getByText("save crop")));
+      return { onPhotoResults, setSearchValue };
+    };
+
+    it("sends the photo with the language and country, and hands over the products", async () => {
+      const products = [{ product_id: 18, slug: "jacket" }];
+      fetchMock.mockResolvedValueOnce(reply(200, { success: true, products }));
+      const { onPhotoResults, setSearchValue } = await sendPhoto();
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url, "the photo did not go to the vector search route").toBe("/api/image-search/similar");
+      // renderWithProviders opens the page at /gb-en.
+      expect((init.body as FormData).get("country"), "the country from the route was not sent").toBe("gb");
+      expect((init.body as FormData).get("language"), "the language was not sent").toBe("en");
+      expect(init.credentials, "the session cookie must go, or the route refuses it").toBe("same-origin");
+      await waitFor(() => expect(onPhotoResults, "the products were not handed over").toHaveBeenCalled());
+      expect(onPhotoResults.mock.calls[0][0].products, "the wrong products were handed over").toBe(products);
+      expect(fetchMock, "the words search ran although products were found").toHaveBeenCalledTimes(1);
+      expect(setSearchValue, "the search box was filled although products were found").not.toHaveBeenCalled();
+    });
+
+    it("sends the search box filters with the photo, and says which filters the products were found with", async () => {
+      fetchMock.mockResolvedValueOnce(reply(200, { success: true, products: [{ product_id: 1 }] }));
+      const filters = { brands: ["nike"], categories: [], boutiques: [] };
+      const { onPhotoResults } = await sendPhoto(vi.fn(), vi.fn(), filters);
+      const sent = (fetchMock.mock.calls[0][1].body as FormData).get("filters");
+      expect(JSON.parse(String(sent)), "the filters did not go with the photo").toEqual(filters);
+      await waitFor(() => expect(onPhotoResults, "the products were not handed over").toHaveBeenCalled());
+      const handed = onPhotoResults.mock.calls[0][0];
+      expect(handed.picture, "the sent picture was not handed over for a later filter change").toBe((fetchMock.mock.calls[0][1].body as FormData).get("file"));
+      expect(handed.filtersKey, "the filters key does not match the filters sent").toBe(photoFiltersKey(filters));
+    });
+
+    it.each([
+      ["finds nothing", reply(200, { success: true, products: [] })],
+      ["fails on the server", reply(502, { error: "failed to search with image" })],
+    ])("falls back to the words search when the vector search %s", async (_name, first) => {
+      fetchMock
+        .mockResolvedValueOnce(first)
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ response: "black jacket" }) });
+      const { onPhotoResults, setSearchValue } = await sendPhoto();
+      await waitFor(() => expect(setSearchValue, "the words search did not fill the search box").toHaveBeenCalledWith("black jacket"));
+      expect(fetchMock.mock.calls[1][0], "the fallback went to the wrong route").toBe("/api/image-search");
+      expect(onPhotoResults, "photo results were handed over for a failed search").not.toHaveBeenCalled();
+    });
+
+    it("falls back to the words search when the vector route cannot be reached", async () => {
+      fetchMock
+        .mockRejectedValueOnce(new TypeError("network"))
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ response: "black jacket" }) });
+      const { setSearchValue } = await sendPhoto();
+      await waitFor(() => expect(setSearchValue, "the words search did not run after a network error").toHaveBeenCalledWith("black jacket"));
+    });
+
+    it.each([
+      [400, "We could not read this image. Please try another photo."],
+      [429, "Too many requests. Please try again in a moment."],
+    ])("shows the message and stops on a %s answer", async (status, error) => {
+      fetchMock.mockResolvedValueOnce(reply(status, { error }));
+      await sendPhoto();
+      await waitFor(() => expect(showErrorNotification, `the ${status} message was not shown`).toHaveBeenCalled());
+      expect(fetchMock, `the words search ran after a ${status}`).toHaveBeenCalledTimes(1);
+      expect(camIcon(), "the spinner stayed after the message").not.toBeNull();
+    });
   });
 
   it.each([

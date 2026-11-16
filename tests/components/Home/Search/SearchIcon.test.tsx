@@ -40,15 +40,38 @@ vi.mock("utils/functions", async (importOriginal) => ({
 const scroll = vi.hoisted(() => ({ DisableScroll: vi.fn(), EnableScroll: vi.fn() }));
 vi.mock("utils/tinyUtils", async (importOriginal) => ({ ...(await importOriginal<any>()), ...scroll }));
 
+// ---- Photo search route (search backend + Gemini, through our API route) ----
+const photo = vi.hoisted(() => ({ request: vi.fn(), key: (_f: any) => "" }));
+vi.mock("components/Home/Search/requestSimilarProducts", async (importOriginal) => {
+  const real = await importOriginal<any>();
+  photo.key = real.photoFiltersKey;
+  return { ...real, requestSimilarProducts: (...a: any[]) => photo.request(...a) };
+});
+const photoPicture = new Blob(["jpeg"], { type: "image/jpeg" });
+
 // ---- Children: each is its own unit, so here they only expose their callbacks
 vi.mock("next/dynamic", () => ({
   default: (loader: () => Promise<any>, options: any) => {
     loader();
-    return ({ setSearchValue }: any) => (
+    return ({ setSearchValue, onPhotoResults, filters }: any) => (
       <span>
         {options.loading()}
         <button onClick={() => setSearchValue("heard words")}>media value</button>
         <button onClick={() => setSearchValue("")}>media empty</button>
+        {onPhotoResults && (
+          <button
+            onClick={() =>
+              onPhotoResults({
+                products: [{ product_id: 18, name: "Paisley jacket", slug: "jacket", color: "Blue" }],
+                preview: "data:image/jpeg;base64,AA",
+                picture: photoPicture,
+                filtersKey: photo.key(filters),
+              })
+            }
+          >
+            photo results
+          </button>
+        )}
       </span>
     );
   },
@@ -72,7 +95,11 @@ vi.mock("components/Home/Search/SearchTrending", () => ({
   ),
 }));
 vi.mock("components/Home/Search/Results/ProductItem", () => ({
-  default: ({ product, onClick }: any) => <button onClick={() => onClick(product.name)}>product {product.name}</button>,
+  default: ({ product, onClick, openOnColor }: any) => (
+    <button data-open-on-color={String(Boolean(openOnColor))} onClick={() => onClick(product.name)}>
+      product {product.name}
+    </button>
+  ),
 }));
 vi.mock("components/Home/Search/Results/BrandItem", () => ({
   default: ({ brand, onClick, isActive }: any) => (
@@ -162,6 +189,7 @@ describe("SearchIcon", () => {
     getSearchHistory.mockReset().mockResolvedValue(["bags"]);
     removeSearchHistory.mockReset().mockResolvedValue(true);
     logSearch.mockReset();
+    photo.request.mockReset().mockResolvedValue({ ok: true, status: 200, products: [] });
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -181,6 +209,100 @@ describe("SearchIcon", () => {
     expect(screen.getAllByTestId("icon-skeleton").length > 0, "the image and voice buttons show no skeleton while loading").toBe(true);
     await open();
     expect(scroll.DisableScroll, "a second tap on the open bar locked the scroll again").toHaveBeenCalledTimes(1);
+  });
+
+  it("shows photo search results in place of history and trending, and leaves photo mode on a typed word or Clear", async () => {
+    await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
+    await open();
+    await settle();
+    await act(async () => fireEvent.click(screen.getByText("photo results")));
+    const block = document.querySelector('[data-pw="photoSearchResults"]');
+    expect(block, "the photo results block is missing").not.toBeNull();
+    expect(screen.getByText("product Paisley jacket").dataset.openOnColor, "a photo result must open on the matched color").toBe("true");
+    expect(block!.querySelector("img")?.getAttribute("src"), "the shopper's photo is not shown").toBe("data:image/jpeg;base64,AA");
+    expect(screen.queryByTestId("history"), "history still shows over the photo results").toBeNull();
+    expect(screen.queryByTestId("trending"), "trending still shows over the photo results").toBeNull();
+
+    await act(async () => fireEvent.click(screen.getByLabelText("Clear Photo Search")));
+    expect(document.querySelector('[data-pw="photoSearchResults"]'), "Clear did not leave photo mode").toBeNull();
+    expect(screen.getByTestId("trending"), "trending did not come back after Clear").toBeInTheDocument();
+
+    await act(async () => fireEvent.click(screen.getByText("photo results")));
+    await type("shoe");
+    expect(document.querySelector('[data-pw="photoSearchResults"]'), "a typed word did not leave photo mode").toBeNull();
+  });
+
+  describe("photo search with the search box filters", () => {
+    const photoMode = async () => {
+      GetSearchData.mockResolvedValue({ brands: [{ slug: "nike" }], boutiques: [{ slug: "eve" }], total_size: 3 });
+      await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
+      await open();
+      await settle();
+      await act(async () => fireEvent.click(screen.getByText("photo results")));
+    };
+    const block = () => document.querySelector('[data-pw="photoSearchResults"]');
+
+    it("does not search the photo again while the filters stay the same", async () => {
+      await photoMode();
+      await settle();
+      expect(photo.request, "the photo route was called again with no filter change").not.toHaveBeenCalled();
+    });
+
+    it("searches the same photo again with the new filter, and shows the new products", async () => {
+      await photoMode();
+      photo.request.mockResolvedValue({ ok: true, status: 200, products: [{ product_id: 3, name: "Nike jacket", slug: "nike-jacket" }] });
+      await act(async () => fireEvent.click(screen.getByText("brand nike")));
+      await settle();
+      const sent = photo.request.mock.calls.at(-1)?.[0];
+      expect(sent?.picture, "the photo was not sent again").toBe(photoPicture);
+      expect(sent?.filters?.brands, "the chosen brand did not reach the photo route").toEqual(["nike"]);
+      expect([sent?.language, sent?.country], "the photo route got the wrong language or country").toEqual(["en", "sy"]);
+      expect(screen.getByText("product Nike jacket"), "the products found with the filter are not shown").toBeInTheDocument();
+      expect(screen.queryByText("product Paisley jacket"), "a product found without the filter still shows").toBeNull();
+    });
+
+    it("says no products were found when the filter leaves none, and stays in photo mode", async () => {
+      await photoMode();
+      await act(async () => fireEvent.click(screen.getByText("boutique eve")));
+      await settle();
+      expect(block(), "photo mode ended when the filter left no products").not.toBeNull();
+      expect(document.querySelector('[data-pw="photoSearchEmpty"]')?.textContent, "the empty message is missing").toMatch(/^no products found$/i);
+    });
+
+    it("shows the route's message and drops the old products when the route refuses", async () => {
+      await photoMode();
+      photo.request.mockResolvedValue({ ok: false, status: 429, products: [], error: "Too many requests. Please try again in a moment." });
+      await act(async () => fireEvent.click(screen.getByText("brand nike")));
+      await settle();
+      expect(String(showErrorNotification.mock.calls.at(-1)?.[0]), "the refusal was not shown").toMatch(/^too many requests. please try again in a moment.$/i);
+      expect(screen.queryByText("product Paisley jacket"), "products found without the new filter still show").toBeNull();
+    });
+
+    it("shows only the newest answer when two filter changes overlap", async () => {
+      await photoMode();
+      let finishFirst: (v: any) => void = () => {};
+      photo.request
+        .mockImplementationOnce(() => new Promise((r) => (finishFirst = r)))
+        .mockResolvedValueOnce({ ok: true, status: 200, products: [{ product_id: 5, name: "Newest", slug: "n" }] });
+      await act(async () => fireEvent.click(screen.getByText("brand nike")));
+      await settle();
+      await act(async () => fireEvent.click(screen.getByText("boutique eve")));
+      await settle();
+      await act(async () => finishFirst({ ok: true, status: 200, products: [{ product_id: 4, name: "Older", slug: "o" }] }));
+      await settle();
+      expect(screen.getByText("product Newest"), "the newest answer is not shown").toBeInTheDocument();
+      expect(screen.queryByText("product Older"), "an older answer replaced the newest one").toBeNull();
+    });
+
+    it("hides the Search button, which opens the text listing without the photo", async () => {
+      await photoMode();
+      await act(async () => fireEvent.click(screen.getByText("brand nike")));
+      await settle();
+      expect(screen.queryByTestId("apply-search"), "the text listing button shows in photo mode").toBeNull();
+      await act(async () => fireEvent.click(screen.getByLabelText("Clear Photo Search")));
+      await settle();
+      expect(screen.getByTestId("apply-search"), "the Search button did not come back after leaving photo mode").toBeInTheDocument();
+    });
   });
 
   it("logs when the trending words cannot be read", async () => {

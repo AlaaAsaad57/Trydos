@@ -3343,6 +3343,14 @@ const translations = {
   "In the Trydos app, tap Sign in with QR, then scan this code.": "لە ئەپی Trydos، لەسەر چوونەژوورەوە بە QR دابگرە، پاشان ئەم کۆدە سکان بکە.",
   "Your phone is now signed in": "ئێستا مۆبایلەکەت چووەتە ژوورەوە",
   "The sign-in was denied": "چوونەژوورەوەکە ڕەتکرایەوە",
+  "Similar to your photo": "هاوشێوەی وێنەکەت",
+  "Your photo": "وێنەکەت",
+  "Clear": "سڕینەوە",
+  "Clear photo search": "سڕینەوەی گەڕان بە وێنە",
+  "We could not read this image. Please try another photo.": "نەمانتوانی ئەم وێنەیە بخوێنینەوە. تکایە وێنەیەکی تر تاقی بکەرەوە.",
+  "Invalid file type": "جۆری فایل دروست نییە",
+  "No product detected": "هیچ بەرهەمێک لە وێنەکەدا نەدۆزرایەوە",
+  "Missing required fields": "هەندێک خانەی پێویست بەتاڵن",
 };
 
 export default translations;
