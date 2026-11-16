@@ -6,6 +6,9 @@ import { useAppStore } from "store";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 import { CameraWidget } from "components/global/CameraWidget";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { imageToSearchJpeg } from "utils/imageToSearchJpeg";
+import type { PhotoSearchFilters } from "services/elastic/similarProducts";
+import { photoFiltersKey, requestSimilarProducts } from "./requestSimilarProducts";
 
 // Device detection utility
 const getDeviceCategory = () => {
@@ -50,12 +53,49 @@ const getDeviceCategory = () => {
   return "desktop";
 };
 
-function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
+/** What a photo search found, for the overlay to show. */
+export type PhotoResults = {
+  products: any[];
+  /** The picture the shopper sent, as a data URL, to show beside the results. */
+  preview: string;
+  /** The picture as sent, so a filter change can search with it again. */
+  picture: Blob;
+  /** `photoFiltersKey` of the filters these products were found with. */
+  filtersKey: string;
+};
+
+const readAsDataUrl = (file: Blob) =>
+  new Promise<string>((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => resolve("");
+    reader.readAsDataURL(file);
+  });
+
+/** Answers of the photo route that the older route would answer the same way
+ *  (no session, too big, too many calls, a picture it cannot read). The
+ *  shopper sees the message, and nothing else is tried. */
+const FINAL_STATUSES = [400, 401, 413, 429];
+
+function SearchImage({
+  setSearchValue,
+  onPhotoResults,
+  filters = {},
+}: {
+  setSearchValue: Function;
+  /** The search box filters; the photo search uses them too. */
+  filters?: PhotoSearchFilters;
+  /** Given: the photo first looks for similar products by vector, and only
+   *  falls back to the words search when that fails or finds nothing. */
+  onPhotoResults?: (results: PhotoResults) => void;
+}) {
   const { language } = useAppStore();
 
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
+  // @ts-ignore
+  const country = lang.split("-")[0];
 
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -67,6 +107,61 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     setIsDesktop(getDeviceCategory() === "desktop");
   }, []);
 
+  /** Photo -> similar products. "done": results were shown. "stop": a
+   *  message was shown. "fallback": try the words search. */
+  const searchSimilarProducts = async (
+    picture: File,
+  ): Promise<"done" | "stop" | "fallback"> => {
+    try {
+      const result = await requestSimilarProducts({
+        picture,
+        language: languageVariable,
+        country,
+        filters,
+      });
+      if (result.ok && result.products.length > 0) {
+        onPhotoResults?.({
+          products: result.products,
+          preview: await readAsDataUrl(picture),
+          picture,
+          filtersKey: photoFiltersKey(filters),
+        });
+        return "done";
+      }
+      // Nothing near enough: the words search may still find something.
+      if (result.ok) return "fallback";
+      if (FINAL_STATUSES.includes(result.status)) {
+        showErrorNotification(
+          translateFunction(result.error || "failed to search with image"),
+        );
+        return "stop";
+      }
+      LogError({
+        error: `photo search by vector answered ${result.status}`,
+        scenario: "searchSimilarProducts in SearchImage",
+      });
+      return "fallback";
+    } catch (error) {
+      LogError({ error, scenario: "searchSimilarProducts in SearchImage" });
+      return "fallback";
+    }
+  };
+
+  const searchPhoto = async (picked: File) => {
+    setLoading(true);
+    // Small JPEG for both routes: a phone photo is often over their 4 MB cap.
+    const picture = await imageToSearchJpeg(picked);
+    if (onPhotoResults) {
+      const outcome = await searchSimilarProducts(picture);
+      if (outcome !== "fallback") {
+        setLoading(false);
+        return;
+      }
+    }
+    await GemeniFunc(picture);
+  };
+
+  // The older way: the photo becomes a few words, and text search runs on them.
   const GemeniFunc = async (file) => {
     try {
       setLoading(true);
@@ -208,7 +303,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
             setLoading(false);
           }}
           onSave={(e) => {
-            GemeniFunc(e);
+            searchPhoto(e);
             setFile(null);
           }}
         />

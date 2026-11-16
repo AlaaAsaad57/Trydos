@@ -3326,6 +3326,14 @@ const translations = {
   "In the Trydos app, tap Sign in with QR, then scan this code.": "Trydos uygulamasında QR ile giriş yap'a dokun, ardından bu kodu tara.",
   "Your phone is now signed in": "Telefonunda giriş yapıldı",
   "The sign-in was denied": "Giriş reddedildi",
+  "Similar to your photo": "Fotoğrafına benzeyenler",
+  "Your photo": "Fotoğrafın",
+  "Clear": "Temizle",
+  "Clear photo search": "Fotoğraf aramasını temizle",
+  "We could not read this image. Please try another photo.": "Bu görseli okuyamadık. Lütfen başka bir fotoğraf dene.",
+  "Invalid file type": "Geçersiz dosya türü",
+  "No product detected": "Görselde ürün bulunamadı",
+  "Missing required fields": "Zorunlu alanlar eksik",
 };
 
 export default translations;

@@ -13,8 +13,23 @@ function ProductItem({
   index,
   searchValue = "",
   resultsProducts = [],
+  // Photo search: open the product page on the color of the photo that
+  // matched (`?color=` takes the color name).
+  openOnColor = false,
+}: {
+  product: any;
+  onClick: Function;
+  index: number;
+  searchValue?: string;
+  resultsProducts?: any[];
+  openOnColor?: boolean;
 }) {
   const { lang } = useParams();
+  const href = `/${lang}/products/${product.slug}${
+    openOnColor && product?.color
+      ? `?color=${encodeURIComponent(product.color)}`
+      : ""
+  }`;
 
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -51,7 +66,7 @@ function ProductItem({
       }}
     >
       <NextLink
-        href={`/${lang}/products/${product.slug}`}
+        href={href}
         data={{ ...product, is_product: true }}
         className="w-full"
         data-pw="product-result-link"

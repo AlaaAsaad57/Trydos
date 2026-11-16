@@ -27,6 +27,9 @@ import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
 import dynamic from "next/dynamic";
 import IconSkeleton from "components/skeleton/IconSkeleton";
+// Type only, so the lazy SearchImage chunk stays lazy.
+import type { PhotoResults } from "./SearchImage";
+import { photoFiltersKey, requestSimilarProducts } from "./requestSimilarProducts";
 
 /** The wait after the last key before a search or a completion is asked for. */
 const SEARCH_WAIT_MS = 400;
@@ -58,6 +61,15 @@ function SearchIcon({ language, country }) {
   const [loading, setLoading] = useState(false);
   const [focus, setFocus] = useState(false);
   const [value, setValue] = useState("");
+
+  // Photo search results. Shown while the search box is empty; typing a word
+  // (or picking one from history / trending) leaves photo mode.
+  const [photoResults, setPhotoResults] = useState<PhotoResults | null>(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const latestPhotoRequestRef = useRef(0);
+  useEffect(() => {
+    if (value.length > 0) setPhotoResults(null);
+  }, [value]);
 
   // Inline completion (ghost text) suggestion — full suggested product name
   const [suggestion, setSuggestion] = useState("");
@@ -161,6 +173,58 @@ function SearchIcon({ language, country }) {
 
     return obj;
   };
+  // --- Photo search: run again when a filter changes ---
+  // The route keeps the photo's vector for a few minutes, so this is a search
+  // with new filters, not a new Gemini call. Only the newest answer is shown.
+  const photoFilters = normalizeFilters(appliedFilters);
+  const currentPhotoFiltersKey = photoFiltersKey(photoFilters);
+  useEffect(() => {
+    if (!photoResults || photoResults.filtersKey === currentPhotoFiltersKey) return;
+    const requestId = ++latestPhotoRequestRef.current;
+    setPhotoLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const result = await requestSimilarProducts({
+          picture: photoResults.picture,
+          language,
+          country,
+          filters: photoFilters,
+        });
+        if (requestId !== latestPhotoRequestRef.current) return;
+        if (!result.ok) {
+          showErrorNotification(
+            translateFunction(result.error || "failed to search with image"),
+          );
+        }
+        // On a refusal the old products are not kept: they were found
+        // without the new filters.
+        setPhotoResults((prev) =>
+          prev && {
+            ...prev,
+            products: result.ok ? result.products : [],
+            filtersKey: currentPhotoFiltersKey,
+          },
+        );
+      } catch (error) {
+        if (requestId !== latestPhotoRequestRef.current) return;
+        LogError({ error, scenario: "photo search filter change in SearchIcon" });
+        setPhotoResults((prev) =>
+          prev && { ...prev, products: [], filtersKey: currentPhotoFiltersKey },
+        );
+      } finally {
+        if (requestId === latestPhotoRequestRef.current) setPhotoLoading(false);
+      }
+    }, SEARCH_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [photoResults, currentPhotoFiltersKey]);
+  // Leaving photo mode drops any answer still on its way.
+  useEffect(() => {
+    if (!photoResults) {
+      latestPhotoRequestRef.current++;
+      setPhotoLoading(false);
+    }
+  }, [photoResults]);
+
   // --- Main Search Logic (Debounced + Race Condition Handled) ---
   const performSearch = useCallback(
     async ({ searchTerm = "", isInitial = false }) => {
@@ -373,6 +437,7 @@ function SearchIcon({ language, country }) {
     setSearchEnabled(false);
     EnableScroll();
     setValue("");
+    setPhotoResults(null);
     setSuggestion("");
     setFocus(false);
     setResults({
@@ -490,8 +555,13 @@ function SearchIcon({ language, country }) {
               ) : (
                 <div className={`input-icons right-[38px] flex-row h-full`}>
                   <SearchImage
+                    filters={photoFilters}
                     setSearchValue={(e) => {
                       if (e) setValue(e);
+                    }}
+                    onPhotoResults={(found) => {
+                      setValue("");
+                      setPhotoResults(found);
                     }}
                   />
                   <SearchVoice
@@ -526,6 +596,9 @@ function SearchIcon({ language, country }) {
           value={value}
           setValue={setValue}
           loading={loading}
+          photoResults={photoResults}
+          photoLoading={photoLoading}
+          clearPhotoResults={() => setPhotoResults(null)}
           // Data
           products={results.products}
           brands={results.brands}
@@ -560,6 +633,9 @@ const SearchContainer = ({
   value,
   setValue,
   loading,
+  photoResults = null,
+  photoLoading = false,
+  clearPhotoResults = () => {},
   products,
   brands,
   categories,
@@ -661,7 +737,7 @@ const SearchContainer = ({
       data-pw="searchContainer"
     >
       {/* 1. Empty State: History & Trending */}
-      {value.length === 0 && (
+      {value.length === 0 && !photoResults && (
         <>
           {searchHistoryItems.length > 0 && (
             <SearchHistory
@@ -683,6 +759,58 @@ const SearchContainer = ({
         className="search-results-container flex-col  overflow-y-scroll pb-[115px]"
         data-pw="searchResults_body"
       >
+        {/* Photo search: products whose photos look like the shopper's */}
+        {value.length === 0 && photoResults && (
+          <div
+            className="products-results shrink-0 flex-col max-h-[60%] overflow-auto"
+            data-pw="photoSearchResults"
+          >
+            <div
+              className={`result-label flex-row items-center gap-2 ${
+                isRtl ? "flex-row-reverse pr-2" : ""
+              }`}
+            >
+              {photoResults.preview && (
+                <img
+                  src={photoResults.preview}
+                  alt={translateFunction("Your photo", language)}
+                  className="w-[34px] h-[34px] object-cover rounded-[8px]"
+                />
+              )}
+              <span>{translateFunction("Similar to your photo", language)}</span>
+              {photoLoading && <Spinner className="mx-[12px]" no />}
+              <button
+                type="button"
+                className="ms-auto text-[#ff5549] text-[13px]"
+                aria-label={translateFunction("Clear photo search", language)}
+                data-pw="clearPhotoSearch"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearPhotoResults();
+                }}
+              >
+                {translateFunction("Clear", language)}
+              </button>
+            </div>
+            {!photoLoading && photoResults.products.length === 0 && (
+              <div className="px-2 py-3 text-[13px]" data-pw="photoSearchEmpty">
+                {translateFunction("No products found", language)}
+              </div>
+            )}
+            {photoResults.products.map((product, index) => (
+              <ProductItem
+                product={product}
+                index={index + 1}
+                searchValue=""
+                resultsProducts={photoResults.products}
+                openOnColor
+                key={product?.product_id || index}
+                onClick={() => EnableSearch(false)}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Products */}
         {value.length > 0 && (loading || products?.length > 0) && (
           <div className="products-results shrink-0 flex-col max-h-[60%] overflow-auto">
@@ -912,6 +1040,7 @@ const SearchContainer = ({
           data-pw="searchResult"
         >
           {showButton() &&
+            !photoResults &&
             (loading ? (
               <div
                 aria-disabled={loading}
@@ -974,6 +1103,7 @@ const SearchContainer = ({
               data-pw="reset-filters-search"
               onClick={() => {
                 setValue("");
+                clearPhotoResults();
                 setAppliedFilters({
                   categories: [],
                   brands: [],

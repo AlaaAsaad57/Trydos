@@ -3293,6 +3293,14 @@ const translations = {
   "In the Trydos app, tap Sign in with QR, then scan this code.": "في تطبيق Trydos، اضغط على تسجيل الدخول برمز QR، ثم امسح هذا الرمز.",
   "Your phone is now signed in": "تم تسجيل الدخول على هاتفك",
   "The sign-in was denied": "تم رفض تسجيل الدخول",
+  "Similar to your photo": "منتجات تشبه صورتك",
+  "Your photo": "صورتك",
+  "Clear": "مسح",
+  "Clear photo search": "مسح البحث بالصورة",
+  "We could not read this image. Please try another photo.": "لم نتمكن من قراءة هذه الصورة. يرجى تجربة صورة أخرى.",
+  "Invalid file type": "نوع الملف غير صالح",
+  "No product detected": "لم يتم العثور على منتج في الصورة",
+  "Missing required fields": "بعض الحقول المطلوبة مفقودة",
 };
 
 export default translations;

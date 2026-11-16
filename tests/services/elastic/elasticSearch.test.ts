@@ -638,6 +638,21 @@ describe("when the search server refuses", () => {
 // ===========================================================================
 
 describe("related products", () => {
+  it("reads only the category pair of the current product, never its photo vectors", async () => {
+    // Each catalogue product now carries one 768-number vector per photo.
+    // Measured on staging: a full read of one product was 85-166 KB, and
+    // 20-35 KB without them. This lookup needs the category pair only.
+    answers["related-lookup"] = { hits: { hits: [] } };
+    const { getRelatedProducts } = await load();
+
+    await getRelatedProducts({ productId: 11 });
+
+    expect(
+      sent["related-lookup"]?._source,
+      "the product lookup downloads the whole product, photo vectors included",
+    ).toEqual(["categories.gender", "categories.group_age"]);
+  });
+
   it("AC-21 an unknown product id gives an empty result and stops", async () => {
     answers["related-lookup"] = { hits: { hits: [] } };
     const { getRelatedProducts } = await load();

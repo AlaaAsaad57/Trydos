@@ -1,5 +1,11 @@
 # Photo & Text Search with Vectors: Frontend Guide
 
+> **Tested on staging on 2026-11-15.** Some points below are wrong for our
+> setup (Gemini refuses Syria, nested filters do work in `knn.filter`,
+> `int8_hnsw` needs `rescore_vector`, `similarity: 0.5` removes nothing, text
+> vectors rank poorly). See `docs/image-search-by-vector.md` sections 2 and 3
+> before you use this guide.
+
 This guide is for the frontend developer building **search by photo** (and optionally **search by text meaning**) on top of the product catalog.
 
 The backend side is done: every product color image now has a vector, stored inside each product in `products_catalog_develop`. Your job is to turn the customer's photo (or text) into a vector **the same way**, then ask Elasticsearch for the nearest products.
