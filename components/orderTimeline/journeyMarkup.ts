@@ -63,7 +63,7 @@ export const JOURNEY_SVG = `
   </g>
   </defs>
     <line x1="8" y1="110" x2="872" y2="110" stroke="#E8E8E8" stroke-width="4" stroke-linecap="round"/>
-    <line class="x-fill" x1="100" y1="110" x2="100" y2="110" stroke="#1D1D1D" stroke-width="4" stroke-linecap="round" opacity="0"/>
+    <line class="x-fill" x1="8" y1="110" x2="100" y2="110" stroke="#1D1D1D" stroke-width="4" stroke-linecap="round"/>
     <circle class="x-ring" cx="100" cy="110" r="6" fill="none" stroke-width="1.5" opacity="0"/>
     <circle class="x-dot" cx="100" cy="110" r="5.5" fill="#1D1D1D"/>
     <circle class="x-dot" cx="300" cy="110" r="5.5" fill="#1D1D1D"/>

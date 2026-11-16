@@ -12,6 +12,10 @@ import { translateFunction } from "utils/server";
 
 const TITLE = "Order Journey";
 
+// The site header is hidden on this page, the same way /demo hides it
+// (components/DemoApp1/demo1Layout.ts HIDE_SITE_CHROME).
+const HIDE_SITE_HEADER = "body:has([data-oj-page]) .home-navbar { display: none !important; }";
+
 async function language() {
   return (await langParam()).split("-")[1] || "en";
 }
@@ -46,7 +50,8 @@ export default async function Page() {
   };
 
   return (
-    <main className="flex min-h-[70vh] w-full justify-center bg-[#F4F4F4] px-[16px] py-[32px]">
+    <main data-oj-page className="flex min-h-dvh w-full justify-center bg-[#F4F4F4] px-[16px] py-[32px]">
+      <style>{HIDE_SITE_HEADER}</style>
       <div className="flex w-full max-w-[780px] flex-col gap-[16px]">
         <h1 className="text-[24px] font-bold text-[#1D1D1D]">{words.title}</h1>
         <OrderJourney words={words} rtl={lang === "ar" || lang === "ku"} />

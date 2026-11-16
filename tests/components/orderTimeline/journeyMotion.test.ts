@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { JOURNEY_SVG } from "components/orderTimeline/journeyMarkup";
 import {
   DOTS,
+  PRODUCT_REST,
+  T,
   END_MS,
   TOUCHDOWN,
   TRUCK,
@@ -14,22 +16,32 @@ import {
 
 describe("order journey motion", () => {
   it("keeps the employee's foot still on the line while it carries his weight", () => {
-    // Walk the middle of his walk 4 ms at a time. While a foot is on the line
-    // (and before the heel lifts), its ankle must not slide.
+    // Step through each walk 4 ms at a time: to the product, back to the
+    // Preparing dot, and to the rocket. While a foot is on the line (and
+    // before the heel lifts), its ankle must not slide.
+    for (const [from, to, name] of [[1750, 2850, "to the product"], [4020, 5050, "to the Preparing dot"], [5950, 7550, "to the rocket"]] as const)
     for (const leg of [0, 1]) {
       let worst = 0;
       let checked = 0;
       let prev: { c: number; ax: number } | null = null;
-      for (let t = 3700; t < 4900; t += 4) {
+      for (let t = from; t < to; t += 4) {
         const pose = manPose(t);
         const l = pose.legs[leg];
         const planted = l.stance && l.c < 0.46;
-        if (planted && prev && l.c > prev.c) { checked++; worst = Math.max(worst, Math.abs(pose.feet[leg].ax - prev.ax)); }
-        prev = planted ? { c: l.c, ax: pose.feet[leg].ax } : null;
+        // where the ankle is on the page (the figure is mirrored while he faces left)
+        const ax = pose.x + pose.face * (pose.feet[leg].ax - pose.x);
+        if (planted && prev && l.c > prev.c) { checked++; worst = Math.max(worst, Math.abs(ax - prev.ax)); }
+        prev = planted ? { c: l.c, ax } : null;
       }
-      expect(checked > 0, `leg ${leg} never stood on the line during the walk`).toBe(true);
-      expect(worst, `leg ${leg} slid ${worst.toFixed(3)} px in one 4 ms frame while it stood on the line`).toBeLessThan(0.15);
+      expect(checked > 0, `leg ${leg} never stood on the line on the walk ${name}`).toBe(true);
+      expect(worst, `leg ${leg} slid ${worst.toFixed(3)} px in one 4 ms frame on the walk ${name}`).toBeLessThan(0.15);
     }
+  });
+
+  it("puts the employee's hands on the product when he picks it up", () => {
+    const pose = manPose(T.grab);
+    const gap = Math.hypot(pose.anchorWorld.x - PRODUCT_REST.x, pose.anchorWorld.y - PRODUCT_REST.y);
+    expect(gap, `at the pick-up his hands are ${gap.toFixed(2)} px away from the product on the Buy dot`).toBeLessThan(1.5);
   });
 
   it("lands the rocket exactly on the Delivered dot", () => {
