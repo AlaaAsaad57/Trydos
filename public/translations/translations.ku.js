@@ -3351,6 +3351,20 @@ const translations = {
   "Invalid file type": "جۆری فایل دروست نییە",
   "No product detected": "هیچ بەرهەمێک لە وێنەکەدا نەدۆزرایەوە",
   "Missing required fields": "هەندێک خانەی پێویست بەتاڵن",
+  "Order Journey": "گەشتی داواکاری",
+  "Buy": "کڕین",
+  "Preparing": "ئامادەکردن",
+  "Shipped": "نێردرا",
+  "Out for delivery": "لە ڕێگای گەیاندندایە",
+  "Delivered": "گەیەندرا",
+  "Slow Motion": "جووڵەی هێواش",
+  "Today": "ئەمڕۆ",
+  "In 1 Hour": "لە ماوەی 1 کاتژمێردا",
+  "In 6 Hours": "لە ماوەی 6 کاتژمێردا",
+  "In 3 Work Days": "لە ماوەی 3 ڕۆژی کاردا",
+  "In Your Hands": "لە دەستی تۆدایە",
+  "The product is bought, packed, flown and driven to you": "بەرهەمەکە دەکڕدرێت، دەپێچرێتەوە، بە فڕین دەنێردرێت و بۆت دەگەیەندرێت",
+  "Play Again": "دووبارە لێبدەرەوە",
 };
 
 export default translations;

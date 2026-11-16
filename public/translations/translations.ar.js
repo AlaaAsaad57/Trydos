@@ -3301,6 +3301,20 @@ const translations = {
   "Invalid file type": "نوع الملف غير صالح",
   "No product detected": "لم يتم العثور على منتج في الصورة",
   "Missing required fields": "بعض الحقول المطلوبة مفقودة",
+  "Order Journey": "رحلة الطلب",
+  "Buy": "شراء",
+  "Preparing": "قيد التحضير",
+  "Shipped": "تم الشحن",
+  "Out for delivery": "قيد التوصيل",
+  "Delivered": "تم التوصيل",
+  "Slow Motion": "حركة بطيئة",
+  "Today": "اليوم",
+  "In 1 Hour": "خلال ساعة",
+  "In 6 Hours": "خلال 6 ساعات",
+  "In 3 Work Days": "خلال 3 أيام عمل",
+  "In Your Hands": "بين يديك",
+  "The product is bought, packed, flown and driven to you": "يتم شراء المنتج وتغليفه وشحنه جواً ثم توصيله إليك",
+  "Play Again": "شغّل مرة أخرى",
 };
 
 export default translations;

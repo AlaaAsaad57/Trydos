@@ -3334,6 +3334,20 @@ const translations = {
   "Invalid file type": "Geçersiz dosya türü",
   "No product detected": "Görselde ürün bulunamadı",
   "Missing required fields": "Zorunlu alanlar eksik",
+  "Order Journey": "Sipariş Yolculuğu",
+  "Buy": "Satın Al",
+  "Preparing": "Hazırlanıyor",
+  "Shipped": "Kargolandı",
+  "Out for delivery": "Dağıtımda",
+  "Delivered": "Teslim Edildi",
+  "Slow Motion": "Ağır Çekim",
+  "Today": "Bugün",
+  "In 1 Hour": "1 Saat İçinde",
+  "In 6 Hours": "6 Saat İçinde",
+  "In 3 Work Days": "3 İş Günü İçinde",
+  "In Your Hands": "Elinizde",
+  "The product is bought, packed, flown and driven to you": "Ürün satın alınır, paketlenir, uçakla taşınır ve size teslim edilir",
+  "Play Again": "Tekrar Oynat",
 };
 
 export default translations;
