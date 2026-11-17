@@ -707,3 +707,27 @@ describe("the notify-me button", () => {
     expect(screen.queryByTestId("NotifyButton"), "an out-of-stock variant did not offer notify").toBeInTheDocument();
   });
 });
+
+describe("the pack facts in the sheet card", () => {
+  const product = { id: 9, slug: "soap", name: "Soap", available_quantity: 50, packed_after_ordering: 0 };
+
+  it("hands the number of pieces and the unit from the market backend to the card", async () => {
+    getProductDataForAddToCart.mockResolvedValue({ count_of_pieces: 12, unit: "Box" });
+    await renderSheet(product, { open: { id: 9, slug: "soap" } });
+
+    await waitFor(() =>
+      expect(
+        seen.Card?.packInfo,
+        "the card did not get the 12 pieces and the Box unit the market backend sent",
+      ).toEqual({ count: 12, unit: "Box" }),
+    );
+  });
+
+  it("hands no pack facts to the card when the market backend sends neither field", async () => {
+    getProductDataForAddToCart.mockResolvedValue({ name: "Soap" });
+    await renderSheet(product, { open: { id: 9, slug: "soap" } });
+
+    await waitFor(() => expect(seen.Card?.name, "the loaded product never reached the card").toBe("Soap"));
+    expect(seen.Card.packInfo, "the card must get no pack facts when both fields are missing").toBeNull();
+  });
+});

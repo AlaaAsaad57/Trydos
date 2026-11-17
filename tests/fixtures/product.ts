@@ -152,6 +152,10 @@ export interface QtyPriceProduct {
   offer_price: number;
   offer_type: string;
   unit_price: number;
+  /** How many pieces the product holds. The backend may not send it yet. */
+  count_of_pieces?: number | null;
+  /** The sale unit text (for example "Box"). The backend may not send it yet. */
+  unit?: string | null;
   seller_id: number;
   seller: {
     name: any;

@@ -8,6 +8,7 @@ import ProductBackButton from "components/products/ProductBackButton";
 import ProductPhotoSliderWrapper from "components/Server/product/ProductPhotoSliderWrapper";
 import ProductExtendedSliderWrapper from "components/Server/product/ProductExtendedSliderWrapper";
 import ProductNameAndBrand from "components/Server/product/ProductNameAndBrand";
+import ProductPackInfoWrapper from "components/Server/product/ProductPackInfoWrapper";
 import ProductDetailsTextWrapper from "components/Server/product/ProductDetailsTextWrapper";
 import ProductGeneralPropertiesWrapper from "components/Server/product/ProductGeneralPropertiesWrapper";
 import ProductFeaturesWrapper from "components/Server/product/ProductFeaturesWrapper";
@@ -95,6 +96,13 @@ export default async function ProductPageContent({
                 <ProductNameAndBrand
                   color={color}
                   globalPromise={GlobalData}
+                  isRtl={isRtl}
+                />
+              </Suspense>
+              <Suspense fallback={<></>}>
+                <ProductPackInfoWrapper
+                  qtyPricePromise={QtyPricesData}
+                  language={language}
                   isRtl={isRtl}
                 />
               </Suspense>

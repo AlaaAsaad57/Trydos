@@ -2,6 +2,7 @@ import Timer from "components/Login/Timer";
 import FlashDealBanner from "components/products/FlashDealBanner";
 import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
+import { unitKey } from "components/products/packInfo";
 import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 function CartItem({ product, index }) {
@@ -157,7 +158,7 @@ function CartItem({ product, index }) {
           >
             {translateFunction("Composed Of:")}{" "}
             <span className="regular" data-pw="countPieces-number">
-              {product.count_of_pieces} {translateFunction("Piece")}
+              {product.count_of_pieces} {translateFunction(unitKey(product.unit))}
             </span>
           </span>
         </div>

@@ -90,6 +90,8 @@ export interface OrderInterface {
       share_link: string;
       details: string;
       count_of_pieces: number;
+      /** Sale unit code (pc, kg, gms, l). The backend may not send it yet. */
+      unit?: string | null;
       thumbnail: string;
       images: Array<string>;
       price: number;

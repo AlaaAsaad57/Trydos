@@ -138,3 +138,28 @@ describe("a row in the order summary", () => {
     ).not.toBeNull();
   });
 });
+
+describe("the count line of a cart row", () => {
+  const settingsStore = {
+    store: { settings: { starting_setting: { shipping_duration_days: 2 } } },
+  };
+
+  it("says Piece when the cart line has no unit", async () => {
+    await renderWithProviders(<CartItem product={baseProduct} index={0} />, settingsStore);
+    expect(
+      marked("countPieces-number")?.textContent,
+      "a line with 2 and no unit must read '2 Piece'",
+    ).toBe("2 Piece");
+  });
+
+  it("puts the unit word in place of Piece when the cart line has a unit", async () => {
+    await renderWithProviders(
+      <CartItem product={{ ...baseProduct, unit: "kg" }} index={0} />,
+      settingsStore,
+    );
+    expect(
+      marked("countPieces-number")?.textContent,
+      "a line with 2 and the unit kg must read '2 Kilo'",
+    ).toBe("2 Kilo");
+  });
+});

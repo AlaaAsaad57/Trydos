@@ -25,6 +25,7 @@ import Card from "./Card";
 import ColorSelect from "./ColorSelect";
 import SizeSelect from "./SizeSelect";
 import PricesRow from "./PricesRow";
+import { getPackInfo } from "components/products/packInfo";
 import ExtraInfoArea from "./ExtraInfoArea";
 import { useLuckTimer } from "hooks/useLuckTimer";
 import { isRedeemed } from "utils/luck";
@@ -761,6 +762,7 @@ function AddToCartComponent({ product, slug, color }) {
           offer_price={sheetPrices.offer_price}
           price={sheetPrices.price}
           luck_price={sheetPrices.luck_price}
+          packInfo={getPackInfo(ProductData)}
           shippingDays={ProductData?.shipping_days}
           shouldShowOrangeBorder={
             ProductData.is_luck ||
