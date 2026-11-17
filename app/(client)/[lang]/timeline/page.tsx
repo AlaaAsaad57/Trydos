@@ -1,5 +1,8 @@
 import { lang as langParam } from "next/root-params";
 import OrderJourney, { type JourneyWords } from "components/orderTimeline/OrderJourney";
+import OrderParcelJourney, {
+  type ParcelJourneyWords,
+} from "components/orderParcelJourney/OrderParcelJourney";
 import { translateFunction } from "utils/server";
 
 /*
@@ -49,12 +52,27 @@ export default async function Page() {
     statusGroup: t("Order Status"),
   };
 
+  const parcelWords: ParcelJourneyWords = {
+    ...words,
+    play: t("Play"),
+    pause: t("Pause"),
+    normal: t("Normal"),
+  };
+
   return (
     <main data-oj-page className="flex min-h-dvh w-full justify-center bg-[#F4F4F4] px-[16px] py-[32px]">
       <style>{HIDE_SITE_HEADER}</style>
-      <div className="flex w-full max-w-[780px] flex-col gap-[16px]">
-        <h1 className="text-[24px] font-bold text-[#1D1D1D]">{words.title}</h1>
-        <OrderJourney words={words} rtl={lang === "ar" || lang === "ku"} />
+      <div className="flex w-full max-w-[780px] flex-col gap-[32px]">
+        <div className="flex flex-col gap-[16px]">
+          <h1 className="text-[24px] font-bold text-[#1D1D1D]">{words.title}</h1>
+          <OrderJourney words={words} rtl={lang === "ar" || lang === "ku"} />
+        </div>
+        <div className="flex flex-col gap-[16px] border-t border-[#E8E8E8] pt-[24px]">
+          <OrderParcelJourney
+            words={parcelWords}
+            rtl={lang === "ar" || lang === "ku"}
+          />
+        </div>
       </div>
     </main>
   );
