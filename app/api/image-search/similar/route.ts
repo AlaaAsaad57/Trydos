@@ -10,15 +10,17 @@ import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
   buildSimilarProductsQuery,
   readPhotoSearchFilters,
+  toPhotoSearchChips,
   toSimilarProducts,
 } from "services/elastic/similarProducts";
 
 // Photo search by vector: the photo becomes a vector (Gemini), and the
-// catalogue answers with the products whose photos are nearest.
-// `app/api/image-search/route.ts` is the older way (photo -> a few words ->
-// text search). The browser falls back to it when this route fails.
+// catalogue answers with the products whose photos are nearest. The answer
+// also carries the chip lists (brands, categories, boutiques, related
+// categories) of those products, so the search box chips belong to the photo
+// results, as they belong to the text results in text search.
 //
-// Same guard and caps as the older route: every call costs a Gemini call.
+// A new photo costs a Gemini call, so the paid-route guard and caps apply.
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const RATE_LIMIT = 10;
 const RATE_WINDOW_SECONDS = 60;
@@ -126,13 +128,16 @@ export async function POST(request: NextRequest) {
       buildSimilarProductsQuery({
         vector,
         country,
+        language,
         filters,
         qaView: await qaMode(),
       }) as any,
     );
     const products = toSimilarProducts(response.hits.hits as any[], language, country);
 
-    return answer({ success: true, products });
+    const chips = toPhotoSearchChips(response.aggregations, filters);
+
+    return answer({ success: true, products, ...chips });
   } catch (error) {
     LogServerError(
       {

@@ -39,10 +39,23 @@ An empty result shows "No products found" and stays in photo mode. The
 "Search" button is hidden in photo mode, because it opens the text listing,
 which knows nothing about the photo.
 
-If the first vector search fails (5xx, network) or finds nothing, the browser falls
-back to the older search: photo -> a few words -> text search
-(`/api/image-search`). A `400 / 401 / 413 / 429` answer shows its message and
-stops.
+**Chips (2026-11-17).** In photo mode the brand, category and boutique chips
+are the chips **of the photo results**, as in text search they are the chips
+of the text results. The kNN query carries the same aggregations as text
+search (`buildAggregations` + `buildChildCategoryAggregations`). With a
+top-level `knn`, Elasticsearch counts aggregations over the top `k` products
+only, so the chips need no condition of their own. Related categories read the
+whole index, so they keep the shopper rules and the filters without
+categories, as in text search. Text search and photo search shape the chips
+with one function (`shapeSearchChips`). While in photo mode the text search
+does not run; Clear brings the text chips back. Photo mode shows at most 10
+chips per list and no "Load More" (Load More pages the text search).
+
+**No words fallback (2026-11-17).** The photo search is by vector only. A
+photo with no near product shows "No products found". A failed search (5xx,
+network) shows "failed to search with image" and is logged. A `400 / 401 /
+413 / 429` answer shows its message and is not logged. The older route
+`/api/image-search` (photo -> a few words -> text search) has no caller now.
 
 | File | Role |
 |---|---|
@@ -51,8 +64,9 @@ stops.
 | `services/elastic/similarProducts.ts` | The kNN query and the result cards. |
 | `utils/imageToSearchJpeg.ts` | Resize in the browser before upload. |
 | `components/Home/Search/requestSimilarProducts.ts` | One call to the route; used for the first search and for each filter change. |
-| `components/Home/Search/SearchImage.tsx` | Vector search first (with the box filters), words search as fallback. |
-| `components/Home/Search/SearchIcon.tsx` | "Similar to your photo" block; runs the photo search again when a filter changes. |
+| `components/Home/Search/SearchImage.tsx` | Vector search with the box filters. No words fallback. |
+| `components/Home/Search/SearchIcon.tsx` | "Similar to your photo" block and its chips; runs the photo search again when a filter changes. |
+| `services/elastic/helpers.ts` | `shapeSearchChips`, `buildChildCategoryAggregations`: chip rules shared with text search. |
 | `components/Home/Search/Results/ProductItem.tsx` | `openOnColor`: link with `?color=<color name>`. |
 
 ### Settings

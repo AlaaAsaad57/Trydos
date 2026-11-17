@@ -48,6 +48,14 @@ vi.mock("components/Home/Search/requestSimilarProducts", async (importOriginal) 
   return { ...real, requestSimilarProducts: (...a: any[]) => photo.request(...a) };
 });
 const photoPicture = new Blob(["jpeg"], { type: "image/jpeg" });
+/** The chips of the first photo answer (the photo route gives them). */
+const photoChips = {
+  brands: [{ slug: "nike" }],
+  boutiques: [{ slug: "eve" }],
+  categories: [],
+  related_categories: [],
+};
+const noChips = { brands: [], boutiques: [], categories: [], related_categories: [] };
 
 // ---- Children: each is its own unit, so here they only expose their callbacks
 vi.mock("next/dynamic", () => ({
@@ -56,13 +64,19 @@ vi.mock("next/dynamic", () => ({
     return ({ setSearchValue, onPhotoResults, filters }: any) => (
       <span>
         {options.loading()}
-        <button onClick={() => setSearchValue("heard words")}>media value</button>
-        <button onClick={() => setSearchValue("")}>media empty</button>
+        {/* Only the voice search fills the box; the photo search has no words. */}
+        {setSearchValue && (
+          <>
+            <button onClick={() => setSearchValue("heard words")}>media value</button>
+            <button onClick={() => setSearchValue("")}>media empty</button>
+          </>
+        )}
         {onPhotoResults && (
           <button
             onClick={() =>
               onPhotoResults({
                 products: [{ product_id: 18, name: "Paisley jacket", slug: "jacket", color: "Blue" }],
+                chips: photoChips,
                 preview: "data:image/jpeg;base64,AA",
                 picture: photoPicture,
                 filtersKey: photo.key(filters),
@@ -189,7 +203,7 @@ describe("SearchIcon", () => {
     getSearchHistory.mockReset().mockResolvedValue(["bags"]);
     removeSearchHistory.mockReset().mockResolvedValue(true);
     logSearch.mockReset();
-    photo.request.mockReset().mockResolvedValue({ ok: true, status: 200, products: [] });
+    photo.request.mockReset().mockResolvedValue({ ok: true, status: 200, products: [], chips: noChips });
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -234,7 +248,8 @@ describe("SearchIcon", () => {
 
   describe("photo search with the search box filters", () => {
     const photoMode = async () => {
-      GetSearchData.mockResolvedValue({ brands: [{ slug: "nike" }], boutiques: [{ slug: "eve" }], total_size: 3 });
+      // Text search chips; photo mode must not show them.
+      GetSearchData.mockResolvedValue({ brands: [{ slug: "adidas" }], boutiques: [{ slug: "text-shop" }], total_size: 3 });
       await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
       await open();
       await settle();
@@ -250,7 +265,12 @@ describe("SearchIcon", () => {
 
     it("searches the same photo again with the new filter, and shows the new products", async () => {
       await photoMode();
-      photo.request.mockResolvedValue({ ok: true, status: 200, products: [{ product_id: 3, name: "Nike jacket", slug: "nike-jacket" }] });
+      photo.request.mockResolvedValue({
+        ok: true,
+        status: 200,
+        products: [{ product_id: 3, name: "Nike jacket", slug: "nike-jacket" }],
+        chips: { ...noChips, brands: [{ slug: "nike" }], boutiques: [{ slug: "nike-store" }] },
+      });
       await act(async () => fireEvent.click(screen.getByText("brand nike")));
       await settle();
       const sent = photo.request.mock.calls.at(-1)?.[0];
@@ -259,6 +279,37 @@ describe("SearchIcon", () => {
       expect([sent?.language, sent?.country], "the photo route got the wrong language or country").toEqual(["en", "sy"]);
       expect(screen.getByText("product Nike jacket"), "the products found with the filter are not shown").toBeInTheDocument();
       expect(screen.queryByText("product Paisley jacket"), "a product found without the filter still shows").toBeNull();
+      expect(screen.getByText("boutique nike-store"), "the chips of the products found with the filter are not shown").toBeInTheDocument();
+      expect(screen.queryByText("boutique eve"), "a chip of the products found without the filter still shows").toBeNull();
+    });
+
+    it("shows the chips of the photo results, not the text search chips", async () => {
+      await photoMode();
+      expect(screen.getByText("brand nike"), "the photo results brand chip is missing").toBeInTheDocument();
+      expect(screen.getByText("boutique eve"), "the photo results boutique chip is missing").toBeInTheDocument();
+      expect(screen.queryByText("brand adidas"), "a text search brand chip shows in photo mode").toBeNull();
+      expect(screen.queryByText("boutique text-shop"), "a text search boutique chip shows in photo mode").toBeNull();
+    });
+
+    it("does not run the text search while in photo mode, and brings the text chips back on Clear", async () => {
+      await photoMode();
+      const textSearches = GetSearchData.mock.calls.length;
+      await act(async () => fireEvent.click(screen.getByText("brand nike")));
+      await settle();
+      expect(GetSearchData.mock.calls.length, "a filter change in photo mode ran the text search too").toBe(textSearches);
+      await act(async () => fireEvent.click(screen.getByLabelText("Clear Photo Search")));
+      await settle();
+      expect(GetSearchData.mock.calls.length > textSearches, "leaving photo mode did not run the text search again").toBe(true);
+      expect(screen.getByText("brand adidas"), "the text search chips did not come back after Clear").toBeInTheDocument();
+    });
+
+    it("shows no Load More in photo mode, because Load More pages the text search", async () => {
+      await photoMode();
+      photo.request.mockResolvedValue({ ok: true, status: 200, products: [], chips: { ...noChips, brands: many("b", 10) } });
+      await act(async () => fireEvent.click(screen.getByText("boutique eve")));
+      await settle();
+      expect(screen.getByText("brand b9"), "the ten photo brand chips are not shown").toBeInTheDocument();
+      expect(screen.queryByText("Load More"), "Load More shows in photo mode").toBeNull();
     });
 
     it("says no products were found when the filter leaves none, and stays in photo mode", async () => {
@@ -283,12 +334,14 @@ describe("SearchIcon", () => {
       let finishFirst: (v: any) => void = () => {};
       photo.request
         .mockImplementationOnce(() => new Promise((r) => (finishFirst = r)))
-        .mockResolvedValueOnce({ ok: true, status: 200, products: [{ product_id: 5, name: "Newest", slug: "n" }] });
+        .mockResolvedValueOnce({ ok: true, status: 200, products: [{ product_id: 5, name: "Newest", slug: "n" }], chips: noChips });
       await act(async () => fireEvent.click(screen.getByText("brand nike")));
       await settle();
-      await act(async () => fireEvent.click(screen.getByText("boutique eve")));
+      // A chip tap waits for the answer (as in text search), so the second
+      // change comes from the filter bar.
+      await act(async () => fireEvent.click(screen.getByText("bar reset")));
       await settle();
-      await act(async () => finishFirst({ ok: true, status: 200, products: [{ product_id: 4, name: "Older", slug: "o" }] }));
+      await act(async () => finishFirst({ ok: true, status: 200, products: [{ product_id: 4, name: "Older", slug: "o" }], chips: noChips }));
       await settle();
       expect(screen.getByText("product Newest"), "the newest answer is not shown").toBeInTheDocument();
       expect(screen.queryByText("product Older"), "an older answer replaced the newest one").toBeNull();
@@ -600,19 +653,15 @@ describe("SearchIcon", () => {
     expect(input().value, "the filter bar reset left the word").toBe("");
   });
 
-  it("uses history, trending and media answers as the search word, and deletes a history word", async () => {
+  it("uses history, trending and voice answers as the search word, and deletes a history word", async () => {
     await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
     await open();
     await settle();
     fireEvent.click(screen.getByText("history delete"));
     expect(removeSearchHistory, "the server was not told to remove the word").toHaveBeenCalledWith({ term: "bags" });
-    fireEvent.click(screen.getAllByText("media empty")[0]);
-    expect(input().value, "an empty media answer changed the box").toBe("");
-    fireEvent.click(screen.getAllByText("media value")[0]);
-    expect(input().value, "the picture answer did not fill the box").toBe("heard words");
-    fireEvent.click(document.querySelector('[data-pw="SearchInputCloseIcon"]')!);
-    fireEvent.click(screen.getAllByText("media empty")[1]);
-    fireEvent.click(screen.getAllByText("media value")[1]);
+    fireEvent.click(screen.getByText("media empty"));
+    expect(input().value, "an empty voice answer changed the box").toBe("");
+    fireEvent.click(screen.getByText("media value"));
     expect(input().value, "the voice answer did not fill the box").toBe("heard words");
     fireEvent.click(document.querySelector('[data-pw="SearchInputCloseIcon"]')!);
     fireEvent.click(screen.getByText("trend pick"));

@@ -18,7 +18,14 @@
 //   re-scores the best candidates with the full vectors, and then the order
 //   matched an exact brute-force search.
 // - `similarity` is the raw cosine (-1..1). The `_score` is (1 + cosine) / 2.
-import { buildBaseConditions, extractFilters, normalizeCustomProducts } from "./helpers";
+import {
+  buildAggregations,
+  buildBaseConditions,
+  buildChildCategoryAggregations,
+  extractFilters,
+  normalizeCustomProducts,
+  shapeSearchChips,
+} from "./helpers";
 import { catalog_index } from "./INDEXES";
 
 const VECTOR_FIELD = "color_image_vectors.vector";
@@ -140,9 +147,58 @@ export function readPhotoSearchFilters(raw: unknown): PhotoSearchFilters {
   return filters;
 }
 
+/** Chips per list, as on the first page of text search chips. */
+const CHIPS_PER_LIST = 10;
+
+/** The chip aggregations of a photo search.
+ *
+ *  With a top-level `knn`, Elasticsearch counts the aggregations over the top
+ *  `k` nearest products only. So `filtered_results` and `child_results` need
+ *  no condition of their own: they are the brands, boutiques and categories
+ *  of the products the shopper sees. This is what text search chips are too.
+ *
+ *  `global_related_scope` (related categories) reads the whole index, so it
+ *  gets the shopper rules and the filters, without categories, like text
+ *  search. Never send an empty condition there: the chips would then show
+ *  hidden products' categories. */
+function buildPhotoChipAggregations(
+  language: string,
+  country: string,
+  filters: PhotoSearchFilters,
+) {
+  const related = buildBaseConditions(
+    {
+      brands: filters.brands,
+      boutiques: filters.boutiques,
+      colors: filters.colors,
+      sizes: filters.sizes,
+      priceRange: filters.priceRange,
+    },
+    country,
+  );
+  return {
+    ...buildAggregations([], [], language, CHIPS_PER_LIST, related.must, related.must_not),
+    child_results: {
+      filter: { match_all: {} },
+      aggs: buildChildCategoryAggregations(language),
+    },
+  };
+}
+
+/** Chip lists out of a photo search answer, in the text search shape. */
+export function toPhotoSearchChips(aggregations: any, filters: PhotoSearchFilters = {}) {
+  return shapeSearchChips({
+    aggregations: aggregations?.filtered_results,
+    childAggregations: aggregations?.child_results,
+    relatedAggregations: aggregations?.global_related_scope?.related_filtered_results,
+    selectedCategories: filters.categories,
+  });
+}
+
 export function buildSimilarProductsQuery({
   vector,
   country,
+  language = "en",
   qaView = false,
   filters = {},
   size = SIMILAR_PRODUCTS_SIZE,
@@ -150,6 +206,8 @@ export function buildSimilarProductsQuery({
 }: {
   vector: number[];
   country: string;
+  /** The chips' language. */
+  language?: string;
   qaView?: boolean;
   filters?: PhotoSearchFilters;
   size?: number;
@@ -185,6 +243,7 @@ export function buildSimilarProductsQuery({
       // the score of its best photo.
       inner_hits: { size: 1, _source: ["color_image_vectors.image"] },
     },
+    aggs: buildPhotoChipAggregations(language, country, filters),
   };
 }
 

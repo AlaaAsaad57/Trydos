@@ -19,6 +19,7 @@ import {
   DEFAULT_MIN_SIMILARITY,
   minSimilarity,
   readPhotoSearchFilters,
+  toPhotoSearchChips,
   toSimilarProducts,
 } from "services/elastic/similarProducts";
 
@@ -94,6 +95,55 @@ describe("the photo search query with shopper filters", () => {
   it("keeps the shopper rules beside the filters", () => {
     expect(text, "the country block was lost when filters were added").toContain('"countries_iso.iso":"SY"');
     expect(text, "the active-product rule was lost when filters were added").toContain('"status":1');
+  });
+});
+
+describe("the chip aggregations of the photo search query", () => {
+  const filters = { categories: ["dresses-4"], brands: ["new-brand-4"] };
+  const query = buildSimilarProductsQuery({ vector, country: "sy", language: "tr", filters }) as any;
+
+  it("counts the chips over the kNN products only, with no condition of their own", () => {
+    // With a top-level knn the aggregations see only the top k products; an
+    // extra condition here could only drop chips of products on the screen.
+    expect(query.aggs?.filtered_results?.filter, "the chip aggregation is missing").toEqual({ bool: { must: [], must_not: [] } });
+    expect(query.aggs?.child_results?.filter, "the sub-category aggregation is missing").toEqual({ match_all: {} });
+  });
+
+  it("asks for the chips in the shopper's language", () => {
+    expect(JSON.stringify(query.aggs.filtered_results), "brand chips are not in the shopper's language").toContain('"custom_brands.language_code":"tr"');
+    expect(JSON.stringify(query.aggs.child_results), "sub-category chips are not in the shopper's language").toContain('"custom_categories.language_code":"tr"');
+  });
+
+  it("keeps the shopper rules on the related categories, which read the whole index", () => {
+    const related = JSON.stringify(query.aggs.global_related_scope?.aggs?.related_filtered_results?.filter);
+    expect(related, "related categories could show products blocked in the country").toContain('"countries_iso.iso":"SY"');
+    expect(related, "related categories could show inactive products").toContain('"status":1');
+    expect(related, "related categories lost the brand filter").toContain('"custom_brands.slug.keyword":["new-brand-4"]');
+    expect(related, "related categories must not keep the category filter, as in text search").not.toContain("dresses-4");
+  });
+});
+
+describe("toPhotoSearchChips", () => {
+  const brand = (key: number, slug: string) => ({
+    key,
+    brand_details: { hits: { hits: [{ _source: { name: slug, slug, icon: "" } }] } },
+  });
+
+  it("reads the brand chips from the kNN aggregation", () => {
+    const chips = toPhotoSearchChips({
+      filtered_results: { top_brands: { filtered_brands: { brands_by_id: { buckets: [brand(1, "nike-1"), brand(2, "zara-2")] } } } },
+    });
+    expect(chips.brands.map((b: any) => b.slug), "the brand chips are not the kNN products' brands").toEqual(["nike-1", "zara-2"]);
+  });
+
+  it("gives empty lists for an answer with no aggregations", () => {
+    const chips = toPhotoSearchChips(undefined);
+    expect(chips, "a missing aggregation must give empty chip lists").toEqual({
+      brands: [],
+      boutiques: [],
+      categories: [],
+      related_categories: [],
+    });
   });
 });
 

@@ -69,7 +69,7 @@ describe("SearchImage", () => {
   });
 
   it("on desktop: opens a menu, and the file option opens a file picker", async () => {
-    await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
+    await renderWithProviders(<SearchImage onPhotoResults={vi.fn()} />);
     fireEvent.click(camIcon());
     const fromFiles = screen.getByLabelText("Choose File From Device");
     fireEvent.click(fromFiles);
@@ -79,7 +79,7 @@ describe("SearchImage", () => {
   });
 
   it("on desktop: the camera option opens the camera, and a shot goes to the crop step", async () => {
-    await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
+    await renderWithProviders(<SearchImage onPhotoResults={vi.fn()} />);
     fireEvent.click(camIcon());
     fireEvent.click(screen.getByLabelText("Take Photo With Camera"));
     fireEvent.click(screen.getByText("close camera"));
@@ -92,7 +92,7 @@ describe("SearchImage", () => {
   });
 
   it("closes the menu on a click outside, but not on a click inside", async () => {
-    await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
+    await renderWithProviders(<SearchImage onPhotoResults={vi.fn()} />);
     fireEvent.mouseDown(document.body);
     fireEvent.click(camIcon());
     fireEvent.mouseDown(screen.getByLabelText("Take Photo With Camera"));
@@ -106,7 +106,7 @@ describe("SearchImage", () => {
     ["an iPad", "Mozilla/5.0 (iPad; CPU OS 17_0)"],
   ])("on %s: opens the file picker straight away", async (_name, ua) => {
     setAgent(ua);
-    await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
+    await renderWithProviders(<SearchImage onPhotoResults={vi.fn()} />);
     fireEvent.click(camIcon());
     expect(screen.queryByLabelText("Take Photo With Camera"), "a phone or tablet got the desktop menu").toBeNull();
     expect(fileInputs().length, "no file picker was opened").toBe(1);
@@ -115,7 +115,7 @@ describe("SearchImage", () => {
 
   it("refuses a file that is not a picture and clears the picker", async () => {
     setAgent("android mobile");
-    await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
+    await renderWithProviders(<SearchImage onPhotoResults={vi.fn()} />);
     fireEvent.click(camIcon());
     const target = choose(fileInputs()[0], new File(["x"], "a.pdf", { type: "application/pdf" }));
     expect(window.alert, "a wrong file type was not refused").toHaveBeenCalledWith(
@@ -126,26 +126,9 @@ describe("SearchImage", () => {
     expect(camIcon(), "the spinner stayed after a refused file").not.toBeNull();
   });
 
-  it("sends the cropped picture to image search and fills the search box with the answer", async () => {
-    setAgent("android mobile");
-    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ response: "black t-shirt" }) });
-    const setSearchValue = vi.fn();
-    await renderWithProviders(<SearchImage setSearchValue={setSearchValue} />);
-    fireEvent.click(camIcon());
-    choose(fileInputs()[0], png());
-    expect(screen.getByTestId("crop").dataset.name, "a good picture did not reach the crop step").toBe("pic.png");
-    await act(async () => fireEvent.click(screen.getByText("save crop")));
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(url, "the picture went to the wrong address").toBe("/api/image-search");
-    expect((init.body as FormData).get("language"), "the language was not sent").toBe("en");
-    expect(init.credentials, "image search must send the session cookie, or the route refuses it").toBe("same-origin");
-    await waitFor(() => expect(setSearchValue, "the answer did not fill the search box").toHaveBeenCalledWith("black t-shirt"));
-    expect(camIcon(), "the spinner stayed after the answer").not.toBeNull();
-  });
-
   it("closes the crop step and stops the spinner", async () => {
     setAgent("android mobile");
-    await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
+    await renderWithProviders(<SearchImage onPhotoResults={vi.fn()} />);
     fireEvent.click(camIcon());
     choose(fileInputs()[0], png());
     fireEvent.click(screen.getByText("close crop"));
@@ -153,37 +136,23 @@ describe("SearchImage", () => {
     expect(camIcon(), "the spinner stayed after closing the crop step").not.toBeNull();
   });
 
-  it.each([
-    ["the image-search route's own error", { error: "quota reached" }, "Quota Reached"],
-    ["a general message when the route gives none", {}, "Failed To Search With Image"],
-  ])("shows %s when image search is refused", async (_name, body, shown) => {
-    setAgent("android mobile");
-    fetchMock.mockResolvedValue({ ok: false, json: async () => body });
-    await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
-    fireEvent.click(camIcon());
-    choose(fileInputs()[0], png());
-    await act(async () => fireEvent.click(screen.getByText("save crop")));
-    await waitFor(() => expect(showErrorNotification, "the refusal was not shown").toHaveBeenCalledWith(shown));
-    expect(LogError, "the refusal was not logged").toHaveBeenCalled();
-  });
-
-  describe("with photo results (search by vector first)", () => {
+  describe("the photo search (by vector only)", () => {
     const reply = (status: number, body: any) => ({ ok: status < 300, status, json: async () => body });
-    const sendPhoto = async (onPhotoResults = vi.fn(), setSearchValue = vi.fn(), filters?: any) => {
+    const sendPhoto = async (onPhotoResults = vi.fn(), filters?: any) => {
       setAgent("android mobile");
-      await renderWithProviders(
-        <SearchImage setSearchValue={setSearchValue} onPhotoResults={onPhotoResults} filters={filters} />,
-      );
+      await renderWithProviders(<SearchImage onPhotoResults={onPhotoResults} filters={filters} />);
       fireEvent.click(camIcon());
       choose(fileInputs()[0], png());
+      expect(screen.getByTestId("crop").dataset.name, "a good picture did not reach the crop step").toBe("pic.png");
       await act(async () => fireEvent.click(screen.getByText("save crop")));
-      return { onPhotoResults, setSearchValue };
+      return { onPhotoResults };
     };
 
-    it("sends the photo with the language and country, and hands over the products", async () => {
+    it("sends the photo with the language and country, and hands over the products and their chips", async () => {
       const products = [{ product_id: 18, slug: "jacket" }];
-      fetchMock.mockResolvedValueOnce(reply(200, { success: true, products }));
-      const { onPhotoResults, setSearchValue } = await sendPhoto();
+      const brands = [{ id: 4, slug: "new-brand-4" }];
+      fetchMock.mockResolvedValueOnce(reply(200, { success: true, products, brands }));
+      const { onPhotoResults } = await sendPhoto();
       const [url, init] = fetchMock.mock.calls[0];
       expect(url, "the photo did not go to the vector search route").toBe("/api/image-search/similar");
       // renderWithProviders opens the page at /gb-en.
@@ -191,15 +160,17 @@ describe("SearchImage", () => {
       expect((init.body as FormData).get("language"), "the language was not sent").toBe("en");
       expect(init.credentials, "the session cookie must go, or the route refuses it").toBe("same-origin");
       await waitFor(() => expect(onPhotoResults, "the products were not handed over").toHaveBeenCalled());
-      expect(onPhotoResults.mock.calls[0][0].products, "the wrong products were handed over").toBe(products);
-      expect(fetchMock, "the words search ran although products were found").toHaveBeenCalledTimes(1);
-      expect(setSearchValue, "the search box was filled although products were found").not.toHaveBeenCalled();
+      const handed = onPhotoResults.mock.calls[0][0];
+      expect(handed.products, "the wrong products were handed over").toBe(products);
+      expect(handed.chips.brands, "the route's brand chips were not handed over").toEqual(brands);
+      expect(handed.chips.categories, "a missing chip list must be an empty list").toEqual([]);
+      expect(camIcon(), "the spinner stayed after the answer").not.toBeNull();
     });
 
     it("sends the search box filters with the photo, and says which filters the products were found with", async () => {
       fetchMock.mockResolvedValueOnce(reply(200, { success: true, products: [{ product_id: 1 }] }));
       const filters = { brands: ["nike"], categories: [], boutiques: [] };
-      const { onPhotoResults } = await sendPhoto(vi.fn(), vi.fn(), filters);
+      const { onPhotoResults } = await sendPhoto(vi.fn(), filters);
       const sent = (fetchMock.mock.calls[0][1].body as FormData).get("filters");
       expect(JSON.parse(String(sent)), "the filters did not go with the photo").toEqual(filters);
       await waitFor(() => expect(onPhotoResults, "the products were not handed over").toHaveBeenCalled());
@@ -208,49 +179,47 @@ describe("SearchImage", () => {
       expect(handed.filtersKey, "the filters key does not match the filters sent").toBe(photoFiltersKey(filters));
     });
 
-    it.each([
-      ["finds nothing", reply(200, { success: true, products: [] })],
-      ["fails on the server", reply(502, { error: "failed to search with image" })],
-    ])("falls back to the words search when the vector search %s", async (_name, first) => {
-      fetchMock
-        .mockResolvedValueOnce(first)
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ response: "black jacket" }) });
-      const { onPhotoResults, setSearchValue } = await sendPhoto();
-      await waitFor(() => expect(setSearchValue, "the words search did not fill the search box").toHaveBeenCalledWith("black jacket"));
-      expect(fetchMock.mock.calls[1][0], "the fallback went to the wrong route").toBe("/api/image-search");
-      expect(onPhotoResults, "photo results were handed over for a failed search").not.toHaveBeenCalled();
+    it("hands over an empty list when nothing is near, and never runs the old words search", async () => {
+      fetchMock.mockResolvedValueOnce(reply(200, { success: true, products: [] }));
+      const { onPhotoResults } = await sendPhoto();
+      await waitFor(() => expect(onPhotoResults, "an empty answer was not handed over, so no 'No products found' shows").toHaveBeenCalled());
+      expect(onPhotoResults.mock.calls[0][0].products, "an empty answer must hand over an empty list").toEqual([]);
+      expect(fetchMock, "a second call ran after an empty photo answer (the old words fallback)").toHaveBeenCalledTimes(1);
+      expect(showErrorNotification, "an empty answer is not an error").not.toHaveBeenCalled();
     });
 
-    it("falls back to the words search when the vector route cannot be reached", async () => {
-      fetchMock
-        .mockRejectedValueOnce(new TypeError("network"))
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ response: "black jacket" }) });
-      const { setSearchValue } = await sendPhoto();
-      await waitFor(() => expect(setSearchValue, "the words search did not run after a network error").toHaveBeenCalledWith("black jacket"));
+    it.each([
+      ["the route's own message", { error: "failed to search with image" }, "Failed To Search With Image"],
+      ["a general message when the route gives none", {}, "Failed To Search With Image"],
+    ])("on a server failure: shows %s, logs it, and tries nothing else", async (_name, body, shown) => {
+      fetchMock.mockResolvedValueOnce(reply(502, body));
+      const { onPhotoResults } = await sendPhoto();
+      await waitFor(() => expect(showErrorNotification, "the server failure was not shown").toHaveBeenCalledWith(shown));
+      expect(LogError, "a 502 from the photo route was not logged").toHaveBeenCalled();
+      expect(fetchMock, "a second call ran after a failed photo search (the old words fallback)").toHaveBeenCalledTimes(1);
+      expect(onPhotoResults, "photo results were handed over for a failed search").not.toHaveBeenCalled();
+      expect(camIcon(), "the spinner stayed after the failure").not.toBeNull();
+    });
+
+    it("when the route cannot be reached: shows the general message, logs it, and tries nothing else", async () => {
+      fetchMock.mockRejectedValueOnce(new TypeError("network"));
+      await sendPhoto();
+      await waitFor(() => expect(showErrorNotification, "a network failure was not shown").toHaveBeenCalledWith("Failed To Search With Image"));
+      expect(LogError, "a network failure was not logged").toHaveBeenCalled();
+      expect(fetchMock, "a second call ran after a network failure (the old words fallback)").toHaveBeenCalledTimes(1);
+      expect(camIcon(), "the spinner stayed after the failure").not.toBeNull();
     });
 
     it.each([
       [400, "We could not read this image. Please try another photo."],
       [429, "Too many requests. Please try again in a moment."],
-    ])("shows the message and stops on a %s answer", async (status, error) => {
+    ])("shows the message on a %s answer, and does not log the shopper's side refusal", async (status, error) => {
       fetchMock.mockResolvedValueOnce(reply(status, { error }));
       await sendPhoto();
       await waitFor(() => expect(showErrorNotification, `the ${status} message was not shown`).toHaveBeenCalled());
-      expect(fetchMock, `the words search ran after a ${status}`).toHaveBeenCalledTimes(1);
+      expect(LogError, `a ${status} is the shopper's side and must not be logged`).not.toHaveBeenCalled();
+      expect(fetchMock, `a second call ran after a ${status}`).toHaveBeenCalledTimes(1);
       expect(camIcon(), "the spinner stayed after the message").not.toBeNull();
     });
-  });
-
-  it.each([
-    ["a thrown string", "boom", "Boom"],
-    ["an empty throw", "", "Failed To Search With Image"],
-  ])("shows %s when image search cannot be reached", async (_name, thrown, shown) => {
-    setAgent("android mobile");
-    fetchMock.mockRejectedValue(thrown);
-    await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
-    fireEvent.click(camIcon());
-    choose(fileInputs()[0], png());
-    await act(async () => fireEvent.click(screen.getByText("save crop")));
-    await waitFor(() => expect(showErrorNotification, "the failure was not shown").toHaveBeenCalledWith(shown));
   });
 });

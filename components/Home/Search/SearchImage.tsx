@@ -2,13 +2,16 @@ import { useState, useEffect } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
-import { useAppStore } from "store";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 import { CameraWidget } from "components/global/CameraWidget";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { imageToSearchJpeg } from "utils/imageToSearchJpeg";
 import type { PhotoSearchFilters } from "services/elastic/similarProducts";
-import { photoFiltersKey, requestSimilarProducts } from "./requestSimilarProducts";
+import {
+  photoFiltersKey,
+  requestSimilarProducts,
+  type PhotoSearchChips,
+} from "./requestSimilarProducts";
 
 // Device detection utility
 const getDeviceCategory = () => {
@@ -56,6 +59,8 @@ const getDeviceCategory = () => {
 /** What a photo search found, for the overlay to show. */
 export type PhotoResults = {
   products: any[];
+  /** The brand, category and boutique chips of these products. */
+  chips: PhotoSearchChips;
   /** The picture the shopper sent, as a data URL, to show beside the results. */
   preview: string;
   /** The picture as sent, so a filter change can search with it again. */
@@ -72,25 +77,23 @@ const readAsDataUrl = (file: Blob) =>
     reader.readAsDataURL(file);
   });
 
-/** Answers of the photo route that the older route would answer the same way
- *  (no session, too big, too many calls, a picture it cannot read). The
- *  shopper sees the message, and nothing else is tried. */
-const FINAL_STATUSES = [400, 401, 413, 429];
+/** Refusals that are the shopper's side (no session, too big, too many calls,
+ *  a picture the model cannot read). The shopper sees the message; nothing is
+ *  logged, because nothing is broken. */
+const SHOPPER_STATUSES = [400, 401, 413, 429];
 
+/** A photo search finds products by vector only. There is no words search
+ *  fallback: a photo with no near product shows "No products found", and a
+ *  failed search shows its message. */
 function SearchImage({
-  setSearchValue,
   onPhotoResults,
   filters = {},
 }: {
-  setSearchValue: Function;
   /** The search box filters; the photo search uses them too. */
   filters?: PhotoSearchFilters;
-  /** Given: the photo first looks for similar products by vector, and only
-   *  falls back to the words search when that fails or finds nothing. */
-  onPhotoResults?: (results: PhotoResults) => void;
+  /** Gets the products (an empty list too) and their chips. */
+  onPhotoResults: (results: PhotoResults) => void;
 }) {
-  const { language } = useAppStore();
-
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -107,103 +110,42 @@ function SearchImage({
     setIsDesktop(getDeviceCategory() === "desktop");
   }, []);
 
-  /** Photo -> similar products. "done": results were shown. "stop": a
-   *  message was shown. "fallback": try the words search. */
-  const searchSimilarProducts = async (
-    picture: File,
-  ): Promise<"done" | "stop" | "fallback"> => {
+  /** Photo -> similar products and their chips. */
+  const searchPhoto = async (picked: File) => {
+    setLoading(true);
     try {
+      // Small JPEG: a phone photo is often over the route's 4 MB cap.
+      const picture = await imageToSearchJpeg(picked);
       const result = await requestSimilarProducts({
         picture,
         language: languageVariable,
         country,
         filters,
       });
-      if (result.ok && result.products.length > 0) {
-        onPhotoResults?.({
+      if (result.ok) {
+        // An empty list too: the overlay then says "No products found".
+        onPhotoResults({
           products: result.products,
+          chips: result.chips,
           preview: await readAsDataUrl(picture),
           picture,
           filtersKey: photoFiltersKey(filters),
         });
-        return "done";
-      }
-      // Nothing near enough: the words search may still find something.
-      if (result.ok) return "fallback";
-      if (FINAL_STATUSES.includes(result.status)) {
-        showErrorNotification(
-          translateFunction(result.error || "failed to search with image"),
-        );
-        return "stop";
-      }
-      LogError({
-        error: `photo search by vector answered ${result.status}`,
-        scenario: "searchSimilarProducts in SearchImage",
-      });
-      return "fallback";
-    } catch (error) {
-      LogError({ error, scenario: "searchSimilarProducts in SearchImage" });
-      return "fallback";
-    }
-  };
-
-  const searchPhoto = async (picked: File) => {
-    setLoading(true);
-    // Small JPEG for both routes: a phone photo is often over their 4 MB cap.
-    const picture = await imageToSearchJpeg(picked);
-    if (onPhotoResults) {
-      const outcome = await searchSimilarProducts(picture);
-      if (outcome !== "fallback") {
-        setLoading(false);
         return;
       }
-    }
-    await GemeniFunc(picture);
-  };
-
-  // The older way: the photo becomes a few words, and text search runs on them.
-  const GemeniFunc = async (file) => {
-    try {
-      setLoading(true);
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("language", languageVariable);
-      formData.append(
-        "prompt",
-        "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl",
-      );
-      // The route refuses a call with no session cookie, so the cookie goes.
-      const result = await fetch("/api/image-search", {
-        method: "POST",
-        body: formData,
-        credentials: "same-origin",
-      });
-      if (!result.ok) {
-        const response = await result.json();
-        throw new Error(response.error || "Failed to search with image");
+      if (!SHOPPER_STATUSES.includes(result.status)) {
+        LogError({
+          error: `photo search by vector answered ${result.status}`,
+          scenario: "searchPhoto in SearchImage",
+        });
       }
-      // @ts-ignore
-      const response = await result.json();
-
-      // Setting the search value drives the overlay's single GetSearchData
-      // path directly (see SD-06); no separate store-based search needed.
-      setSearchValue(response.response);
-      setLoading(false);
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario: "GemeniFunc in SearchImage",
-      });
-      setLoading(false);
       showErrorNotification(
-        translateFunction(
-          error?.message ||
-            error ||
-            translateFunction("failed to search with image"),
-        ),
+        translateFunction(result.error || "failed to search with image"),
       );
-
+    } catch (error) {
+      LogError({ error, scenario: "searchPhoto in SearchImage" });
+      showErrorNotification(translateFunction("failed to search with image"));
+    } finally {
       setLoading(false);
     }
   };

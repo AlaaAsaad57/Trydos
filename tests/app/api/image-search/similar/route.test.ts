@@ -168,6 +168,75 @@ describe("the photo search route", () => {
     expect((await POST(good())).status, "a stored vector let a caller over the limit through").toBe(429);
   });
 
+  describe("the chips of the found products", () => {
+    // The search backend's aggregation answer, cut to the parts the chips read.
+    const aggregations = {
+      filtered_results: {
+        top_brands: {
+          filtered_brands: {
+            brands_by_id: {
+              buckets: [{ key: 4, brand_details: { hits: { hits: [{ _source: { name: "New Brand", slug: "new-brand-4", icon: "b.png" } }] } } }],
+            },
+          },
+        },
+        top_boutiques: {
+          filtered_boutiques: {
+            boutiques_by_id: {
+              buckets: [{ key: 5, boutique_details: { hits: { hits: [{ _source: { name: "Fashion", slug: "fashion-5", banners: [] } }] } } }],
+            },
+          },
+        },
+        top_categories: {
+          filtered_categories: {
+            categories_by_id: {
+              buckets: [{ key: 9, category_details: { hits: { hits: [{ _source: { category_id: 9, name: "Jackets", slug: "jackets-9" } }] } } }],
+            },
+          },
+        },
+      },
+      child_results: {
+        top_categories: {
+          filtered_categories: {
+            categories_by_id: {
+              buckets: [{ key: 11, category_details: { hits: { hits: [{ _source: { category_id: 11, name: "Rain jackets", slug: "rain-jackets-11" } }] } } }],
+            },
+          },
+        },
+        top_orig_categories: {
+          orig_categories_by_id: {
+            buckets: [{ key: 11, orig_category_details: { hits: { hits: [{ _source: { id: 11, parent_id: 9 } }] } } }],
+          },
+        },
+      },
+    };
+
+    it("answers the brand, boutique and category chips of the products found", async () => {
+      io.search.mockResolvedValue({ hits: { hits: [hit] }, aggregations });
+      const body = await (await POST(good())).json();
+      expect(body.brands?.[0]?.slug, "the found product's brand chip is missing").toBe("new-brand-4");
+      expect(body.boutiques?.[0]?.slug, "the found product's boutique chip is missing").toBe("fashion-5");
+      expect(body.categories?.[0]?.slug, "the found product's main category chip is missing").toBe("jackets-9");
+      expect(
+        body.categories?.[0]?.childes?.[0]?.slug,
+        "the sub-category was not put under its main category, as text search does",
+      ).toBe("rain-jackets-11");
+      expect(Array.isArray(body.related_categories), "related_categories must be a list").toBe(true);
+    });
+
+    it("asks the search backend for the chips in the shopper's language", async () => {
+      await POST(request({ file: jpeg(), language: "ar", country: "sy" }));
+      const aggs = JSON.stringify(io.search.mock.calls[0]?.[0]?.aggs);
+      expect(aggs, "the brand chips are not asked in Arabic").toContain('"custom_brands.language_code":"ar"');
+      expect(aggs, "the sub-category chips are not asked for").toContain('"custom_categories.position":0');
+    });
+
+    it("answers empty chip lists when the search backend gives no aggregations", async () => {
+      const body = await (await POST(good())).json();
+      expect(body.brands, "no aggregations must give no brand chips").toEqual([]);
+      expect(body.categories, "no aggregations must give no category chips").toEqual([]);
+    });
+  });
+
   it("answers an empty list when nothing is near enough", async () => {
     io.search.mockResolvedValue({ hits: { hits: [] } });
     const response = await POST(good());

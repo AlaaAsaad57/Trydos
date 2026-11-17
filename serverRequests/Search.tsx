@@ -9,15 +9,9 @@ import {
   normalizeCustomProducts,
   buildAggregations,
   getChildrenAndGrandchildren,
-  processBoutiquesAggregation,
-  processBrandsAggregation,
-  processCategoriesAggregation,
-  processRelatedCategories,
+  shapeSearchChips,
   sortColorsByFilteredColor,
   sortSyncColorImagesByFilteredColor,
-  GroupAgeEnum,
-  GenderEnum,
-  PopulateCategories,
 } from "services/elastic/helpers";
 import { catalog_index } from "services/elastic/INDEXES";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -203,9 +197,6 @@ export async function GetSearchData({
 
   try {
     const filtersSize = filters_offset * 10;
-    let categoriesFilter = [],
-      brandsFilter = [],
-      boutiquesFilter = [];
     // The one place in the app that may unfilter QA data, and only ever from
     // what the request proved — never from a literal. A literal `true` here
     // would show the QA shop to every customer who searched.
@@ -365,50 +356,15 @@ export async function GetSearchData({
       country,
       filters,
     );
-    let categiresCombo = (
-      aggregations as any
-    ).top_categories?.filtered_categories?.categories_by_id?.buckets.concat(
-      categories_childs.top_categories?.filtered_categories?.categories_by_id
-        ?.buckets || [],
-    );
-    let by_id_categories_comb = (
-      (aggregations as any).top_orig_categories?.orig_categories_by_id
-        ?.buckets || []
-    ).concat(
-      categories_childs.top_orig_categories?.orig_categories_by_id?.buckets ||
-        [],
-    );
 
-    const categoriesResult = processCategoriesAggregation(
-      categiresCombo,
-      by_id_categories_comb,
-      filters_offset,
-    );
-    categoriesFilter = categoriesResult.categories;
-    const relatedCategoriesFilter = processRelatedCategories(
+    // The same chip rules as photo search (services/elastic/similarProducts.ts).
+    const chips = shapeSearchChips({
+      aggregations,
+      childAggregations: categories_childs,
       relatedAggregations,
-      categoriesResult.genderAgePairs,
-      filters_offset,
-    );
-
-    const selectedCategorySlugs = new Set(
-      (filters?.categories || []).map((slug: any) => String(slug)),
-    );
-    const filteredRelatedCategories = relatedCategoriesFilter.filter(
-      (category: any) =>
-        category?.slug && !selectedCategorySlugs.has(category.slug),
-    );
-
-    brandsFilter = processBrandsAggregation(
-      (aggregations as any).top_brands?.filtered_brands?.brands_by_id
-        ?.buckets || [],
-      filters_offset,
-    );
-    boutiquesFilter = processBoutiquesAggregation(
-      (aggregations as any).top_boutiques?.filtered_boutiques?.boutiques_by_id
-        ?.buckets || [],
-      filters_offset,
-    );
+      selectedCategories: filters?.categories,
+      filtersOffset: filters_offset,
+    });
     return {
       total_size: total_size,
       products: normalizedProducts?.custom_products?.map((s) => ({
@@ -421,23 +377,10 @@ export async function GetSearchData({
         offer_price: s.offer_price,
         brand: s.brand,
       })),
-      related_categories: filteredRelatedCategories.map((s: any) => ({
-        ...s,
-        group_age: GroupAgeEnum[s.group_age]
-          ? GroupAgeEnum[s.group_age].label
-          : s.group_age,
-        gender: GenderEnum[s.gender] ? GenderEnum[s.gender].label : s.gender,
-        realted: PopulateCategories({ categories: categoriesFilter })
-          .filter(
-            (category: any) =>
-              category.group_age === s.group_age &&
-              category.gender === s.gender,
-          )
-          .map((category: any) => category.slug),
-      })),
-      brands: brandsFilter,
-      boutiques: boutiquesFilter,
-      categories: categoriesFilter,
+      related_categories: chips.related_categories,
+      brands: chips.brands,
+      boutiques: chips.boutiques,
+      categories: chips.categories,
       isAnalyzed: isAnalyzed,
       applied: filters,
     };

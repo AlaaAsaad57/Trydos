@@ -29,10 +29,16 @@ import dynamic from "next/dynamic";
 import IconSkeleton from "components/skeleton/IconSkeleton";
 // Type only, so the lazy SearchImage chunk stays lazy.
 import type { PhotoResults } from "./SearchImage";
-import { photoFiltersKey, requestSimilarProducts } from "./requestSimilarProducts";
+import {
+  NO_PHOTO_CHIPS,
+  photoFiltersKey,
+  requestSimilarProducts,
+} from "./requestSimilarProducts";
 
 /** The wait after the last key before a search or a completion is asked for. */
 const SEARCH_WAIT_MS = 400;
+
+const NO_MORE_CHIPS = { brands: false, categories: false, boutiques: false };
 
 // Lazy: SearchImage drags react-webcam + react-image-crop and SearchVoice the
 // recorder stack; both only render once the search overlay is open, so a
@@ -196,12 +202,13 @@ function SearchIcon({ language, country }) {
             translateFunction(result.error || "failed to search with image"),
           );
         }
-        // On a refusal the old products are not kept: they were found
-        // without the new filters.
+        // On a refusal the old products and chips are not kept: they were
+        // found without the new filters.
         setPhotoResults((prev) =>
           prev && {
             ...prev,
             products: result.ok ? result.products : [],
+            chips: result.ok ? result.chips : NO_PHOTO_CHIPS,
             filtersKey: currentPhotoFiltersKey,
           },
         );
@@ -209,7 +216,12 @@ function SearchIcon({ language, country }) {
         if (requestId !== latestPhotoRequestRef.current) return;
         LogError({ error, scenario: "photo search filter change in SearchIcon" });
         setPhotoResults((prev) =>
-          prev && { ...prev, products: [], filtersKey: currentPhotoFiltersKey },
+          prev && {
+            ...prev,
+            products: [],
+            chips: NO_PHOTO_CHIPS,
+            filtersKey: currentPhotoFiltersKey,
+          },
         );
       } finally {
         if (requestId === latestPhotoRequestRef.current) setPhotoLoading(false);
@@ -293,10 +305,14 @@ function SearchIcon({ language, country }) {
   // --- Watch Input Change for Debounce ---
 
   // Ensure useEffect triggers search when appliedFilters changes
+  const inPhotoMode = photoResults !== null;
   useEffect(() => {
     if (!searchEnabled) return;
 
     if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+    // In photo mode the photo search gives the chips (effect above). Leaving
+    // photo mode runs this effect again and brings the text chips back.
+    if (inPhotoMode) return;
 
     debounceTimeoutRef.current = setTimeout(() => {
       const hasFilters = Object.values(appliedFilters).some(
@@ -322,7 +338,7 @@ function SearchIcon({ language, country }) {
     }, SEARCH_WAIT_MS);
 
     return () => clearTimeout(debounceTimeoutRef.current);
-  }, [value, appliedFilters, searchEnabled, performSearch]);
+  }, [value, appliedFilters, searchEnabled, performSearch, inPhotoMode]);
 
   // --- Inline completion (ghost text) — same conditions as the main query ---
   const fetchSuggestion = useCallback(async () => {
@@ -556,9 +572,6 @@ function SearchIcon({ language, country }) {
                 <div className={`input-icons right-[38px] flex-row h-full`}>
                   <SearchImage
                     filters={photoFilters}
-                    setSearchValue={(e) => {
-                      if (e) setValue(e);
-                    }}
                     onPhotoResults={(found) => {
                       setValue("");
                       setPhotoResults(found);
@@ -595,16 +608,26 @@ function SearchIcon({ language, country }) {
           language={language}
           value={value}
           setValue={setValue}
-          loading={loading}
+          // In photo mode the chips are the photo results' chips, like the
+          // text results' chips in text search.
+          loading={inPhotoMode ? photoLoading : loading}
           photoResults={photoResults}
           photoLoading={photoLoading}
           clearPhotoResults={() => setPhotoResults(null)}
           // Data
           products={results.products}
-          brands={results.brands}
-          categories={results.categories}
-          boutiques={results.boutiques}
-          related_categories={results.related_categories}
+          brands={photoResults ? photoResults.chips.brands : results.brands}
+          categories={
+            photoResults ? photoResults.chips.categories : results.categories
+          }
+          boutiques={
+            photoResults ? photoResults.chips.boutiques : results.boutiques
+          }
+          related_categories={
+            photoResults
+              ? photoResults.chips.related_categories
+              : results.related_categories
+          }
           trending={trending}
           searchHistoryItems={searchHistory}
           removeHistoryWord={removeHistoryWord}
@@ -612,8 +635,9 @@ function SearchIcon({ language, country }) {
           applied_filter={appliedFilters}
           // Logic
           EnableSearch={setSearchEnabled}
-          // Load More Handlers
-          hasMore={hasMore}
+          // Load More Handlers. "Load More" pages the text search, so photo
+          // mode has none.
+          hasMore={inPhotoMode ? NO_MORE_CHIPS : hasMore}
           loadMoreBrands={() => handleLoadMore("brands")}
           loadMoreCategories={() => handleLoadMore("categories")}
           loadMoreBoutiques={() => handleLoadMore("boutiques")}

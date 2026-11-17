@@ -4,13 +4,31 @@
 // minutes, so sending the same photo again does not cost another Gemini call.
 import type { PhotoSearchFilters } from "services/elastic/similarProducts";
 
+/** The chip lists of the products found, in the text search shape. */
+export type PhotoSearchChips = {
+  brands: any[];
+  categories: any[];
+  boutiques: any[];
+  related_categories: any[];
+};
+
+export const NO_PHOTO_CHIPS: PhotoSearchChips = {
+  brands: [],
+  categories: [],
+  boutiques: [],
+  related_categories: [],
+};
+
 export type SimilarProductsAnswer = {
   ok: boolean;
   status: number;
   products: any[];
+  chips: PhotoSearchChips;
   /** English key for the shopper, when the route refused. */
   error?: string;
 };
+
+const list = (value: unknown) => (Array.isArray(value) ? value : []);
 
 /** Same order every time, so two equal filter sets give the same text. */
 export const photoFiltersKey = (filters: PhotoSearchFilters = {}) =>
@@ -46,7 +64,13 @@ export async function requestSimilarProducts({
   return {
     ok: result.ok,
     status: result.status,
-    products: Array.isArray(body?.products) ? body.products : [],
+    products: list(body?.products),
+    chips: {
+      brands: list(body?.brands),
+      categories: list(body?.categories),
+      boutiques: list(body?.boutiques),
+      related_categories: list(body?.related_categories),
+    },
     error: typeof body?.error === "string" ? body.error : undefined,
   };
 }
