@@ -151,6 +151,9 @@ export function usePageColor(color: string) {
 /** How many layers hold the page still right now. */
 let locks = 0;
 
+/** True while a layer (a sheet, a modal) is open over the page. */
+export const anyLayerOpen = () => locks > 0;
+
 /**
  * True for a box that scrolls on its own and can still move the way the
  * gesture goes: `dx`, `dy` are how far the content is asked to scroll (0, 0
@@ -1645,6 +1648,9 @@ export function useScreenHeight(watch = true) {
  */
 const OVERSHOOT_MARGIN = 8;
 
+/** A `keepHeight` sheet on a short window: the dimmed page it leaves above its top, under the status bar, in px. */
+const KEEP_TOP_GAP = 12;
+
 /** How far a sheet's top (design `y`, lowered by `lower`) may rise above its rest place. */
 export const overshootRoom = (y: number, lower = 0) =>
   Math.max(0, y - STATUS_BAR + lower - OVERSHOOT_MARGIN);
@@ -1711,6 +1717,11 @@ export function Sheet({
    * starts above y 300. For a tall sheet with no scroll of its own (the
    * sign-in request, `Sign In request`): on a short phone its top goes up,
    * and its last button is never under the window's end.
+   *
+   * The sheet is never taller than the window, less the status bar and
+   * KEEP_TOP_GAP: on a phone shorter than that (an iPhone SE in Safari) its
+   * top stops there, and a block of the content that can shrink (a
+   * `flex-shrink` block, as the sign-in request's card) gives up the rest.
    */
   keepHeight?: boolean;
   /**
@@ -1757,7 +1768,15 @@ export function Sheet({
   const panel = React.useRef<HTMLDivElement>(null);
   // How far down the white box is, inside the panel, while the spring passes the end (overshootLift).
   const lift = useMotionValue(0);
-  const room = overshootRoom(y, lower);
+  // A sheet that keeps its height rests higher on a short window: its top
+  // may rise only as far as the room left above it there.
+  const room =
+    keepHeight && typeof window !== "undefined"
+      ? Math.min(
+          overshootRoom(y, lower),
+          Math.max(0, window.innerHeight - (DESIGN_H - y) - OVERSHOOT_MARGIN),
+        )
+      : overshootRoom(y, lower);
   const handle = (
     <div
       data-pw="demo-sheet-handle"
@@ -1808,6 +1827,11 @@ export function Sheet({
                 // above that bar, and the page would show under it.
                 ...(fit || (y < 300 && !keepHeight)
                   ? { top: top(y) }
+                  : keepHeight
+                  ? {
+                      // `100%` is the window (the layer's box).
+                      height: `calc(min(${DESIGN_H - y}px, 100% - ${SAFE_TOP} - ${KEEP_TOP_GAP}px) + ${UNDER_BAR}px)`,
+                    }
                   : { height: DESIGN_H - y + UNDER_BAR }),
                 bottom: -UNDER_BAR,
               }}

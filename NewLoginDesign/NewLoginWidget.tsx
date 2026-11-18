@@ -125,14 +125,22 @@ function readStoredConfig(): LogoConfig {
 interface NewLoginWidgetProps {
     initialStep?: AuthStep;
     onFinish?: () => void;
+    /**
+     * With no `onFinish`: the page the flow goes to when it ends ("Later",
+     * back from the first screen, or the success screen). The demo's sign-in
+     * request sets it, so the shopper comes back to the demo.
+     */
+    exitTo?: string;
 }
 
 export default function NewLoginWidget({
     initialStep = 'quick-preview',
     onFinish,
+    exitTo,
 }: NewLoginWidgetProps) {
     const { lang } = useParams();
     const router = useRouter();
+    const finish = onFinish ?? (exitTo ? () => router.push(exitTo) : undefined);
     const langCode = typeof lang === 'string' ? lang.split('-')[1] || 'en' : 'en';
 
     const [step, setStep] = useState<AuthStep>(initialStep);
@@ -209,7 +217,7 @@ export default function NewLoginWidget({
         else if (step === 'qr-login') goTo('get-started', -1);
         else if (step === 'already-registered' || step === 'not-registered') goTo('enter-phone', -1);
         else if (step === 'input-name') goTo('enter-pin', -1);
-        else if (onFinish) onFinish();
+        else if (finish) finish();
     };
 
     // Full viewport background color matching live scaling system
@@ -505,7 +513,7 @@ export default function NewLoginWidget({
                                         goTo('terms', 1);
                                     }}
                                     onLater={() => {
-                                        if (onFinish) onFinish();
+                                        if (finish) finish();
                                         else router.push(`/${langCode}`);
                                     }}
                                     onScanQr={() => setIsQrOpen(true)}
@@ -627,11 +635,13 @@ export default function NewLoginWidget({
                                     variant={step === 'login-success' ? 'login' : 'signup'}
                                     name={name}
                                     // The demo stops here. A host that embeds
-                                    // the widget still gets its onFinish; on its
-                                    // own the screen simply stays put, instead of
-                                    // walking off to the home page two and a half
-                                    // seconds after you arrive on it.
-                                    onDone={onFinish}
+                                    // the widget still gets its onFinish, and a
+                                    // flow started from /demo goes back there
+                                    // (exitTo). On its own the screen simply
+                                    // stays put, instead of walking off to the
+                                    // home page two and a half seconds after you
+                                    // arrive on it.
+                                    onDone={finish}
                                     delayMs={2500}
                                     lang={langCode}
                                 />

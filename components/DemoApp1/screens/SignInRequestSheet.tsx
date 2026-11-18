@@ -10,6 +10,7 @@ import {
   fill,
   gapTo,
   paraTop,
+  textBottom,
 } from "../demo1Layout";
 import { FileLines, Sheet, Stroke, Txt } from "../ui";
 import { Rich } from "./ListingParts";
@@ -40,6 +41,12 @@ import { Rich } from "./ListingParts";
 /** The file's sheet: its top, and the shadow on its top edge. */
 const TOP = 285;
 const SHADOW = "0 -3px 10px rgba(0, 0, 0, 0.1)";
+
+/** The card's least height on a short window, in px: about half the file's 186. */
+const CARD_MIN = 96;
+
+/** The least white under "Later" on a short window, in px. */
+const BOTTOM_MIN = 16;
 
 /** The handle line's box ends here (it is 2 px tall, centred on y 297). */
 const HANDLE_END = TOP + SHEET.handle.top + SHEET.handle.height / 2;
@@ -112,18 +119,23 @@ export default function SignInRequestSheet({
         lineHeight={20}
         mt={paraTop(521, 14, 20) - (327 + 150)}
       >
-        <Rich text={words} />
+        <Rich text={words} keepLinks />
       </FileLines>
 
-      {/* The slides' card. Empty in the file. */}
+      {/* The slides' card. Empty in the file. On a window shorter than the
+          sheet (an iPhone SE in Safari) the sheet stops under the status bar
+          (Sheet keepHeight), and the card is the one block that gives up
+          height for it, down to CARD_MIN. */}
       <div
         data-pw="demo-sign-in-request-card"
-        className="relative shrink-0"
+        className="relative"
         style={{
           marginTop: 565 - (paraTop(521, 14, 20) + 40),
           marginLeft: 20,
           width: fill(20),
           height: 186,
+          flexShrink: 1,
+          minHeight: CARD_MIN,
           borderRadius: 20,
           background: C.white,
         }}
@@ -190,6 +202,18 @@ export default function SignInRequestSheet({
           {t("Later, take a look at the app")}
         </Txt>
       </button>
+
+      {/* The white under "Later", to the artboard's end. On a short window
+          it shrinks with the card, and keeps BOTTOM_MIN. */}
+      <div
+        aria-hidden="true"
+        style={{
+          flexGrow: 0,
+          flexShrink: 1,
+          flexBasis: 932 - textBottom(893, 14),
+          minHeight: BOTTOM_MIN,
+        }}
+      />
     </Sheet>
   );
 }

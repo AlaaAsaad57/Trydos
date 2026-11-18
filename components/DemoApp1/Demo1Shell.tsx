@@ -54,6 +54,7 @@ import {
   sliderMove,
 } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
+import { anyLayerOpen } from "./ui";
 import CountryPickerScreen from "./screens/CountryPickerScreen";
 import SignInRequestSheet from "./screens/SignInRequestSheet";
 
@@ -131,6 +132,26 @@ import SignInRequestSheet from "./screens/SignInRequestSheet";
 /** How long after the app opens from the country picker the sign-in request comes up, in ms. */
 export const SIGN_IN_ASK_MS = 4000;
 
+/**
+ * When the sign-in request is due but another sheet is open, or the shopper
+ * is typing, it waits and looks again this often, in ms.
+ */
+const SIGN_IN_RETRY_MS = 1000;
+
+/**
+ * The picker into the app: the picker fades out, then the app fades in, in
+ * seconds. One after the other, through the white of both pages: a cross-fade
+ * laid the picker's words over Home's for a quarter of a second.
+ */
+const THROUGH = { out: 0.25, in: 0.35 } as const;
+
+/**
+ * The start's state for this load of the page. It lives as long as the page's
+ * scripts: a move inside the site (to /loginDemo and back) keeps it, so the
+ * picker and the sign-in request come once; a reload opens the site again.
+ */
+const introRun = { picked: false, asked: false };
+
 /** The screen frame's key while the country picker is on show. */
 const INTRO_KEY = "intro";
 
@@ -188,6 +209,8 @@ type Leave = {
   shrink?: Origin;
   swipe?: boolean;
   fade?: boolean;
+  /** The old screen fades out, then the new one fades in (THROUGH): the picker into the app. */
+  through?: boolean;
 };
 
 /** True for a move between Home and a store's page, either way. */
@@ -213,8 +236,8 @@ const cutTo = (o: Origin, bottom: string) =>
   `inset(${o.top}px ${o.right}px ${bottom} ${o.left}px)`;
 
 const slide: Variants = {
-  enter: ({ dir, grow, shrink, swipe, fade }: Leave) => {
-    if (fade) return { x: 0, opacity: 0 };
+  enter: ({ dir, grow, shrink, swipe, fade, through }: Leave) => {
+    if (fade || through) return { x: 0, opacity: 0 };
     if (swipe) return { x: dir > 0 ? "100%" : "-100%", opacity: 1 };
     // The page in the document is as tall as all of it, so the room under
     // the card is counted from the page's end: 100% less the card's bottom.
@@ -224,8 +247,14 @@ const slide: Variants = {
     if (shrink) return { x: 0, opacity: 1 };
     return { x: dir > 0 ? "100%" : "-100%", opacity: 0 };
   },
-  center: ({ dir, grow, swipe }: Leave) =>
-    swipe
+  center: ({ dir, grow, swipe, through }: Leave) =>
+    through
+      ? {
+          x: 0,
+          opacity: 1,
+          transition: { duration: THROUGH.in, delay: THROUGH.out, ease: "easeOut" },
+        }
+      : swipe
       ? sliderMove(dir, false)
       : grow
       ? {
@@ -241,7 +270,9 @@ const slide: Variants = {
           },
         }
       : { x: 0, opacity: 1 },
-  exit: ({ dir, grow, shrink, swipe, fade }: Leave) => {
+  exit: ({ dir, grow, shrink, swipe, fade, through }: Leave) => {
+    if (through)
+      return { x: 0, opacity: 0, transition: { duration: THROUGH.out, ease: "easeIn" } };
     if (fade) return { x: 0, opacity: 0 };
     if (swipe) return sliderMove(dir, true);
     // The screen under a growing page: it stays, and goes once it is covered.
@@ -324,21 +355,51 @@ function Demo1ShellInner({
   const reduceMotion = useReducedMotion();
   const [hideMenu, setHideMenu] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState(false);
-  const [picking, setPicking] = useState(intro);
+  const [picking, setPicking] = useState(intro && !introRun.picked);
+  // The tab bar waits while the picker fades out, then comes in with the app.
+  const [barHeld, setBarHeld] = useState(false);
   const [askSignIn, setAskSignIn] = useState(false);
   const askTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
+  const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /**
+   * The sign-in request, SIGN_IN_ASK_MS from now. It never opens over another
+   * sheet, or while the shopper types: it waits for them to finish.
+   */
+  const planAsk = () => {
+    if (askTimer.current) clearTimeout(askTimer.current);
+    const due = () => {
+      const typing = document.activeElement?.matches(
+        "input, textarea, [contenteditable]",
+      );
+      if (anyLayerOpen() || typing) {
+        askTimer.current = setTimeout(due, SIGN_IN_RETRY_MS);
+        return;
+      }
+      introRun.asked = true;
+      setAskSignIn(true);
+    };
+    askTimer.current = setTimeout(due, SIGN_IN_ASK_MS);
+  };
+
+  useEffect(() => {
+    // Back from /loginDemo before the request came up: it is still due.
+    if (intro && introRun.picked && !introRun.asked) planAsk();
+    return () => {
       if (askTimer.current) clearTimeout(askTimer.current);
-    },
-    [],
-  );
+      if (barTimer.current) clearTimeout(barTimer.current);
+    };
+    // Once, on mount: the request is planned again only by a new pick.
+  }, []);
 
   /** The country is chosen: the picker fades out, the app fades in, and the sign-in request waits. */
   const endIntro = () => {
-    setLeave({ dir: 1, scrollY: window.scrollY, fade: true });
+    introRun.picked = true;
+    setLeave({ dir: 1, scrollY: window.scrollY, through: true });
     setPicking(false);
-    askTimer.current = setTimeout(() => setAskSignIn(true), SIGN_IN_ASK_MS);
+    setBarHeld(true);
+    barTimer.current = setTimeout(() => setBarHeld(false), THROUGH.out * 1000);
+    planAsk();
   };
 
   const key = shown ?? `page:${pathname}`;
@@ -349,7 +410,7 @@ function Demo1ShellInner({
   // page has no tab bar: XD `Home Page – 49` draws none, and the bar slides
   // away as the product opens.
   const barScreen = shown !== null && (isTabRoot(shown) || isStoreScreen(shown));
-  const showBar = barScreen && !picking;
+  const showBar = barScreen && !picking && !barHeld;
 
   // The shell keeps each screen's scroll itself, so the browser must not
   // put one back on its own when the URL changes.
@@ -581,7 +642,9 @@ function Demo1ShellInner({
           onClose={() => setAskSignIn(false)}
           onStart={() => {
             setAskSignIn(false);
-            router.push(`/${locale}/loginDemo`);
+            // `from=demo`: the login opens on its Get Started screen, and its
+            // end ("Later", or signed in) comes back here (loginDemo/page.tsx).
+            router.push(`/${locale}/loginDemo?from=demo`);
           }}
         />
         <DemoKeyboard locale={locale} t={t} />

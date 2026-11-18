@@ -10,6 +10,22 @@ export const metadata = {
     description: 'Interactive demo for the new Login and Registration design flow.',
 };
 
-export default function LoginDemoPage() {
+/** The query value the demo's sign-in request adds: `/loginDemo?from=demo`. */
+const FROM_DEMO = 'demo';
+
+export default async function LoginDemoPage({
+    params,
+    searchParams,
+}: {
+    params: Promise<{ lang: string }>;
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+    const [{ lang }, query] = await Promise.all([params, searchParams]);
+    // From the demo's "Get Started": the flow opens on its Get Started screen,
+    // and its end goes back to the demo. The way back is built here, from the
+    // route's own locale; the query only says where the shopper came from, so
+    // it can never send them to another site.
+    if (query.from === FROM_DEMO)
+        return <NewLoginWidget initialStep="get-started" exitTo={`/${lang}/demo`} />;
     return <NewLoginWidget />;
 }
