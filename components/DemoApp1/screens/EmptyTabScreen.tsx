@@ -2,7 +2,7 @@
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React from "react";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoNav } from "../screenNav";
 import { BODY_Y, C, gapTo, textBottom } from "../demo1Layout";
 import { Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
 

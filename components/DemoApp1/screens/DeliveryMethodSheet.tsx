@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
-import type { DemoAddress } from "../../DemoApp/DemoData";
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import { countryOf } from "../../DemoApp/demoPlaces";
+import type { XdIconName } from "../../DemoApp/xdIcons";
 import { useDemoCase } from "../demoCase";
+import { mirrorFor, usePageDir } from "../rtl";
 import { C, SAFE_BOTTOM, SHEET, fill, isFloatingBarSafari, lineBox, paraTop, sliderMove, textBottom, textTop } from "../demo1Layout";
 import { Sheet, Stroke, WhyCard } from "../ui";
 import { LINE_11, LINE_13, LINE_14 } from "./CartParts";
@@ -30,26 +30,41 @@ import type { T } from "./ListingParts";
  * `– 78`, a centre chosen: the tapped centre takes the chosen look of the
  * Pickup card (white, the purple line), and "Done" turns dark. "Done" then
  * closes the sheet with the centre, and the checkout shows it (`– 75`).
+ *
+ * On the real app (`real`, S7d-2) the backend has no centres and delivers to
+ * the address. The Pickup card keeps the file's look, but a tap on it shows
+ * "Soon available" in its second chip's place and opens no centres.
+ * "Delivery to address" drops "Coming soon !" and its grey chip, takes the
+ * black title, and can be chosen (white, the purple line); "Done" then turns
+ * dark and closes the sheet with it.
  */
 export default function DeliveryMethodSheet({
   open,
-  address,
+  place,
+  real = false,
   onClose,
   onDone,
 }: {
   open: boolean;
   /** The bag's address: its place is the line under the title. */
-  address: DemoAddress;
+  place: DeliveryPlace;
+  real?: boolean;
   onClose: () => void;
-  /** A centre was chosen and "Done" tapped: the centre's id. */
-  onDone: (centre: string) => void;
+  /** A way was chosen and "Done" tapped. */
+  onDone: (choice: DeliveryChoice) => void;
 }) {
   return (
     <Sheet open={open} onClose={onClose} y={SHEET_Y} radius={SHEET.radiusWallet} z={SHEET_Z} testId="demo-delivery-sheet">
-      <SheetBody address={address} onDone={onDone} />
+      <SheetBody place={place} real={real} onDone={onDone} />
     </Sheet>
   );
 }
+
+/** The address's place under the title: the flag, the country (Medium), then "| province | town". */
+export type DeliveryPlace = { flag?: XdIconName; country: string; rest: string };
+
+/** What "Done" closes the sheet with: a pickup centre, or delivery to the address. */
+export type DeliveryChoice = { kind: "centre"; id: string } | { kind: "address" };
 
 /** Over the checkout's price panel (CartParts' PANEL_Z = layer z 40), as the address sheet. */
 export const SHEET_Z = 50;
@@ -153,16 +168,36 @@ export function useDoneRoom() {
 type Step = "methods" | "pickup";
 
 /** The sheet's content: built anew on every opening, so it always opens on the methods. */
-function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre: string) => void }) {
+function SheetBody({
+  place,
+  real,
+  onDone,
+}: {
+  place: DeliveryPlace;
+  real: boolean;
+  onDone: (choice: DeliveryChoice) => void;
+}) {
   const { t, body } = useDemoCase();
+  // The back arrow points the page's way back (A-14).
+  const pageDir = usePageDir();
   const [step, setStep] = useState<Step>("methods");
   const [centre, setCentre] = useState<string | null>(null);
+  /** The real app: "Delivery to address" was tapped. */
+  const [toAddress, setToAddress] = useState(false);
+  /** The real app: Pickup was tapped, so it says "Soon available". */
+  const [pickupSoon, setPickupSoon] = useState(false);
   const [showWhy, setShowWhy] = useState(true);
   const { gap, drop } = useDoneRoom();
   const pickup = step === "pickup";
   // The slide's way: to the centres (1), or back to the methods (-1).
   const dir = pickup ? 1 : -1;
-  const done = pickup && centre !== null;
+  const choice: DeliveryChoice | null = real
+    ? toAddress
+      ? { kind: "address" }
+      : null
+    : pickup && centre !== null
+      ? { kind: "centre", id: centre }
+      : null;
 
   return (
     <>
@@ -189,12 +224,12 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
                 data-pw="demo-delivery-back"
                 onClick={() => setStep("methods")}
                 className="absolute cursor-pointer [-webkit-tap-highlight-color:transparent] active:opacity-60"
-                style={{ left: BACK.x - BACK.pad, top: BACK.y - HANDLE_END - BACK.pad, padding: BACK.pad }}
+                style={{ insetInlineStart: BACK.x - BACK.pad, top: BACK.y - HANDLE_END - BACK.pad, padding: BACK.pad }}
               >
-                <XdIcon name="back" />
+                <XdIcon name="back" style={mirrorFor(pageDir)} />
               </button>
             ) : (
-              <XdIcon name="deliveryMap" className="absolute" style={{ left: MAP.x, top: MAP.y - HANDLE_END }} />
+              <XdIcon name="deliveryMap" className="absolute" style={{ insetInlineStart: MAP.x, top: MAP.y - HANDLE_END }} />
             )}
             <h2
               className="relative self-center font-bold whitespace-nowrap"
@@ -211,7 +246,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
                 <XdIcon
                   name="deliveryMap"
                   className="absolute"
-                  style={{ right: `calc(100% + ${MAP.gap}px)`, top: MAP.y - textTop(TITLE.baseline, TITLE.size) }}
+                  style={{ insetInlineEnd: `calc(100% + ${MAP.gap}px)`, top: MAP.y - textTop(TITLE.baseline, TITLE.size) }}
                 />
               )}
             </h2>
@@ -233,7 +268,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
         </AnimatePresence>
       </div>
 
-      <Place address={address} t={t} />
+      <Place place={place} />
 
       {/* Under the place: the cards, with the grey card and "Done" over their end. */}
       <div className="relative flex-1 min-h-0">
@@ -245,12 +280,19 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
             testId="demo-delivery-pickup"
             mt={242 - textBottom(PLACE.baseline, PLACE.size)}
             chosen={pickup}
-            onClick={pickup ? undefined : () => setStep("pickup")}
+            onClick={real ? () => setPickupSoon(true) : pickup ? undefined : () => setStep("pickup")}
             badge={{ label: t("Recommended"), fill: C.purpleTint, color: C.purple, right: 410 - 404, width: 94 }}
             title={t("pickup | Collect Point")}
             titleColor={C.ink}
             chip={{ label: t("You will Collect your shipment yourself"), fill: C.purpleTint, stroke: C.purple, color: C.purple }}
-            extra={pickup ? { label: t("Select one from our centers"), fill: CHIP_GREY, stroke: C.ink, color: C.ink } : undefined}
+            extra={
+              pickup
+                ? { label: t("Select one from our centers"), fill: CHIP_GREY, stroke: C.ink, color: C.ink }
+                : pickupSoon
+                  ? { label: t("Soon available"), fill: CHIP_GREY, stroke: C.hint, color: C.ink }
+                  : undefined
+            }
+            extraTestId="demo-delivery-pickup-soon"
           />
 
           <div className="relative flex flex-col shrink-0">
@@ -287,15 +329,26 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
                   animate="center"
                   exit="exit"
                 >
-                  <MethodCard
-                    testId="demo-delivery-address"
-                    mt={436 - (242 + METHOD_H)}
-                    chosen={false}
-                    badge={{ label: t("Coming soon !"), fill: CHIP_GREY, color: C.ink, right: 410 - 402, width: 90 }}
-                    title={t("Delivery to address")}
-                    titleColor={C.hint}
-                    chip={{ label: t("Not Available in your Location for now"), fill: CHIP_GREY, stroke: C.line, color: C.ink, weight: "normal" }}
-                  />
+                  {real ? (
+                    <MethodCard
+                      testId="demo-delivery-address"
+                      mt={436 - (242 + METHOD_H)}
+                      chosen={toAddress}
+                      onClick={toAddress ? undefined : () => setToAddress(true)}
+                      title={t("Delivery to address")}
+                      titleColor={C.ink}
+                    />
+                  ) : (
+                    <MethodCard
+                      testId="demo-delivery-address"
+                      mt={436 - (242 + METHOD_H)}
+                      chosen={false}
+                      badge={{ label: t("Coming soon !"), fill: CHIP_GREY, color: C.ink, right: 410 - 402, width: 90 }}
+                      title={t("Delivery to address")}
+                      titleColor={C.hint}
+                      chip={{ label: t("Not Available in your Location for now"), fill: CHIP_GREY, stroke: C.line, color: C.ink, weight: "normal" }}
+                    />
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -315,7 +368,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
           )}
         </AnimatePresence>
 
-        <SheetDone testId="demo-delivery-done" label={t("Done")} gap={gap} onDone={done ? () => onDone(centre) : undefined} />
+        <SheetDone testId="demo-delivery-done" label={t("Done")} gap={gap} onDone={choice ? () => onDone(choice) : undefined} />
       </div>
     </>
   );
@@ -327,10 +380,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
  * Syria has no flag of its own yet (demoPlaces.ts): the file draws the Turkish
  * one there, so Syria shows none.
  */
-function Place({ address, t }: { address: DemoAddress; t: T }) {
-  // The address stores street, neighbourhood, district, province.
-  const [, town, , province] = address.area;
-  const country = countryOf(address.country);
+function Place({ place }: { place: DeliveryPlace }) {
   return (
     <div
       className="flex items-start self-center shrink-0 whitespace-nowrap"
@@ -343,13 +393,13 @@ function Place({ address, t }: { address: DemoAddress; t: T }) {
         ...LINE_14,
       }}
     >
-      {country.flag && (
-        <XdIcon name={country.flag} size={FLAG.size} className="shrink-0" style={{ marginRight: FLAG.gap }} />
+      {place.flag && (
+        <XdIcon name={place.flag} size={FLAG.size} className="shrink-0" style={{ marginInlineEnd: FLAG.gap }} />
       )}
       {/* One text line: a flex item drops its leading space, so the two parts share one span. */}
       <span className="font-normal">
-        <span className="font-medium">{t(country.name)}</span>
-        {` | ${province} | ${town}`}
+        <span className="font-medium">{place.country}</span>
+        {place.rest}
       </span>
     </div>
   );
@@ -390,8 +440,7 @@ export function SheetDone({
         minWidth: DONE.width,
         height: DONE.height,
         paddingTop: textTop(DONE.baseline, 13) - DONE.y,
-        paddingLeft: 20,
-        paddingRight: 20,
+        paddingInline: 20,
         // XD stops a corner at half the short side: the file's 30 draws 22.5.
         borderRadius: `${DONE.height / 2}px ${DONE.height / 2}px 14px 14px`,
         background: done ? C.ink : C.hint,
@@ -455,38 +504,46 @@ function MethodCard({
   titleColor,
   chip,
   extra,
+  extraTestId,
 }: {
   testId: string;
   mt: number;
   chosen: boolean;
   /** No tap: the card cannot be chosen (or already is). */
   onClick?: () => void;
-  /** `width`: the file's box (94 and 90); the words are centred in it, as the file draws them. */
-  badge: ChipLook & { right: number; width: number };
+  /** `width`: the file's box (94 and 90); the words are centred in it, as the file draws them. None: no badge. */
+  badge?: ChipLook & { right: number; width: number };
   title: string;
   titleColor: string;
-  chip: ChipLook;
+  /** None: the card has only its title. */
+  chip?: ChipLook;
   extra?: ChipLook;
+  extraTestId?: string;
 }) {
   const card = (
     <>
       <Stroke color={chosen ? C.purple : C.line} radius={15} align="center" />
-      <span className="absolute" style={{ top: 248 - 242, right: badge.right }}>
-        <Chip {...badge} weight="medium" minWidth={badge.width} pad={7} />
-      </span>
+      {badge && (
+        <span className="absolute" style={{ top: 248 - 242, insetInlineEnd: badge.right }}>
+          <Chip {...badge} weight="medium" minWidth={badge.width} pad={7} />
+        </span>
+      )}
       <span
         className="block shrink-0 font-bold whitespace-nowrap"
         style={{ marginTop: textTop(342, 30) - 242, fontSize: 30, lineHeight: `${lineBox(30)}px`, color: titleColor }}
       >
         {title}
       </span>
-      <span className="flex shrink-0" style={{ marginTop: 358 - textBottom(342, 30) }}>
-        <Chip {...chip} minWidth={214} />
-      </span>
+      {chip && (
+        <span className="flex shrink-0" style={{ marginTop: 358 - textBottom(342, 30) }}>
+          <Chip {...chip} minWidth={214} />
+        </span>
+      )}
       <AnimatePresence initial={false}>
         {extra && (
           <motion.span
             key="extra"
+            data-pw={extraTestId}
             className="flex shrink-0"
             style={{ marginTop: 392 - (358 + 22) }}
             initial={{ opacity: 0 }}
@@ -502,7 +559,7 @@ function MethodCard({
   );
   const style: React.CSSProperties = {
     marginTop: mt,
-    marginLeft: CARD_X,
+    marginInlineStart: CARD_X,
     width: fill(CARD_X),
     height: METHOD_H,
     borderRadius: 15,
@@ -548,14 +605,14 @@ export function ChoiceCard({
   const content = (
     <>
       <Stroke color={chosen ? C.purple : C.line} radius={15} align="center" />
-      <span className="block font-normal whitespace-nowrap" style={{ marginTop: textTop(464, 14) - 438, marginLeft: 32 - CARD_X, color: C.ink, ...LINE_14 }}>
+      <span className="block font-normal whitespace-nowrap" style={{ marginTop: textTop(464, 14) - 438, marginInlineStart: 32 - CARD_X, color: C.ink, ...LINE_14 }}>
         {title}
       </span>
       <span
         className="block font-normal whitespace-nowrap"
         style={{
           marginTop: textTop(488, 12) - textBottom(464, 14),
-          marginLeft: 32 - CARD_X,
+          marginInlineStart: 32 - CARD_X,
           fontSize: 12,
           lineHeight: `${lineBox(12)}px`,
           color: C.ink,
@@ -567,14 +624,14 @@ export function ChoiceCard({
   );
   const style: React.CSSProperties = {
     marginTop: mt,
-    marginLeft: CARD_X,
+    marginInlineStart: CARD_X,
     width: fill(CARD_X),
     height: CHOICE_H,
     borderRadius: 15,
     background: chosen ? C.white : C.card,
     transition: "background-color 0.2s",
   };
-  const className = "relative flex flex-col items-start shrink-0 text-left [-webkit-tap-highlight-color:transparent]";
+  const className = "relative flex flex-col items-start shrink-0 text-start [-webkit-tap-highlight-color:transparent]";
   return onClick ? (
     <motion.button
       type="button"

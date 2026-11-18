@@ -24,8 +24,11 @@ export default function PayWays({
   t,
   testId,
   onCrypto,
+  allSoon = false,
 }: {
   mt: number;
+  /** Every tile says "Soon available" and takes no tap (the real checkout, S7d-7). */
+  allSoon?: boolean;
   t: (key: DemoKey) => string;
   /** The `data-pw` names: the row, a tile (`<way>-<id>`, as `<way>-crypto`) and the "Soon Available" tag. */
   testId: { row: string; way: string; soon: string };
@@ -43,7 +46,9 @@ export default function PayWays({
         scrollbarWidth: "none",
       }}
     >
-      {WALLET_CASH_IN_WAYS.map((way, i) => (
+      {WALLET_CASH_IN_WAYS.map((listed, i) => {
+        const way = allSoon ? { ...listed, soon: true } : listed;
+        return (
         <div
           key={way.id}
           className="flex flex-col shrink-0"
@@ -116,7 +121,8 @@ export default function PayWays({
             </Box>
           )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

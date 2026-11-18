@@ -3319,6 +3319,7 @@ const translations = {
   "Composed of": "پێکهاتووە لە",
   "{count} piece": "{count} پارچە",
   "<b>Hurry up ! </b>quantity running out.<b> -{time}</b>": "<b>پەلە بکە ! </b>بڕەکە تەواو دەبێت.<b> -{time}</b>",
+  "<b>Hurry up ! </b>time running out.<b> -{time}</b>": "<b>پەلە بکە ! </b>کات تەواو دەبێت.<b> -{time}</b>",
   "<b>Out of Bag ! </b>time running out": "<b>لە جانتا دەرچوو ! </b>کات تەواو دەبێت",
   "<b>Out of Bag ! </b>time running out<m> -{time}</m>": "<b>لە جانتا دەرچوو ! </b>کات تەواو دەبێت<m> -{time}</m>",
   "ADD AGAIN": "دووبارە زیادبکە",

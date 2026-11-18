@@ -459,7 +459,56 @@ function Call() {
   );
 }
 
+/**
+ * The bag (XD `Home Page – 50`): the 50 px header ("Shopping bag", the bag
+ * mark, the sum), the grey note (38 tall) and two rows: the 80 x 120 photo,
+ * the logo and the lines from x 104, the quantity box and a label under the
+ * photo. The bag screen shows it too while the cart is read.
+ */
+export function BagSkeleton() {
+  return (
+    <Frame>
+      <div className="relative shrink-0" style={{ height: 50 }}>
+        <At x={12} y={18}>
+          <Skeleton width={90} height={14} borderRadius={7} />
+        </At>
+        <div className="absolute" style={{ left: "50%", marginLeft: -17, top: 8 }}>
+          <Skeleton width={34} height={34} borderRadius={10} />
+        </div>
+        <div className="absolute" style={{ insetInlineEnd: 12, top: 18 }}>
+          <Skeleton width={96} height={14} borderRadius={7} />
+        </div>
+      </div>
+      <Panel mt={0} height={38} inset={0} radius={0} fill="#F4F4F4" />
+      {[0, 1].map((i) => (
+        <div key={i} className="relative shrink-0" style={{ height: 168, marginTop: i === 0 ? 8 : 0 }}>
+          <At x={12} y={12}>
+            <Skeleton width={80} height={120} borderRadius={6} />
+          </At>
+          <At x={104} y={18}>
+            <Skeleton width={60} height={8} borderRadius={4} />
+          </At>
+          {[34, 54, 74, 94, 114].map((y, n) => (
+            <At key={y} x={104} y={y}>
+              <Skeleton width={[200, 120, 110, 100, 130][n]} height={11} borderRadius={6} />
+            </At>
+          ))}
+          <At x={12} y={136}>
+            <Skeleton width={80} height={22} borderRadius={6} />
+          </At>
+          <At x={104} y={136}>
+            <Skeleton width={131} height={22} borderRadius={6} />
+          </At>
+        </div>
+      ))}
+    </Frame>
+  );
+}
+
 const SHAPES: Partial<Record<DemoStaticScreen, () => ReactNode>> = {
+  cart: () => <BagSkeleton />,
+  "cart/checkout": () => <BagSkeleton />,
+  "cart/done": () => <Menu title={100} rows={[80, 80, 80]} />,
   settings: () => <Profile />,
   "settings/photo": () => <Photo />,
   "settings/client-id": () => <ClientId />,

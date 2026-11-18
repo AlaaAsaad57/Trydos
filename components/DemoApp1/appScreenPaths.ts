@@ -39,6 +39,10 @@ export const APP_SCREENS: readonly AppScreenRow[] = [
   { path: "settings/preferences", screen: "settings/preferences" },
   // Wallet (Stage 5). The screen keeps its mock data (A-17).
   { path: "settings/wallet", screen: "settings/wallet" },
+  // The bag, the checkout and the purchase done (Stage 7d).
+  { path: "cart", screen: "cart" },
+  { path: "cart/checkout", screen: "cart/checkout" },
+  { path: "cart/done", screen: "cart/done" },
 ];
 
 /** The path without the locale part, without slashes at the ends. */

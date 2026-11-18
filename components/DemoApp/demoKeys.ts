@@ -143,6 +143,7 @@ const CART_KEYS = [
   "Composed of",
   "{count} piece",
   "<b>Hurry up ! </b>quantity running out.<b> -{time}</b>",
+  "<b>Hurry up ! </b>time running out.<b> -{time}</b>",
   "<b>Out of Bag ! </b>time running out",
   "<b>Out of Bag ! </b>time running out<m> -{time}</m>",
   "ADD AGAIN",

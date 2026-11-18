@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import { motion, useIsPresent, useTransform } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { bagCount, bagTotal, bagWas, type DemoBagItem } from "../../DemoApp/demoBag";
-import { useDemoNav } from "../Demo1Shell";
+import type { BagSums } from "../bagView";
+import { useDemoNav } from "../screenNav";
 import {
   BAND,
   C,
@@ -22,6 +22,7 @@ import {
   textTop,
 } from "../demo1Layout";
 import { Stroke } from "../ui";
+import { usePageDir } from "../rtl";
 import { FlipTurns, Rich, type T } from "./ListingParts";
 
 /**
@@ -67,14 +68,16 @@ const WORDS_IN = { duration: 0.2, delay: 0.14 };
 /** Where a panel's bottom is, above the window's end (less the safe area): on the tab bar, or under Safari's bar. */
 const bottomOf = (tabBar: boolean) => (tabBar ? TAB_BAR_TOP - safariBand() : -UNDER_BAR);
 
-/** A panel's height, with the price details shut or open. */
-const heightOf = (tabBar: boolean, details: boolean) =>
-  (details ? DETAILS_END : PANEL_CONTENT_H) + (tabBar ? PANEL_ROOM.tabBar : PANEL_ROOM.screen + UNDER_BAR);
+/** A panel's height, with the price details shut or open (`end`: the last detail's bottom). */
+const heightOf = (tabBar: boolean, details: boolean, end: number) =>
+  (details ? end : PANEL_CONTENT_H) + (tabBar ? PANEL_ROOM.tabBar : PANEL_ROOM.screen + UNDER_BAR);
 
 /** What the panel on show looks like, so the next screen's panel can start from it. */
 type PanelLook = {
   tabBar: boolean;
   details: boolean;
+  /** The last detail's bottom on that panel. */
+  end: number;
   button: { label: string; fill: string };
   /** When the first of these panels came (performance.now()), so the chip's turns go on from where they were. */
   since: number;
@@ -92,7 +95,7 @@ let livePanel: PanelLook | null = null;
  * middle, and the count with the sum ending 12 px from the right, all on
  * baseline 80. The file draws no back arrow on either screen.
  */
-export function BagHeader({ bag, t }: { bag: readonly DemoBagItem[]; t: T }) {
+export function BagHeader({ sums, t }: { sums: BagSums; t: T }) {
   return (
     <header
       data-pw="demo-bag-header"
@@ -101,7 +104,7 @@ export function BagHeader({ bag, t }: { bag: readonly DemoBagItem[]; t: T }) {
     >
       <h1
         className="font-normal whitespace-nowrap"
-        style={{ marginLeft: 12, marginTop: textTop(80, 14) - HEADER.y, color: C.ink, ...LINE_14 }}
+        style={{ marginInlineStart: 12, marginTop: textTop(80, 14) - HEADER.y, color: C.ink, ...LINE_14 }}
       >
         {t("Shopping bag")}
       </h1>
@@ -112,21 +115,21 @@ export function BagHeader({ bag, t }: { bag: readonly DemoBagItem[]; t: T }) {
       />
       <p
         data-pw="demo-bag-header-sum"
-        className="ml-auto font-normal whitespace-nowrap"
-        style={{ marginRight: 12, marginTop: textTop(80, 14) - HEADER.y, color: C.ink, ...LINE_14 }}
+        className="ms-auto font-normal whitespace-nowrap"
+        style={{ marginInlineEnd: 12, marginTop: textTop(80, 14) - HEADER.y, color: C.ink, ...LINE_14 }}
       >
-        <BagSum bag={bag} t={t} />
+        <BagSum sums={sums} t={t} />
       </p>
     </header>
   );
 }
 
 /** "2 item . 320 usd": the count and the sum in Medium, the rest Regular. */
-export function BagSum({ bag, t }: { bag: readonly DemoBagItem[]; t: T }) {
+export function BagSum({ sums, t }: { sums: BagSums; t: T }) {
   return (
     <Rich
       text={t("<m>{count}</m> item . <m>{price}</m> {currency}")}
-      values={{ count: bagCount(bag), price: bagTotal(bag), currency: t("USD") }}
+      values={{ count: sums.count, price: sums.total, currency: sums.currency }}
     />
   );
 }
@@ -162,14 +165,16 @@ export function SmallChip({
         marginTop: mt,
         height: 18,
         minWidth: minW,
-        padding: `2px 3px 0 ${icon ? 26 : 6}px`,
+        paddingTop: 2,
+        paddingInlineEnd: 3,
+        paddingInlineStart: icon ? 26 : 6,
         borderRadius: 6,
         background: bg,
         color: ink,
         ...LINE_11,
       }}
     >
-      {icon && <XdIcon name={icon} className="absolute" style={{ left: 6, top: 2 }} />}
+      {icon && <XdIcon name={icon} className="absolute" style={{ insetInlineStart: 6, top: 2 }} />}
       {children}
       {line && <Stroke color={line} width={0.3} radius={6} />}
     </div>
@@ -178,21 +183,37 @@ export function SmallChip({
 
 /** The price details the file lists under the sum (`– 50`, y 856 to 974): the chip's top under the panel's top, its width, its fill and its mark. */
 const DETAILS: readonly {
+  kind: DetailKind;
   top: number;
   minW: number;
   bg: string;
   icon?: XdIconName;
 }[] = [
-  { top: 856 - 790, minW: 43, bg: "#F4F4F4" },
-  { top: 879 - 790, minW: 101, bg: "#F4F4F4", icon: "productFastGreen" },
-  { top: 903 - 790, minW: 92, bg: "#F4F4F4", icon: "productFastRed" },
-  { top: 926 - 790, minW: 165, bg: "#F8F8F8", icon: "productShop" },
-  { top: 950 - 790, minW: 130, bg: "#F4F4F4", icon: "productRefundGreen" },
-  { top: 974 - 790, minW: 123, bg: "#F4F4F4", icon: "productRefundOrange" },
+  { kind: "count", top: 856 - 790, minW: 43, bg: "#F4F4F4" },
+  { kind: "shipping", top: 879 - 790, minW: 101, bg: "#F4F4F4", icon: "productFastGreen" },
+  { kind: "return", top: 903 - 790, minW: 92, bg: "#F4F4F4", icon: "productFastRed" },
+  { kind: "days", top: 926 - 790, minW: 165, bg: "#F8F8F8", icon: "productShop" },
+  { kind: "deliveryGuarantee", top: 950 - 790, minW: 130, bg: "#F4F4F4", icon: "productRefundGreen" },
+  { kind: "returnGuarantee", top: 974 - 790, minW: 123, bg: "#F4F4F4", icon: "productRefundOrange" },
 ];
 
-/** The last detail chip's bottom, under the panel's top. */
-const DETAILS_END = DETAILS[DETAILS.length - 1].top + 18;
+type DetailKind = "count" | "shipping" | "return" | "days" | "deliveryGuarantee" | "returnGuarantee";
+
+/**
+ * The details this bag has (S7d-8). Free shipping, free return and the days
+ * show only when the data says so; the count and the two guarantees always.
+ * A detail that is not shown leaves no gap: the next ones take the file's
+ * places, in order.
+ */
+function detailsOf(sums: BagSums) {
+  const shown = DETAILS.filter(
+    (chip) =>
+      (chip.kind !== "shipping" || sums.freeShipping) &&
+      (chip.kind !== "return" || sums.freeReturn) &&
+      (chip.kind !== "days" || sums.days !== null),
+  );
+  return shown.map((chip, i) => ({ ...chip, top: DETAILS[i].top }));
+}
 
 /** True once the page runs in the browser, so a portal has a <body> to go to. */
 function useMounted() {
@@ -234,13 +255,13 @@ function useMounted() {
  * the page, not with the window.
  */
 export function BagPanel({
-  bag,
+  sums,
   tabBar,
   button,
   testId,
   t,
 }: {
-  bag: readonly DemoBagItem[];
+  sums: BagSums;
   /** The panel sits on the tab bar (the bag); otherwise it runs to the screen's end (the checkout). */
   tabBar: boolean;
   button: { label: string; onClick?: () => void; fill: string; disabled?: boolean; testId?: string };
@@ -250,6 +271,8 @@ export function BagPanel({
   const mounted = useMounted();
   const present = useIsPresent();
   const { shown, barShrink } = useDemoNav();
+  // The panel is on <body>, out of the screen's box: it takes the page's way itself.
+  const pageDir = usePageDir();
   /**
    * On the bag: how far the tab bar's top edge has gone down on a scroll. The
    * bar shrinks and drops; the panel rests on its top edge, so it moves down
@@ -273,11 +296,13 @@ export function BagPanel({
   const [details, setDetails] = useState(from?.details ?? false);
   /** The help mark was tapped: the height moves with the details' own timing from then on. */
   const [toggled, setToggled] = useState(false);
-  const height = heightOf(tabBar, details);
+  const chips = detailsOf(sums);
+  const end = chips[chips.length - 1].top + 18;
+  const height = heightOf(tabBar, details, end);
   /** How far down the panel waits, out of the window (the checkout's panel). */
   const away = height + 30;
   // The other screen's panel took over: this one goes at once, under it.
-  const handedOff = !present && (shown === "cart" || shown === "cart/checkout") && bag.length > 0;
+  const handedOff = !present && (shown === "cart" || shown === "cart/checkout") && sums.count > 0;
   /**
    * How the panel comes and goes when no other panel hands over. On the bag
    * it grows out from behind the tab bar: its bottom stays on the bar's top,
@@ -290,12 +315,12 @@ export function BagPanel({
 
   useEffect(() => {
     if (!present) return;
-    const look: PanelLook = { tabBar, details, button: { label: button.label, fill: button.fill }, since };
+    const look: PanelLook = { tabBar, details, end, button: { label: button.label, fill: button.fill }, since };
     livePanel = look;
     return () => {
       if (livePanel === look) livePanel = null;
     };
-  }, [present, tabBar, details, button.label, button.fill, since]);
+  }, [present, tabBar, details, end, button.label, button.fill, since]);
 
   if (!mounted) return null;
   /** The panel's place: over the tab bar's top (the bag), or under Safari's bar (the checkout). */
@@ -305,12 +330,13 @@ export function BagPanel({
   const panel = (
     <motion.div
       data-pw={testId}
+      dir={pageDir}
       className="font-quicksand"
       initial={
         from
           ? {
               y: fromY,
-              height: heightOf(from.tabBar, from.details),
+              height: heightOf(from.tabBar, from.details, from.end),
               boxShadow: PANEL_SHADOW,
             }
           : hidden
@@ -343,13 +369,13 @@ export function BagPanel({
       <div
         data-pw="demo-bag-sum"
         className="absolute flex items-start font-normal whitespace-pre"
-        style={{ left: 25, top: textTop(817, 15) - 790, color: C.ink, ...LINE_15 }}
+        style={{ insetInlineStart: 25, top: textTop(817, 15) - 790, color: C.ink, ...LINE_15 }}
       >
         <span style={{ minWidth: 121 - 25 }}>
-          {/* The old price is struck through, in its own grey. */}
-          <s style={{ color: C.grey, textDecorationLine: "line-through" }}>{bagWas(bag)}</s>
-          <span className="font-bold">{` ${bagTotal(bag)}`}</span>
-          {` ${t("USD")}`}
+          {/* The old price is struck through, in its own grey (only when an offer lowers it). */}
+          {sums.was !== null && <s style={{ color: C.grey, textDecorationLine: "line-through" }}>{sums.was}</s>}
+          <span className="font-bold">{`${sums.was !== null ? " " : ""}${sums.total}`}</span>
+          {` ${sums.currency}`}
         </span>
         <button
           type="button"
@@ -361,7 +387,7 @@ export function BagPanel({
             setDetails((on) => !on);
           }}
           className="shrink-0 cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
-          style={{ marginTop: 805.5 - textTop(817, 15) - 6, padding: 6, marginLeft: -6, marginRight: -6 }}
+          style={{ marginTop: 805.5 - textTop(817, 15) - 6, padding: 6, marginInline: -6 }}
         >
           <XdIcon name="buyPriceHelp" />
         </button>
@@ -370,7 +396,7 @@ export function BagPanel({
       <FlipTurns
         testId="demo-bag-chips"
         className="absolute"
-        style={{ left: 25, top: 829 - 790, width: 234 - 8 - 25, height: 18 }}
+        style={{ insetInlineStart: 25, top: 829 - 790, width: 234 - 8 - 25, height: 18 }}
         elapsed={elapsed}
         // Each chip in a row of its own: an inline chip would sit on a line of text, 3 px low.
         items={[
@@ -379,27 +405,27 @@ export function BagPanel({
               {t("All inclusive without additions")}
             </SmallChip>
           </div>,
-          ...DETAILS.map((chip, i) => (
-            <div key={chip.top} className="flex">
+          ...chips.map((chip) => (
+            <div key={chip.kind} className="flex">
               <SmallChip bg={chip.bg} line={C.purple} minW={chip.minW} icon={chip.icon}>
-                <DetailWords index={i} bag={bag} t={t} />
+                <DetailWords kind={chip.kind} sums={sums} t={t} />
               </SmallChip>
             </div>
           )),
         ]}
       />
-      {DETAILS.map((chip, i) => (
+      {chips.map((chip, i) => (
         <motion.div
-          key={chip.top}
+          key={chip.kind}
           className="absolute flex"
           initial={false}
           animate={{ opacity: details ? 1 : 0 }}
           transition={{ duration: 0.18, delay: details ? 0.04 * i : 0 }}
-          style={{ left: 25, top: chip.top, pointerEvents: details ? undefined : "none" }}
+          style={{ insetInlineStart: 25, top: chip.top, pointerEvents: details ? undefined : "none" }}
           aria-hidden={!details}
         >
           <SmallChip bg={chip.bg} line={C.purple} minW={chip.minW} icon={chip.icon} testId={`demo-bag-detail-${i}`}>
-            <DetailWords index={i} bag={bag} t={t} />
+            <DetailWords kind={chip.kind} sums={sums} t={t} />
           </SmallChip>
         </motion.div>
       ))}
@@ -414,7 +440,7 @@ export function BagPanel({
         animate={{ backgroundColor: button.fill }}
         transition={SCREEN_TRANSITION}
         style={{
-          right: 430 - (234 + 188),
+          insetInlineEnd: 430 - (234 + 188),
           top: 802 - 790,
           width: 188,
           height: 45,
@@ -457,18 +483,18 @@ export function BagPanel({
   );
 }
 
-/** The words of detail chip `index`, in the file's order. */
-function DetailWords({ index, bag, t }: { index: number; bag: readonly DemoBagItem[]; t: T }) {
-  switch (index) {
-    case 0:
-      return <Rich text={t("<b>{count}</b> item")} values={{ count: bagCount(bag) }} />;
-    case 1:
+/** The words of a detail chip. */
+function DetailWords({ kind, sums, t }: { kind: DetailKind; sums: BagSums; t: T }) {
+  switch (kind) {
+    case "count":
+      return <Rich text={t("<b>{count}</b> item")} values={{ count: sums.count }} />;
+    case "shipping":
       return <>{t("Free Shipping")}</>;
-    case 2:
+    case "return":
       return <>{t("Free Return")}</>;
-    case 3:
-      return <Rich text={t("<m>just {days} days</m> In your hands")} values={{ days: 3 }} />;
-    case 4:
+    case "days":
+      return <Rich text={t("<m>just {days} days</m> In your hands")} values={{ days: sums.days ?? 0 }} />;
+    case "deliveryGuarantee":
       return <>{t("Delivery guarantee")}</>;
     default:
       return <>{t("Return guarantee")}</>;
@@ -487,7 +513,7 @@ export function Rule({ color, mt = 0 }: { color: string; mt?: number }) {
     <svg
       aria-hidden="true"
       className="block shrink-0"
-      style={{ marginTop: mt - 0.5, marginLeft: 12, marginRight: 12, width: "calc(100% - 24px)", height: 1 }}
+      style={{ marginTop: mt - 0.5, marginInline: 12, width: "calc(100% - 24px)", height: 1 }}
     >
       <line x1="0" x2="100%" y1="0.5" y2="0.5" stroke={color} strokeWidth={0.5} />
     </svg>

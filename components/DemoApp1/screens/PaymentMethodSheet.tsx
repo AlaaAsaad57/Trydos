@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoData, type DemoPaymentMethod } from "../../DemoApp/DemoData";
+import type { CheckoutPayment } from "./CheckoutPage";
 import { useDemoCase } from "../demoCase";
+import { mirrorFor, usePageDir } from "../rtl";
 import { C, SHEET, fill, lineBox, paraTop, textBottom, textTop } from "../demo1Layout";
 import { Sheet, Stroke, WhyCard } from "../ui";
 import {
@@ -63,20 +64,31 @@ import { Brand, WithBank } from "./WalletCashOutSheet";
  *
  * "Via rdb App" and the row of ways take no tap yet: the file has no next
  * board for them.
+ *
+ * On the real app (`real`): only the wallet can be chosen (it pays with
+ * `trydos_wallet`, S7d-3). The balance is not known yet, so its chip says
+ * "Soon available" (`balance` null). The trydos | rdb card still opens its
+ * step, but both its ways say "Soon available" and take no tap (S7d-4).
+ * Every tile of the row says "Soon available" (S7d-7).
  */
 export default function PaymentMethodSheet({
   open,
+  balance,
+  real = false,
   onClose,
   onDone,
 }: {
   open: boolean;
+  /** The wallet's balance in USD; null: not known yet ("Soon available"). */
+  balance: number | null;
+  real?: boolean;
   onClose: () => void;
   /** A way was chosen and "Done" tapped. */
-  onDone: (method: DemoPaymentMethod) => void;
+  onDone: (method: CheckoutPayment) => void;
 }) {
   return (
     <Sheet open={open} onClose={onClose} y={SHEET_Y} radius={SHEET.radiusWallet} z={SHEET_Z} testId="demo-payment-sheet">
-      <SheetBody onDone={onDone} />
+      <SheetBody balance={balance} real={real} onDone={onDone} />
     </Sheet>
   );
 }
@@ -119,10 +131,20 @@ const INVOICE_HOURS = 2;
 type Step = "ways" | "rdb";
 
 /** The sheet's content: built anew on every opening, so it always opens on the ways with nothing chosen (`– 73`). */
-function SheetBody({ onDone }: { onDone: (method: DemoPaymentMethod) => void }) {
+function SheetBody({
+  balance,
+  real,
+  onDone,
+}: {
+  balance: number | null;
+  real: boolean;
+  onDone: (method: CheckoutPayment) => void;
+}) {
   const { t, body } = useDemoCase();
+  // The back arrow points the page's way back (A-14).
+  const pageDir = usePageDir();
   const [step, setStep] = useState<Step>("ways");
-  const [method, setMethod] = useState<DemoPaymentMethod | null>(null);
+  const [method, setMethod] = useState<CheckoutPayment | null>(null);
   /** The way chosen on `– 79`: none yet, or the invoice by QR. */
   const [rdbWay, setRdbWay] = useState<"invoice" | null>(null);
   const [showWhy, setShowWhy] = useState(true);
@@ -155,15 +177,15 @@ function SheetBody({ onDone }: { onDone: (method: DemoPaymentMethod) => void }) 
                 data-pw="demo-payment-back"
                 onClick={() => setStep("ways")}
                 className="absolute cursor-pointer [-webkit-tap-highlight-color:transparent] active:opacity-60"
-                style={{ left: BACK.x - BACK.pad, top: BACK.y - HANDLE_END - BACK.pad, padding: BACK.pad }}
+                style={{ insetInlineStart: BACK.x - BACK.pad, top: BACK.y - HANDLE_END - BACK.pad, padding: BACK.pad }}
               >
-                <XdIcon name="back" />
+                <XdIcon name="back" style={mirrorFor(pageDir)} />
               </button>
             )}
             <XdIcon
               name="payPhone"
               className="absolute"
-              style={{ left: rdb ? PHONE.xRdb : PHONE.x, top: PHONE.y - HANDLE_END }}
+              style={{ insetInlineStart: rdb ? PHONE.xRdb : PHONE.x, top: PHONE.y - HANDLE_END }}
             />
             <h2
               className="self-center font-bold whitespace-nowrap"
@@ -217,17 +239,23 @@ function SheetBody({ onDone }: { onDone: (method: DemoPaymentMethod) => void }) 
                     mt={VIA_APP_Y - (RDB_TOP_Y + METHOD_H)}
                     // The file draws this way white with the purple line, and "Done" grey,
                     // until the invoice is chosen.
-                    chosen={rdbWay === null}
+                    chosen={!real && rdbWay === null}
                     title={<WithBank text={t("Via {bank} app")} />}
-                    line={<WithBank text={t("Connect to {bank} app & pay Directly")} />}
+                    line={real ? t("Soon available") : <WithBank text={t("Connect to {bank} app & pay Directly")} />}
                   />
                   <ChoiceCard
                     testId="demo-payment-via-qr"
                     mt={VIA_QR_Y - (VIA_APP_Y + CHOICE_H)}
                     chosen={rdbWay === "invoice"}
-                    onClick={() => setRdbWay("invoice")}
+                    onClick={real ? undefined : () => setRdbWay("invoice")}
                     title={<Rich text={t("Via Invoice <b>QR</b>")} />}
-                    line={<Rich text={t("Pay invoice within <m>{hours} hours</m> in many easy way")} values={{ hours: INVOICE_HOURS }} />}
+                    line={
+                      real ? (
+                        t("Soon available")
+                      ) : (
+                        <Rich text={t("Pay invoice within <m>{hours} hours</m> in many easy way")} values={{ hours: INVOICE_HOURS }} />
+                      )
+                    }
                   />
                 </motion.div>
               ) : (
@@ -242,6 +270,7 @@ function SheetBody({ onDone }: { onDone: (method: DemoPaymentMethod) => void }) 
                 >
                   <WalletCard
                     mt={WALLET_Y - leadEnd}
+                    balance={balance}
                     t={t}
                     chosen={chosen === "wallet"}
                     onClick={() => setMethod("wallet")}
@@ -249,6 +278,7 @@ function SheetBody({ onDone }: { onDone: (method: DemoPaymentMethod) => void }) 
                   <RdbCard mt={RDB_Y - (WALLET_Y + METHOD_H)} t={t} onClick={() => setStep("rdb")} />
                   <PayWays
                     mt={WAYS_Y - (RDB_Y + METHOD_H)}
+                    allSoon={real}
                     t={t}
                     testId={{ row: "demo-payment-ways-row", way: "demo-payment-way", soon: "demo-payment-soon" }}
                   />
@@ -302,7 +332,7 @@ function Card({
 }) {
   const style: React.CSSProperties = {
     marginTop: mt,
-    marginLeft: CARD_X,
+    marginInlineStart: CARD_X,
     width: fill(CARD_X),
     height: METHOD_H,
     borderRadius: 15,
@@ -338,21 +368,38 @@ function Card({
 
 /**
  * The wallet card (`– 73`, y 212). The balance is the client's own
- * (`walletUsd`, 120 on the board).
+ * (120 on the board); null when it is not known yet ("Soon available").
  */
-function WalletCard({ mt, t, chosen, onClick }: { mt: number; t: T; chosen: boolean; onClick: () => void }) {
-  const { profile } = useDemoData();
+function WalletCard({
+  mt,
+  balance,
+  t,
+  chosen,
+  onClick,
+}: {
+  mt: number;
+  balance: number | null;
+  t: T;
+  chosen: boolean;
+  onClick: () => void;
+}) {
   return (
     <Card mt={mt} testId="demo-payment-wallet" chosen={chosen} onClick={onClick}>
-      <span className="absolute" style={{ top: TOP_CHIP.y, left: TOP_CHIP.left }}>
+      <span className="absolute" style={{ top: TOP_CHIP.y, insetInlineStart: TOP_CHIP.left }} data-pw="demo-payment-wallet-balance">
         <Chip
-          label={<Rich text={t("Your balance <b>{amount}</b> USD")} values={{ amount: profile.walletUsd }} />}
+          label={
+            balance === null ? (
+              t("Soon available")
+            ) : (
+              <Rich text={t("Your balance <b>{amount}</b> USD")} values={{ amount: balance }} />
+            )
+          }
           fill={CHIP_GREY}
           color={C.ink}
           minWidth={128}
         />
       </span>
-      <span className="absolute" style={{ top: TOP_CHIP.y, right: TOP_CHIP.right }}>
+      <span className="absolute" style={{ top: TOP_CHIP.y, insetInlineEnd: TOP_CHIP.right }}>
         <Chip label={t("Recommended")} fill={C.purpleTint} color={C.purple} minWidth={94} pad={7} />
       </span>
       <XdIcon name="payWallet" className="shrink-0" style={{ marginTop: WALLET_PICTURE_Y - WALLET_Y }} />

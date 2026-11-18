@@ -58,6 +58,16 @@ export const APP_SCREEN_VIEWS: Partial<
   "settings/wallet": dynamic(() => import("./screens/WalletScreen"), {
     loading: () => <ScreenSkeleton screen="settings/wallet" />,
   }),
+  // The bag (Stage 7d).
+  cart: dynamic(() => import("./screens/AppCart"), {
+    loading: () => <ScreenSkeleton screen="cart" />,
+  }),
+  "cart/checkout": dynamic(() => import("./screens/AppCheckout"), {
+    loading: () => <ScreenSkeleton screen="cart/checkout" />,
+  }),
+  "cart/done": dynamic(() => import("./screens/AppOrderDone"), {
+    loading: () => <ScreenSkeleton screen="cart/done" />,
+  }),
   // Chat (Stage 6).
   chat: dynamic(() => import("./screens/ChatListScreen"), {
     loading: () => <ScreenSkeleton screen="chat" />,

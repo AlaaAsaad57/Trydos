@@ -3303,6 +3303,7 @@ const translations = {
   "Composed of": "İçerik",
   "{count} piece": "{count} parça",
   "<b>Hurry up ! </b>quantity running out.<b> -{time}</b>": "<b>Acele et ! </b>stok tükeniyor.<b> -{time}</b>",
+  "<b>Hurry up ! </b>time running out.<b> -{time}</b>": "<b>Acele et ! </b>süre doluyor.<b> -{time}</b>",
   "<b>Out of Bag ! </b>time running out": "<b>Çantadan çıktı ! </b>süre doluyor",
   "<b>Out of Bag ! </b>time running out<m> -{time}</m>": "<b>Çantadan çıktı ! </b>süre doluyor<m> -{time}</m>",
   "ADD AGAIN": "TEKRAR EKLE",

@@ -3270,6 +3270,7 @@ const translations = {
   "Composed of": "يتكون من",
   "{count} piece": "{count} قطعة",
   "<b>Hurry up ! </b>quantity running out.<b> -{time}</b>": "<b>أسرع ! </b>الكمية على وشك النفاد.<b> -{time}</b>",
+  "<b>Hurry up ! </b>time running out.<b> -{time}</b>": "<b>أسرع ! </b>الوقت على وشك النفاد.<b> -{time}</b>",
   "<b>Out of Bag ! </b>time running out": "<b>خارج الحقيبة ! </b>الوقت على وشك الانتهاء",
   "<b>Out of Bag ! </b>time running out<m> -{time}</m>": "<b>خارج الحقيبة ! </b>الوقت على وشك الانتهاء<m> -{time}</m>",
   "ADD AGAIN": "أضف مجدداً",

@@ -1524,6 +1524,38 @@ and after D-45: `change_size`, `add_to_cart`.
 
 ---
 
+## Stage 7d — bag, checkout, buy bar (added on 2026-11-18)
+
+The designs came from `development` (XD `Home Page – 50` to `– 103`, built as
+`/demo` screens). Stage 7d puts them on the real app with real data. The
+`development` merge into `ui-migrations` is commit `9b0807853`.
+
+### Decided for Stage 7d (2026-11-18, the owner's answers)
+
+| # | Part | Decision |
+|---|------|----------|
+| S7d-1 | Branch | Work directly on `ui-migrations`. |
+| S7d-2 | Delivery | The delivery sheet keeps the Pickup card as the file draws it ("Recommended"), but a tap on it shows a "Soon available" tag and opens no centres (the backend has none). "Delivery to address" stays in its place, drops "Coming soon !" and its grey chip, and can be chosen (black title; chosen = white with the purple line). The order goes to the chosen address (the default address, as the old checkout). |
+| S7d-3 | Wallet | The wallet card pays with `trydos_wallet` (payment id 4, already live). The balance number shows "Soon available". Board 83 is not used. |
+| S7d-4 | trydos \| rdb card | The card and its two ways show "Soon available". Ask the designer for the rest. |
+| S7d-5 | Purchase done | Reuse the checkout's address card (board 76) and wallet card (board 80), with no line. The order number, date and total are real. |
+| S7d-6 | Terms | The terms section shows under the wallet card too. "Checkout / Complete" turns purple after "I Agree". |
+| S7d-7 | Old payments | Cash on delivery and the coupon are hidden (their code is kept, A-33). Every PayWays tile shows "Soon available". |
+| S7d-8 | Labels | Real where a source exists: trend colour, Free Shipping (cost 0), Free Return (return days > 0), the shipping days. "Best price", "Best sell" and the two guarantees are fixed text. |
+| S7d-9 | Buy bar counts | Real: likes (`total_likes`), comments (the review count), shares (`total_shares`). |
+| S7d-10 | Recommended size | Fixed on the first size in stock. "last N" is the real stock. |
+| S7d-11 | Old flows | The price-changed prompt, the cart-lock sheet (rdb) and the unavailable / country-restricted items are redrawn in the new design's style. |
+| S7d-12 | Verify at checkout | A-27: the full-screen new login screens. |
+| S7d-13 | Out of Bag | The live old cart (`OldCartContainer` data, its `created_at` timer). |
+| S7d-14 | Composed of | `count_of_pieces` and `unit` (`components/products/packInfo.tsx`). |
+
+### Rules
+
+- The design does not change (A-8, A-16). Real data only, no mock, no fake success.
+- Shipping code never imports the `/demo` data files. Each design screen draws plain data; `/demo` and the real app each map their own data into it (as `ProductPage` does).
+- Skeletons while the data loads. Fast navigation stays (the screen mount, no full reload).
+- RTL with logical sides (A-13, A-14). Old analytics events only (D-10). New words in all three translation files.
+
 ## Stage 8 — regression, sign-off, merge
 
 1. Run every suite: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, `pnpm e2e:health`, then
