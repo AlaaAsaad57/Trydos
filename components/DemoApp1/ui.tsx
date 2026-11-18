@@ -1703,8 +1703,16 @@ export function Sheet({
   over,
   timing = SHEET_TRANSITION,
   z,
+  keepHeight = false,
 }: {
   open: boolean;
+  /**
+   * Keep the file's height and rest on the bottom, even for a sheet that
+   * starts above y 300. For a tall sheet with no scroll of its own (the
+   * sign-in request, `Sign In request`): on a short phone its top goes up,
+   * and its last button is never under the window's end.
+   */
+  keepHeight?: boolean;
   /**
    * The sheet's layer `z` (see `Layer`). Raise it for a sheet that must cover
    * the checkout's price panel (CartParts, over every usual layer).
@@ -1798,7 +1806,7 @@ export function Sheet({
                 // sheet keeps its top, so the dimmed page shows above it.
                 // Both run on under Safari's bar (UNDER_BAR): the window ends
                 // above that bar, and the page would show under it.
-                ...(fit || y < 300
+                ...(fit || (y < 300 && !keepHeight)
                   ? { top: top(y) }
                   : { height: DESIGN_H - y + UNDER_BAR }),
                 bottom: -UNDER_BAR,

@@ -58,7 +58,9 @@ export default async function Demo1Layout({
           <div data-pw="demo1-app" className="w-full min-h-dvh bg-white" />
         }
       >
-        <Demo1Shell dictionary={dictionary}>{children}</Demo1Shell>
+        <Demo1Shell dictionary={dictionary} intro>
+          {children}
+        </Demo1Shell>
       </Suspense>
     </>
   );

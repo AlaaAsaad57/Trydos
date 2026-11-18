@@ -16,6 +16,7 @@ import {
   countryOf,
 } from "../../DemoApp/demoPlaces";
 import { C, ROW, fill, gapTo, lineBox, textBottom } from "../demo1Layout";
+import CountryRow from "./CountryRow";
 import {
   Box,
   Field,
@@ -470,46 +471,17 @@ function CountrySheet({
       >
         {t("Country | Region")}
       </Txt>
-      {COUNTRIES.map((c, i) => {
-        const on = c.id === value;
-        return (
-          <motion.button
-            key={c.id}
-            type="button"
-            data-pw={`demo-country-${c.id}`}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => onPick(c.id)}
-            className="relative flex items-center shrink-0 cursor-pointer text-left"
-            style={{
-              marginTop: i === 0 ? 645 - textBottom(629, 16) : 4,
-              marginLeft: 12,
-              width: fill(12),
-              height: 60,
-              borderRadius: 15,
-              background: on ? C.field : C.card,
-            }}
-          >
-            {c.flag ? (
-              <Icon name={c.flag} ml={12} />
-            ) : (
-              <span
-                className="block shrink-0"
-                style={{
-                  marginLeft: 12,
-                  width: 30,
-                  height: 30,
-                  borderRadius: 5,
-                  background: "#EFEFEF",
-                }}
-              />
-            )}
-            <Txt ml={54 - 12 - 30} size={14}>
-              {t(c.name)}
-            </Txt>
-            <Stroke color="#402CDD" radius={15} visible={on} />
-          </motion.button>
-        );
-      })}
+      {COUNTRIES.map((c, i) => (
+        <CountryRow
+          key={c.id}
+          country={c}
+          on={c.id === value}
+          label={t(c.name)}
+          mt={i === 0 ? 645 - textBottom(629, 16) : 4}
+          testId={`demo-country-${c.id}`}
+          onPick={() => onPick(c.id)}
+        />
+      ))}
     </Sheet>
   );
 }

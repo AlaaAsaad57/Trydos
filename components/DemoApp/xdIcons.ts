@@ -308,6 +308,11 @@ export const XD_ICON_SIZE = {
   orderNumber: { w: 16.68, h: 20 },
   orderDate: { w: 20, h: 20 },
   orderTrack: { w: 18, h: 18 },
+  // The country picker at the start, `Ramaaz pay signin – 16` (the logo with the purple eyes).
+  // Its map, countryMap.svg, is not an icon: CountryPickerScreen paints each country itself.
+  countryLogo: { w: 150.01, h: 150 },
+  // The sign-in request sheet, `Sign In request` (the same logo, all dark).
+  signInLogo: { w: 150.01, h: 150 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

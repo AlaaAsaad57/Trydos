@@ -214,9 +214,26 @@ const PAYMENT_KEYS = [
   "My Account / My Orders",
 ] as const;
 
+/**
+ * The country picker that opens the demo (`Ramaaz pay signin – 16`, `– 15`) and
+ * the sign-in request sheet 4 seconds later (`Sign In request`). The country
+ * names are the address form's (below).
+ */
+const INTRO_KEYS = [
+  "Select Your Region",
+  // The file writes this line in small letters (KEEP_CASE).
+  "Your new <m>shopping buddy</m>",
+  // The file sets this line in title case, and the marks must stay round
+  // whole words, so the key is written in title case itself (KEEP_CASE).
+  "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>",
+  "Get Started",
+  "Later, take a look at the app",
+] as const;
+
 export const DEMO_KEYS = [
   "Hide menu",
   "Device and browser info",
+  ...INTRO_KEYS,
   "Tab bar colour",
   "Reset tab bar colour",
   "Main",
@@ -634,6 +651,9 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   "You have seen all products",
   // `Home Page – 54` writes this colour in lower case ("… Pantaloon . blue").
   "blue",
+  // The country picker's line and the sign-in request's paragraph (INTRO_KEYS).
+  "Your new <m>shopping buddy</m>",
+  "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>",
   // `Home Page – 49`, the product page (see demoCase.ts).
   ...PRODUCT_PAGE_KEYS,
   // `Home Page – 50` and `– 56`, the bag and the checkout (demoCase.ts too).

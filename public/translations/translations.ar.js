@@ -3318,6 +3318,9 @@ const translations = {
   "In Your Hands": "بين يديك",
   "The product is bought, packed, flown and driven to you": "يتم شراء المنتج وتغليفه وشحنه جواً ثم توصيله إليك",
   "Play Again": "شغّل مرة أخرى",
+  "Your new <m>shopping buddy</m>": "<m>رفيق تسوّقك</m> الجديد",
+  "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>": "للوصول إلى جميع الميزات، <m>يرجى البدء</m>، حيث ستجد ميزات رائعة والنسخة الكاملة. <a>معلومات أكثر</a>",
+  "Get Started": "البدء",
 };
 
 export default translations;

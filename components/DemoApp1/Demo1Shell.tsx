@@ -54,6 +54,8 @@ import {
   sliderMove,
 } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
+import CountryPickerScreen from "./screens/CountryPickerScreen";
+import SignInRequestSheet from "./screens/SignInRequestSheet";
 
 /**
  * The shell of the fluid demo at /[lang]/demo.
@@ -115,7 +117,22 @@ import DemoKeyboard from "./keyboard/DemoKeyboard";
  * screen width, the way a Home slider moves one slide, with the same speed
  * and curve (sliderMove in demo1Layout.ts). Neither screen fades. With
  * "reduce motion" on, the page only fades in and out.
+ *
+ * The start: the country picker, then the sign-in request
+ * -------------------------------------------------------
+ * With `intro` on (the /demo layout turns it on), every fresh load of the
+ * demo opens on the country picker (XD `Ramaaz pay signin – 16`), whatever
+ * the URL. It is drawn on the server too, so the screen of the URL never
+ * shows before it. Once a country is chosen, the picker fades out and the
+ * screen of the URL fades in. SIGN_IN_ASK_MS later the sign-in request
+ * sheet (`Sign In request`) comes up over it, once.
  */
+
+/** How long after the app opens from the country picker the sign-in request comes up, in ms. */
+export const SIGN_IN_ASK_MS = 4000;
+
+/** The screen frame's key while the country picker is on show. */
+const INTRO_KEY = "intro";
 
 /**
  * The card a store's page grows from: its box in px, from the page column's
@@ -256,14 +273,19 @@ const slide: Variants = {
 export default function Demo1Shell({
   children,
   dictionary,
+  intro = false,
 }: {
   children: React.ReactNode;
   /** The demo's words in the page's language, looked up on the server — see demoKeys.ts. */
   dictionary: DemoDictionary;
+  /** Open on the country picker, then ask to sign in (see "The start" above). */
+  intro?: boolean;
 }) {
   return (
     <DemoDataProvider>
-      <Demo1ShellInner dictionary={dictionary}>{children}</Demo1ShellInner>
+      <Demo1ShellInner dictionary={dictionary} intro={intro}>
+        {children}
+      </Demo1ShellInner>
     </DemoDataProvider>
   );
 }
@@ -271,9 +293,11 @@ export default function Demo1Shell({
 function Demo1ShellInner({
   children,
   dictionary,
+  intro,
 }: {
   children: React.ReactNode;
   dictionary: DemoDictionary;
+  intro: boolean;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -300,15 +324,32 @@ function Demo1ShellInner({
   const reduceMotion = useReducedMotion();
   const [hideMenu, setHideMenu] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState(false);
+  const [picking, setPicking] = useState(intro);
+  const [askSignIn, setAskSignIn] = useState(false);
+  const askTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (askTimer.current) clearTimeout(askTimer.current);
+    },
+    [],
+  );
+
+  /** The country is chosen: the picker fades out, the app fades in, and the sign-in request waits. */
+  const endIntro = () => {
+    setLeave({ dir: 1, scrollY: window.scrollY, fade: true });
+    setPicking(false);
+    askTimer.current = setTimeout(() => setAskSignIn(true), SIGN_IN_ASK_MS);
+  };
 
   const key = shown ?? `page:${pathname}`;
+  const frameKey = picking ? INTRO_KEY : key;
   const barShrink = useTabBarShrink(key);
   // The tab bar shows on the tab screens, and on a store's page too (it
   // belongs to the Home tab, so Home is the active tab there). A product's
   // page has no tab bar: XD `Home Page – 49` draws none, and the bar slides
   // away as the product opens.
   const barScreen = shown !== null && (isTabRoot(shown) || isStoreScreen(shown));
-  const showBar = barScreen;
+  const showBar = barScreen && !picking;
 
   // The shell keeps each screen's scroll itself, so the browser must not
   // put one back on its own when the URL changes.
@@ -345,7 +386,7 @@ function Demo1ShellInner({
   useLayoutEffect(() => {
     const y = leave.dir < 0 ? (scrolls.current.get(key) ?? 0) : 0;
     window.scrollTo(0, y);
-  }, [key]);
+  }, [frameKey]);
 
   /**
    * Starts a change of screen: remembers where the screen on show was left,
@@ -482,8 +523,14 @@ function Demo1ShellInner({
           style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
         >
           <AnimatePresence initial={false} custom={leave}>
-            <ScreenFrame key={key} id={key} leave={leave}>
-              {shown ? <Demo1ScreenView screen={shown} /> : children}
+            <ScreenFrame key={frameKey} id={frameKey} leave={leave}>
+              {picking ? (
+                <CountryPickerScreen onDone={endIntro} />
+              ) : shown ? (
+                <Demo1ScreenView screen={shown} />
+              ) : (
+                children
+              )}
             </ScreenFrame>
           </AnimatePresence>
         </div>
@@ -529,6 +576,14 @@ function Demo1ShellInner({
           )}
           {!hideMenu && <DebugButtons t={t} />}
         </div>
+        <SignInRequestSheet
+          open={askSignIn}
+          onClose={() => setAskSignIn(false)}
+          onStart={() => {
+            setAskSignIn(false);
+            router.push(`/${locale}/loginDemo`);
+          }}
+        />
         <DemoKeyboard locale={locale} t={t} />
         <DemoDeviceInfoModal
           open={deviceInfo}

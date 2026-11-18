@@ -3368,6 +3368,9 @@ const translations = {
   "In Your Hands": "لە دەستی تۆدایە",
   "The product is bought, packed, flown and driven to you": "بەرهەمەکە دەکڕدرێت، دەپێچرێتەوە، بە فڕین دەنێردرێت و بۆت دەگەیەندرێت",
   "Play Again": "دووبارە لێبدەرەوە",
+  "Your new <m>shopping buddy</m>": "<m>هاوڕێی بازاڕکردنی</m> نوێت",
+  "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>": "بۆ بەکارهێنانی هەموو تایبەتمەندییەکان، <m>تکایە دەست پێبکە</m>، لەوێ تایبەتمەندیی نایاب و وەشانی تەواو دەدۆزیتەوە. <a>زانیاری زیاتر</a>",
+  "Get Started": "دەستپێکردن",
 };
 
 export default translations;

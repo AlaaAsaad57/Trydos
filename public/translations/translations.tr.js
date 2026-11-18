@@ -3351,6 +3351,9 @@ const translations = {
   "In Your Hands": "Elinizde",
   "The product is bought, packed, flown and driven to you": "Ürün satın alınır, paketlenir, uçakla taşınır ve size teslim edilir",
   "Play Again": "Tekrar Oynat",
+  "Your new <m>shopping buddy</m>": "Yeni <m>alışveriş arkadaşın</m>",
+  "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>": "Tüm Özelliklere Erişmek İçin <m>Lütfen Başlayın</m>, Harika Özellikleri Ve Tam Sürümü Bulacaksınız. <a>Daha Fazla Bilgi</a>",
+  "Get Started": "Başlayın",
 };
 
 export default translations;
