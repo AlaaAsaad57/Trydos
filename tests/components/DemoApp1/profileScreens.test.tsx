@@ -1,6 +1,7 @@
 import React from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { motionValue } from "framer-motion";
 
 // The profile screens on real data (Stage 4 of UI-MIGRATION-PLAN.md). Each
 // screen is drawn inside the nav context the screen mount gives, with the
@@ -102,6 +103,7 @@ const draw = (ui: React.ReactElement, locale = "sy-en") => {
     back: vi.fn(),
     locale,
     t: (key) => key,
+    barShrink: motionValue(1),
   };
   return render(<NavCtx.Provider value={nav}>{ui}</NavCtx.Provider>);
 };

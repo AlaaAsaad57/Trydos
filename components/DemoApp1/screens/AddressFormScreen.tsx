@@ -55,8 +55,9 @@ const MapElement = dynamic(
  * "Select from list" (opens the place sheet), detailed address, title. Until
  * the whole form is filled, every field is white with its grey line, filled or
  * not, as 94, 95 and 97 draw it. A field in use (focused, or its sheet open)
- * turns its line blue `#388CFF` and its label Medium: a product rule. When the
- * whole form is filled "Add & save" rises, every field turns `#FCFCFC` and every
+ * turns its line blue `#388CFF` and its label Medium: a product rule. "Add &
+ * save" is there from the start, grey and off (a product rule; the file only
+ * draws it on). When the whole form is filled it turns purple, every field turns `#FCFCFC` and every
  * line goes, the map card's too, as on 99 — at once, even while the last field
  * still has focus. The field in use keeps its blue line: a product rule.
  *
@@ -132,10 +133,66 @@ function useCountryBorder(iso: string) {
 }
 
 export default function AddressFormScreen() {
-  const { t, back, locale } = useDemoNav();
+  const { t, back } = useDemoNav();
+  const form = useAddressForm({ onSaved: () => back() });
+  return (
+    <ScreenPage
+      testId="demo-address-form"
+      header={
+        <ScreenHeader
+          crumb={["Profile", "Address"]}
+          nudge={1}
+          icon="titleAddress"
+          onBack={back}
+          action="Cancel"
+          onAction={back}
+          t={t}
+        />
+      }
+      footer={
+        <>
+          <WideButton
+            testId="demo-address-save"
+            label={t("Add & save")}
+            disabled={!form.complete || form.saving}
+            onClick={() => void form.save()}
+          />
+          {form.sheets}
+          {form.toast}
+        </>
+      }
+    >
+      <InfoBanner t={t} />
+      {form.fields}
+    </ScreenPage>
+  );
+}
+
+/**
+ * The form itself: its state, the map card with the four fields under it
+ * (`fields`, to put under the banner), the country and place sheets
+ * (`sheets`) and its message (`toast`). The profile's form screen and the
+ * checkout's address sheet (CartAddressSheet) both use it.
+ *
+ * The form is the store's `addressDetails` (see the screen's notes above).
+ * `save` sends it with services/order and calls `onSaved` only when the
+ * backend took it, with the address's id (unknown when the backend's answer
+ * has none). `sheetZ` raises the two pickers over a sheet the form is in.
+ */
+export function useAddressForm({
+  onSaved,
+  sheetZ,
+  toastBottom = 140,
+}: {
+  onSaved: (id?: number) => void;
+  sheetZ?: number;
+  /** Where the form's message sits above the window's end. */
+  toastBottom?: number;
+}) {
+  const { t, locale } = useDemoNav();
   const [countryIso, language] = locale.split("-");
   const profile = useProfileData();
-  const [toast, showToast] = useToast();
+  const [toastText, showToast] = useToast();
   const details = useAppStore((s) => s.addressDetails);
   const setDetails = useAppStore((s) => s.setAddressDetails);
   const center = useAppStore((s) => s.center);
@@ -203,17 +260,19 @@ export default function AddressFormScreen() {
       if (address.id) {
         await order.UpdateAddressList({ address, callback: () => {} });
         await order.GetAddressList();
-        back();
+        onSaved(address.id);
       } else {
-        // The callback runs only when the backend took the address.
+        // The callback runs only when the backend took the address, with its id.
         let added = false;
+        let id: number | undefined;
         await order.AddAddressList({
           address,
-          callback: () => {
+          callback: (newId?: number) => {
             added = true;
+            id = newId;
           },
         });
-        if (added) back();
+        if (added) onSaved(id);
       }
     } finally {
       setSaving(false);
@@ -226,63 +285,8 @@ export default function AddressFormScreen() {
     focused: sheet === id,
   });
 
-  return (
-    <ScreenPage
-      testId="demo-address-form"
-      header={
-        <ScreenHeader
-          crumb={["Profile", "Address"]}
-          nudge={1}
-          icon="titleAddress"
-          onBack={back}
-          action="Cancel"
-          onAction={back}
-          t={t}
-        />
-      }
-      footer={
-        <>
-          <WideButton
-            testId="demo-address-save"
-            label={t("Add & save")}
-            visible={complete && !saving}
-            onClick={() => void save()}
-          />
-          <CountrySheet
-            open={sheet === "country"}
-            iso={countryIso}
-            name={countryName}
-            onClose={() => setSheet(null)}
-          />
-          <PlaceSheet
-            open={sheet === "place"}
-            iso={countryIso}
-            countryName={countryName}
-            picked={picked}
-            onPick={(place) => {
-              const lat = Number(place.coordinates?.[0]?.lat);
-              const lng = Number(place.coordinates?.[0]?.lon);
-              if (lat && lng) useAppStore.getState().setMapCenter({ lat, lng });
-              setDetails({
-                region_details: {
-                  province: place.province,
-                  city: place.city,
-                  town: place.town,
-                  street: place.street,
-                  building: place.building,
-                },
-                region: [countryName, ...partsOf(place)].join(" | "),
-              });
-              setSheet(null);
-            }}
-            onClose={() => setSheet(null)}
-          />
-          <Toast text={toast} bottom={140} fixed />
-        </>
-      }
-    >
-      <InfoBanner t={t} />
-
+  const fields = (
+    <>
       {/* The map card, 12 under the banner. Its height is animated, so the
           fields under it move down with it. */}
       <motion.div
@@ -516,8 +520,48 @@ export default function AddressFormScreen() {
           placeholder={t("Ex: Home, my office, 2 home ect.")}
         />
       </Field>
-    </ScreenPage>
+    </>
   );
+
+  const sheets = (
+    <>
+      <CountrySheet
+        z={sheetZ}
+        open={sheet === "country"}
+        iso={countryIso}
+        name={countryName}
+        onClose={() => setSheet(null)}
+      />
+      <PlaceSheet
+        z={sheetZ}
+        open={sheet === "place"}
+        iso={countryIso}
+        countryName={countryName}
+        picked={picked}
+        onPick={(place) => {
+          const lat = Number(place.coordinates?.[0]?.lat);
+          const lng = Number(place.coordinates?.[0]?.lon);
+          if (lat && lng) useAppStore.getState().setMapCenter({ lat, lng });
+          setDetails({
+            region_details: {
+              province: place.province,
+              city: place.city,
+              town: place.town,
+              street: place.street,
+              building: place.building,
+            },
+            region: [countryName, ...partsOf(place)].join(" | "),
+          });
+          setSheet(null);
+        }}
+        onClose={() => setSheet(null)}
+      />
+    </>
+  );
+
+  const toast = <Toast text={toastText} bottom={toastBottom} fixed />;
+
+  return { complete, saving, save, fields, sheets, toast };
 }
 
 /** The map card and the map grow together. */
@@ -541,11 +585,13 @@ const sheetField = (onClick: () => void) => ({
  * country alone, chosen.
  */
 function CountrySheet({
+  z,
   open,
   iso,
   name,
   onClose,
 }: {
+  z?: number;
   open: boolean;
   iso: string;
   name: string;
@@ -553,7 +599,7 @@ function CountrySheet({
 }) {
   const { t } = useDemoNav();
   return (
-    <Sheet open={open} onClose={onClose} y={539} testId="demo-country-sheet">
+    <Sheet open={open} onClose={onClose} y={539} z={z} testId="demo-country-sheet">
       {/* The file centres both lines by eye: "Select" 1 px right of centre,
           the second line 1 px left. */}
       <Txt
@@ -621,6 +667,7 @@ function CountrySheet({
  * whole place, and tapping it picks it.
  */
 function PlaceSheet({
+  z,
   open,
   iso,
   countryName,
@@ -628,6 +675,7 @@ function PlaceSheet({
   onPick,
   onClose,
 }: {
+  z?: number;
   open: boolean;
   iso: string;
   countryName: string;
@@ -684,7 +732,7 @@ function PlaceSheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} y={451} testId="demo-place-sheet">
+    <Sheet open={open} onClose={onClose} y={451} z={z} testId="demo-place-sheet">
       {/* The file centres these three lines by eye, right of true centre by
           3, 1 and 1.33 px. */}
       <Txt

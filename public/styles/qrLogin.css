@@ -1,3 +1,122 @@
+/* QR login sheets: the Settings QR (Direction B) and its approve view. */
+.qr-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.qr-sheet {
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+  animation: qr-sheet-up 0.26s ease;
+}
+@keyframes qr-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.qr-sheet h3 { font-size: 17px; font-weight: 600; text-align: center; margin-bottom: 6px; color: #1d1d1d; }
+.qr-sheet .qr-sheet-ctx { text-align: center; font-size: 13px; color: #8d8d8d; margin-bottom: 18px; }
+.qr-sheet-actions { display: flex; gap: 10px; }
+.qr-sheet-actions button { flex: 1; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: 0; }
+.qr-sheet-deny { background: #f1efef; color: #1d1d1d; }
+.qr-sheet-warning { margin: -6px 0 16px; text-align: center; font-size: 12px; color: #f85555; }
+.qr-sheet-approve { background: #1b8f4d; color: #fff; }
+.qr-sheet-approve:disabled { opacity: 0.6; cursor: default; }
+
+/* The other device on an approve sheet (components/Login/QrDeviceDetails.tsx). */
+.qr-device {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 14px 12px;
+  border-radius: 14px;
+  background: #f7f7f7;
+}
+.qr-device-place-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d1d1d;
+}
+.qr-device-flag {
+  width: 24px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.qr-device-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.qr-device-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #ececec;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1d1d1d;
+}
+.qr-device-chip svg { width: 16px; height: 16px; flex: none; }
+
+/* Direction B: the QR in Settings (components/Login/QrDeviceSheet.tsx). */
+.qr-sheet-code {
+  width: 240px;
+  height: 240px;
+  margin: 0 auto 14px;
+  border: 1px dashed #c3c3c3;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.qr-sheet-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #388cff;
+  border-top-color: transparent;
+  animation: qr-spin 0.8s linear infinite;
+}
+@keyframes qr-spin {
+  to { transform: rotate(360deg); }
+}
+.qr-sheet-result { padding: 0 16px; text-align: center; font-size: 14px; font-weight: 500; color: #1d1d1d; }
+.qr-sheet-retry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  color: #1d1d1d;
+  cursor: pointer;
+}
+.qr-sheet-retry u { font-size: 13px; color: #388cff; }
+.qr-sheet-open-app {
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #388cff;
+  text-decoration: underline;
+}
+
+/* The phone scanner camera view (components/Login/QrScannerModal.tsx). */
 .qr-scanner-root {
   position: fixed;
   inset: 0;
@@ -77,31 +196,16 @@
   line-height: 38px;
   cursor: pointer;
 }
-.qr-sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483647;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+/* The phone scanner: the wait for the other device, and the end lines. */
+.qr-sheet-status { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 0 4px; }
+.qr-sheet-scan-again {
+  display: block;
+  margin: 14px auto 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #388cff;
+  text-decoration: underline;
+  cursor: pointer;
 }
-.qr-sheet {
-  width: 100%;
-  max-width: 460px;
-  background: #fff;
-  border-radius: 20px 20px 0 0;
-  padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
-  animation: qr-sheet-up 0.26s ease;
-}
-@keyframes qr-sheet-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-.qr-sheet h3 { font-size: 17px; font-weight: 600; text-align: center; margin-bottom: 6px; color: #1d1d1d; }
-.qr-sheet .qr-sheet-ctx { text-align: center; font-size: 13px; color: #8d8d8d; margin-bottom: 18px; }
-.qr-sheet-actions { display: flex; gap: 10px; }
-.qr-sheet-actions button { flex: 1; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: 0; }
-.qr-sheet-deny { background: #f1efef; color: #1d1d1d; }
-.qr-sheet-approve { background: #1b8f4d; color: #fff; }
-.qr-sheet-approve:disabled { opacity: 0.6; cursor: default; }

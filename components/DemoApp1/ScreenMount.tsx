@@ -9,6 +9,7 @@ import { PAGE_MAX } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
 import { ScreenFrame, type Slide } from "./ScreenFrame";
 import { NavCtx } from "./screenNav";
+import { appBarShrink } from "./appBarShrink";
 
 /**
  * What a new screen needs around it: its slide, the chat's data and the drawn
@@ -33,7 +34,7 @@ export default function ScreenMount({
   t: (key: DemoKey) => string;
 }) {
   return (
-    <NavCtx.Provider value={{ shown, navigate, back, locale, t }}>
+    <NavCtx.Provider value={{ shown, navigate, back, locale, t, barShrink: appBarShrink }}>
       <div
         data-pw="app-screens"
         dir={dir}

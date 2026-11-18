@@ -2389,85 +2389,71 @@ export async function getChildrenAndGrandchildren(
     aggs: {
       filtered_results: {
         filter: filterCondition,
-        aggs: {
-          top_categories: {
-            nested: { path: "custom_categories" },
-            aggs: {
-              filtered_categories: {
-                filter: {
-                  bool: {
-                    must: [
-                      {
-                        term: {
-                          "custom_categories.language_code": languageCode,
-                        },
-                      },
-                      // or "0" if it's a string
-                    ],
-                    must_not: [{ term: { "custom_categories.position": 0 } }],
+        aggs: buildChildCategoryAggregations(languageCode),
+      },
+    },
+  });
+  return childrenRes.aggregations.filtered_results;
+}
+
+/**
+ * The sub-categories (position 1 and 2) of the products a search found, with
+ * their original category data. The main categories (position 0) come from
+ * `buildAggregations`. Text search runs these in a second query
+ * (`getChildrenAndGrandchildren`); photo search puts them in its kNN query.
+ */
+export function buildChildCategoryAggregations(languageCode: string) {
+  return {
+    top_categories: {
+      nested: { path: "custom_categories" },
+      aggs: {
+        filtered_categories: {
+          filter: {
+            bool: {
+              must: [
+                {
+                  term: {
+                    "custom_categories.language_code": languageCode,
                   },
                 },
-                aggs: {
-                  categories_by_id: {
-                    terms: {
-                      field: "custom_categories.category_id",
-                      size: 1000,
-                    },
-                    aggs: {
-                      category_details: {
-                        top_hits: {
-                          size: 1,
-                          _source: {
-                            includes: [
-                              "custom_categories.id",
-                              "custom_categories.category_id",
-                              "custom_categories.name",
-                              "custom_categories.slug",
-                              "custom_categories.bio",
-                              "custom_categories.description",
-                              "custom_categories.flat_photo_path",
-                              "custom_categories.png_photo_path",
-                              "custom_categories.fill_photo_path",
-                              "custom_categories.banner_photo_path",
-                            ],
-                          },
-                        },
-                      },
-                      to_product: {
-                        reverse_nested: {},
-                        aggs: {
-                          product_thumbnail: {
-                            top_hits: {
-                              size: 1,
-                              _source: { includes: ["thumbnail"] },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
+                // or "0" if it's a string
+              ],
+              must_not: [{ term: { "custom_categories.position": 0 } }],
             },
           },
-          top_orig_categories: {
-            nested: { path: "categories" },
-            aggs: {
-              orig_categories_by_id: {
-                terms: { field: "categories.id", size: 1000 },
-                aggs: {
-                  orig_category_details: {
-                    top_hits: {
-                      size: 1,
-                      _source: {
-                        includes: [
-                          "categories.id",
-                          "categories.num_available_product",
-                          "categories.parent_id",
-                          "categories.most_viewed_product_thumbnail",
-                          "categories.gender",
-                          "categories.group_age",
-                        ],
+          aggs: {
+            categories_by_id: {
+              terms: {
+                field: "custom_categories.category_id",
+                size: 1000,
+              },
+              aggs: {
+                category_details: {
+                  top_hits: {
+                    size: 1,
+                    _source: {
+                      includes: [
+                        "custom_categories.id",
+                        "custom_categories.category_id",
+                        "custom_categories.name",
+                        "custom_categories.slug",
+                        "custom_categories.bio",
+                        "custom_categories.description",
+                        "custom_categories.flat_photo_path",
+                        "custom_categories.png_photo_path",
+                        "custom_categories.fill_photo_path",
+                        "custom_categories.banner_photo_path",
+                      ],
+                    },
+                  },
+                },
+                to_product: {
+                  reverse_nested: {},
+                  aggs: {
+                    product_thumbnail: {
+                      top_hits: {
+                        size: 1,
+                        _source: { includes: ["thumbnail"] },
                       },
                     },
                   },
@@ -2478,8 +2464,112 @@ export async function getChildrenAndGrandchildren(
         },
       },
     },
-  });
-  return childrenRes.aggregations.filtered_results;
+    top_orig_categories: {
+      nested: { path: "categories" },
+      aggs: {
+        orig_categories_by_id: {
+          terms: { field: "categories.id", size: 1000 },
+          aggs: {
+            orig_category_details: {
+              top_hits: {
+                size: 1,
+                _source: {
+                  includes: [
+                    "categories.id",
+                    "categories.num_available_product",
+                    "categories.parent_id",
+                    "categories.most_viewed_product_thumbnail",
+                    "categories.gender",
+                    "categories.group_age",
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+/** The chip lists of the search overlay: brands, boutiques, the category tree
+ *  and the related categories. Text search and photo search both use it, so
+ *  the chips mean the same in both: what the found products have.
+ *
+ *  - `aggregations`: the `filtered_results` part of `buildAggregations`.
+ *  - `childAggregations`: the answer of `buildChildCategoryAggregations`.
+ *  - `relatedAggregations`: `global_related_scope.related_filtered_results`. */
+export function shapeSearchChips({
+  aggregations = {},
+  childAggregations = {},
+  relatedAggregations = {},
+  selectedCategories = [],
+  filtersOffset = 1,
+}: {
+  aggregations?: any;
+  childAggregations?: any;
+  relatedAggregations?: any;
+  selectedCategories?: any[];
+  filtersOffset?: number;
+}) {
+  const mainBuckets =
+    aggregations.top_categories?.filtered_categories?.categories_by_id
+      ?.buckets || [];
+  const childBuckets =
+    childAggregations.top_categories?.filtered_categories?.categories_by_id
+      ?.buckets || [];
+  const origBuckets = (
+    aggregations.top_orig_categories?.orig_categories_by_id?.buckets || []
+  ).concat(
+    childAggregations.top_orig_categories?.orig_categories_by_id?.buckets ||
+      [],
+  );
+
+  const categoriesResult = processCategoriesAggregation(
+    mainBuckets.concat(childBuckets),
+    origBuckets,
+    filtersOffset,
+  );
+  const categories = categoriesResult.categories;
+
+  const selectedCategorySlugs = new Set(
+    (selectedCategories || []).map((slug: any) => String(slug)),
+  );
+  const related = processRelatedCategories(
+    relatedAggregations,
+    categoriesResult.genderAgePairs,
+    filtersOffset,
+  ).filter(
+    (category: any) =>
+      category?.slug && !selectedCategorySlugs.has(category.slug),
+  );
+
+  return {
+    brands: processBrandsAggregation(
+      aggregations.top_brands?.filtered_brands?.brands_by_id?.buckets || [],
+      filtersOffset,
+    ),
+    boutiques: processBoutiquesAggregation(
+      aggregations.top_boutiques?.filtered_boutiques?.boutiques_by_id
+        ?.buckets || [],
+      filtersOffset,
+    ),
+    categories,
+    related_categories: related.map((s: any) => ({
+      ...s,
+      group_age: GroupAgeEnum[s.group_age]
+        ? GroupAgeEnum[s.group_age].label
+        : s.group_age,
+      gender: GenderEnum[s.gender] ? GenderEnum[s.gender].label : s.gender,
+      realted: PopulateCategories({ categories })
+        .filter(
+          (category: any) =>
+            category.group_age === s.group_age &&
+            category.gender === s.gender,
+        )
+        .map((category: any) => category.slug),
+    })),
+  };
 }
 
 export function processBrandsAggregation(

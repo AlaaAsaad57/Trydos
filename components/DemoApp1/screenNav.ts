@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { MotionValue } from "framer-motion";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import type { DemoScreen } from "../DemoApp/demoRoutes";
 
@@ -23,6 +24,12 @@ export type DemoNav = {
   /** The locale segment, e.g. `sy-en`. */
   locale: string;
   t: (key: DemoKey) => string;
+  /**
+   * The tab bar's scroll scale (useTabBarShrink): 1 at full size, smaller as
+   * the page scrolls down. A box that rests on the bar (the bag's price panel)
+   * moves with it, in the same frame.
+   */
+  barShrink: MotionValue<number>;
 };
 
 export const NavCtx = createContext<DemoNav | null>(null);

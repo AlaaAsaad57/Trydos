@@ -11,6 +11,7 @@ import { useDemoNav } from "../screenNav";
 import { usePageDir } from "../rtl";
 import { useProfileData, type ProfileAddress } from "../useProfileData";
 import { PlaceParts } from "../placeParts";
+import type { DemoKey } from "../../DemoApp/demoKeys";
 import { C, WINDOW_COVER, fill, gapTo, textBottom, top } from "../demo1Layout";
 import {
   DIMMED,
@@ -23,6 +24,7 @@ import {
   Txt,
   WhyCard,
   WideButton,
+  useScreenHeight,
 } from "../ui";
 
 /**
@@ -62,6 +64,7 @@ export default function AddressListScreen() {
   const side = usePageDir() === "rtl" ? -1 : 1;
   const [showWhy, setShowWhy] = useState(true);
   const [deleting, setDeleting] = useState<ProfileAddress | null>(null);
+  const height = useScreenHeight();
   const list = profile.addresses;
   // "Empty" only once the list has answered: before that it is not known yet.
   const empty = profile.addressesLoaded && list.length === 0;
@@ -196,39 +199,91 @@ export default function AddressListScreen() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* The 19 px mark at y 432.5, centred; the lines on 472 and 492. */}
-            <Icon
-              name="helpBig"
-              mt={432.5 - 148}
-              style={{ alignSelf: "center" }}
+            <EmptyAddresses
+              from={148}
+              room={height === undefined ? undefined : height - WHY_CARD_TOP_FROM_END - (148 - DESIGN_TOP)}
+              t={t}
             />
-            {/* The file puts this line 2.67 px left of centre (x 135). XD shows
-                the gaps as 7 and 5 from its own text boxes; placed by baseline
-                they are 7.5 and 6 here, the same pixels. */}
-            <Txt
-              center
-              nudge={-2.67}
-              mt={gapTo(451.5, 472, 13)}
-              size={13}
-              weight="medium"
-              color={C.hint}
-            >
-              {t("Your address list is empty")}
-            </Txt>
-            <Txt
-              center
-              mt={gapTo(textBottom(472, 13), 492, 11)}
-              size={11}
-              color={C.hint}
-            >
-              {t("You can also create multiple addresses to use")}
-            </Txt>
           </motion.div>
         )}
       </AnimatePresence>
     </ScreenPage>
   );
 }
+
+/**
+ * The empty list: the grey 19 px help mark centred at y 432.5, and the two
+ * grey lines on baselines 472 and 492. The profile (`– 96`) and the
+ * checkout's address sheet (`– 70`) draw it at the same place on the screen.
+ * `from` is the design y the block starts at (the banner's bottom).
+ *
+ * `room`: how many px this window has from `from` down to the "Why" card's
+ * top. The card keeps its distance from the window's end, so on a window
+ * shorter than the file it comes up toward the words (35 px apart on a
+ * 402 x 712 iPhone, over them on a 375 x 635 one). With `room` the free
+ * space is split above and below the block as the file splits it (from
+ * `from` to the mark, and from the last line to the card at y 700). On a
+ * window as tall as the file that is the file's place exactly.
+ */
+export function EmptyAddresses({
+  from,
+  room,
+  t,
+  body = t,
+}: {
+  from: number;
+  room?: number;
+  t: (key: DemoKey) => string;
+  /** The second line's wording, when it differs from the first's (sentence style). */
+  body?: (key: DemoKey) => string;
+}) {
+  const above = EMPTY_MARK_Y - from;
+  const mt =
+    room === undefined
+      ? above
+      : Math.max(0, (above * (room - EMPTY_BLOCK)) / (WHY_CARD_Y - from - EMPTY_BLOCK));
+  return (
+    <>
+      <Icon
+        name="helpBig"
+        mt={mt}
+        style={{ alignSelf: "center" }}
+      />
+      {/* The file starts this line at x 135 (`– 96` and `– 70`): centred, the
+          title-style words start there. XD shows the gaps as 7 and 5 from
+          its own text boxes; placed by baseline they are 7.5 and 6 here,
+          the same pixels. */}
+      <Txt
+        center
+        mt={gapTo(451.5, 472, 13)}
+        size={13}
+        weight="medium"
+        color={C.hint}
+      >
+        {t("Your address list is empty")}
+      </Txt>
+      <Txt
+        center
+        mt={gapTo(textBottom(472, 13), 492, 11)}
+        size={11}
+        color={C.hint}
+      >
+        {body("You can also create multiple addresses to use")}
+      </Txt>
+    </>
+  );
+}
+
+/** Where the empty block's help mark is placed (design y), and its height down to the last line's end. */
+const EMPTY_MARK_Y = 432.5;
+const EMPTY_BLOCK = textBottom(492, 11) - EMPTY_MARK_Y;
+
+/** The "Why add a address?" card's top (design y 700) and its distance from the file's end (932 - 700). */
+const WHY_CARD_Y = 700;
+export const WHY_CARD_TOP_FROM_END = 932 - WHY_CARD_Y;
+
+/** Window y 0 is design y 50: the file draws the status bar above it. */
+export const DESIGN_TOP = 50;
 
 /**
  * Title with its map mark, the area line and the detail line — the card and

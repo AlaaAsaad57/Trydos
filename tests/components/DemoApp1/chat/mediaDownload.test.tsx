@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { motionValue } from "framer-motion";
 import React from "react";
 import { act, fireEvent, render } from "@testing-library/react";
 import { renderWithProviders } from "../../../render";
@@ -123,6 +124,7 @@ describe("a held photo in the real chat", () => {
     back: vi.fn(),
     locale: "sy-en",
     t: (key) => key,
+    barShrink: motionValue(1),
   };
 
   async function hold(id: string, api: ChatApi) {

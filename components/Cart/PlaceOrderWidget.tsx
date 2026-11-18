@@ -537,6 +537,11 @@ const PaymentOrder = ({ success }) => {
             }
           />
         )}
+        {orderData?.payment?.filter((s) => s.id === 4).length > 0 && (
+          <TrydosWalletPayInput
+            total={orderData?.payment?.filter((s) => s.id === 4)[0]?.balance}
+          />
+        )}
         {orderData?.payment?.filter((s) => s.id === 2).length > 0 && (
           <CreditInput
             total={
@@ -657,6 +662,36 @@ const TryDosWalletInput = ({ total }) => {
         <img src="/icons/WalletIcon.svg" />
         <span className={`ml-[8px]  ${"text-[#1D1D1D]"} regular text-[12px]`}>
           {translateFunction("RDB Wallet")}
+        </span>
+      </div>
+      <div className="flex-row items-center">
+        <span className="text-[#D3D3D3] regular text-[12px]">
+          {translateFunction("Total")}
+        </span>
+        <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
+          {RoundPrice({ charged: true, num: total, returnNumber: true })} {currency?.symbol}
+        </span>
+      </div>
+    </div>
+  );
+};
+const TrydosWalletPayInput = ({ total }) => {
+  const { currency, language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
+  return (
+    <div
+      data-pw="trydos-wallet-cartpage"
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } w-full cursor-pointer mt-[10px] items-center  justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
+    >
+      <div className="flex-row items-center">
+        <img src="/icons/WalletIcon.svg" />
+        <span className={`ml-[8px]  ${"text-[#1D1D1D]"} regular text-[12px]`}>
+          {translateFunction("Trydos Wallet")}
         </span>
       </div>
       <div className="flex-row items-center">

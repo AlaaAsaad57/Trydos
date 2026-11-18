@@ -1,5 +1,6 @@
 import React from "react";
 import { XD_ICON_SIZE, type XdIconName } from "./xdIcons";
+import { demoAsset } from "./demoAssetVersion";
 
 /**
  * One icon cut out of the XD file (public/assets/demo/xd/<name>.svg).
@@ -25,7 +26,7 @@ export default function XdIcon({
   const height = size ? (size * box.h) / box.w : box.h;
   return (
     <img
-      src={`/assets/demo/xd/${name}.svg`}
+      src={demoAsset(`/assets/demo/xd/${name}.svg`)}
       alt=""
       aria-hidden="true"
       draggable={false}

@@ -110,7 +110,7 @@ function BestWords({ days, t }: { days: number; t: T }) {
  * 365 on the card. The file draws the best-price one; the bag and flash ones
  * keep their mark in front of the words, as on the store page.
  */
-function PlainBadge({ badge, t }: { badge: CardLabel; t: T }) {
+export function PlainBadge({ badge, t }: { badge: CardLabel; t: T }) {
   const look = BADGE[badge.kind];
   const words =
     badge.kind === "best" ? (

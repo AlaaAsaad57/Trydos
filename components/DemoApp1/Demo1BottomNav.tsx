@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, useTransform } from "framer-motion";
+import { motion, useTransform, type MotionValue } from "framer-motion";
 import {
   BAR_SCROLL,
   PRESS,
@@ -23,12 +23,16 @@ import {
 import type { DemoTab } from "../DemoApp/demoRoutes";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import {
+  BAND,
   COLUMN_W,
   SAFE_BOTTOM,
   SCREEN_TRANSITION,
   TAB_BAR,
+  TAB_BAR_BOTTOM,
+  TAB_BAR_DROP,
   TAB_BAR_MIN,
   TAB_BAR_MIN_SCALE,
+  safariBand,
 } from "./demo1Layout";
 import { usePageDir } from "./rtl";
 
@@ -41,7 +45,8 @@ import { usePageDir } from "./rtl";
  *    The fixed box is an anchor with no width in the middle of the window,
  *    and the bar's own box hangs on it.
  *  - It keeps the file's 22 px to both edges of the screen (386 wide on a 430
- *    phone) and 15 px above the bottom.
+ *    phone). Its bottom edge is 6 px above the browser's toolbar
+ *    (TAB_BAR_BOTTOM, less Safari's band: BAND), at full size and shrunk.
  *  - Its five slots share the bar's width, 3 px in from each end, as the
  *    file's 76 px slots do on the 386 px bar. Each icon keeps the file's
  *    distance from its slot's centre.
@@ -66,12 +71,31 @@ const BAR_W = `calc(${COLUMN_W} - ${2 * TAB_BAR.x}px)`;
 /** A count as the tab shows it: 100 or more is 99+. A tab with 0 shows no number. */
 const countText = (n: number) => (n > 99 ? "99+" : String(n));
 
+/**
+ * The tab bar's scroll scale: 1 at full size, TAB_BAR_MIN_SCALE when the page
+ * has scrolled down (the spring of the old scaled demo, useScrollScale).
+ * `resetKey` is the screen on show: a new screen starts at its top, so the
+ * bar goes back to full size.
+ *
+ * The shell makes ONE of these and gives it to the bar and to the screens
+ * (useDemoNav().barShrink). A box that rests on the bar (the bag's price
+ * panel) then moves in the same frame as the bar, never a frame after it.
+ */
+export function useTabBarShrink(resetKey: string) {
+  return useScrollScale(
+    TAB_BAR_MIN_SCALE,
+    BAR_SCROLL.distance,
+    BAR_SCROLL.speedEffect,
+    { scope: "window", resetKey },
+  );
+}
+
 export default function Demo1BottomNav({
   active,
   visible,
   photo,
   verified,
-  resetKey,
+  shrink: scrollScale,
   counts,
   onSelect,
   t,
@@ -80,22 +104,16 @@ export default function Demo1BottomNav({
   visible: boolean;
   photo: string | null;
   verified: boolean;
-  /** The screen on show. A new screen starts at its top, so the bar goes back to full size. */
-  resetKey: string;
+  /** The bar's scroll scale, from useTabBarShrink. */
+  shrink: MotionValue<number>;
   /** The numbers on the cart and chat tabs. */
   counts: { cart: number; chat: number };
   onSelect: (tab: DemoTab) => void;
   t: (key: DemoKey) => string;
 }) {
-  const scrollScale = useScrollScale(
-    TAB_BAR_MIN_SCALE,
-    BAR_SCROLL.distance,
-    BAR_SCROLL.speedEffect,
-    { scope: "window", resetKey },
-  );
   const drop = useTransform(
     scrollScale,
-    (s) => ((1 - s) / (1 - TAB_BAR_MIN_SCALE)) * TAB_BAR.drop,
+    (s) => ((1 - s) / (1 - TAB_BAR_MIN_SCALE)) * TAB_BAR_DROP,
   );
   const { scale, firePulse } = useBarPulse(scrollScale);
   // The box's width before the scale. On screen (after the scale) the bar
@@ -108,7 +126,18 @@ export default function Demo1BottomNav({
   const pageDir = usePageDir();
 
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    // iPhone Safari 26 ends the window above its toolbar: the bar and all that
+    // sits on it go down by that band (see BAND in demo1Layout.ts).
+    const band = safariBand();
+    if (!band) return;
+    const root = document.documentElement;
+    root.style.setProperty("--demo-safari-band", `${band}px`);
+    return () => {
+      root.style.removeProperty("--demo-safari-band");
+    };
+  }, []);
 
   const [pressed, setPressed] = useState<DemoTab | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -195,7 +224,7 @@ export default function Demo1BottomNav({
         // An anchor with no width: see the note at the top of this file.
         left: "50%",
         width: 0,
-        bottom: `calc(${15}px + ${SAFE_BOTTOM})`,
+        bottom: `calc(${TAB_BAR_BOTTOM}px - ${BAND} + ${SAFE_BOTTOM})`,
         height: TAB_BAR.height,
         pointerEvents: visible ? "auto" : "none",
       }}

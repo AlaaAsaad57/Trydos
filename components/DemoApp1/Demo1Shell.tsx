@@ -18,6 +18,7 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
+import { bagCount } from "../DemoApp/demoBag";
 import { DemoChatProvider } from "../DemoApp/demoChatState";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import {
@@ -33,7 +34,7 @@ import {
   tabOf,
   type DemoScreen,
 } from "../DemoApp/demoRoutes";
-import Demo1BottomNav from "./Demo1BottomNav";
+import Demo1BottomNav, { useTabBarShrink } from "./Demo1BottomNav";
 import Demo1ScreenView from "./Demo1ScreenView";
 import { PAGE_MAX } from "./demo1Layout";
 import { ScreenFrame, type Leave, type Origin, type Slide } from "./ScreenFrame";
@@ -156,7 +157,7 @@ function Demo1ShellInner({
   const locale = typeof params.lang === "string" ? params.lang : "sy-en";
   const t = (key: DemoKey) => dictionary[key] ?? key;
   const pageDir = usePageDir();
-  const { profile } = useDemoData();
+  const { profile, bag } = useDemoData();
 
   const urlScreen = screenFromUrl(pathname, searchParams.toString());
   const [shown, setShown] = useState<DemoScreen | null>(urlScreen);
@@ -175,6 +176,7 @@ function Demo1ShellInner({
   const reduceMotion = useReducedMotion();
 
   const key = shown ?? `page:${pathname}`;
+  const barShrink = useTabBarShrink(key);
   // The tab bar shows on the tab screens, and on a store's page too (it
   // belongs to the Home tab, so Home is the active tab there). A product's
   // page has no tab bar: XD `Home Page – 49` draws none, and the bar slides
@@ -193,11 +195,18 @@ function Demo1ShellInner({
     // on the root is one more thing between the document and what Safari 26
     // draws under its floating bar. An inline `!important` is the only thing
     // that wins over the class.
-    document.documentElement.style.setProperty(
-      "overflow-x",
-      "visible",
-      "important",
-    );
+    //
+    // Only on a touch phone, where that bar is. With a mouse the scrollbar takes
+    // room from the page, and a sheet's backdrop is 100vw wide, which counts the
+    // scrollbar. So there the site's clip stays, or each sheet makes the page
+    // wider than the window and shows a sideways scrollbar.
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      document.documentElement.style.setProperty(
+        "overflow-x",
+        "visible",
+        "important",
+      );
+    }
     return () => {
       window.history.scrollRestoration = before;
       document.documentElement.style.removeProperty("overflow-x");
@@ -336,7 +345,7 @@ function Demo1ShellInner({
   };
 
   return (
-    <NavCtx.Provider value={{ shown, navigate, back, locale, t }}>
+    <NavCtx.Provider value={{ shown, navigate, back, locale, t, barShrink }}>
       <DemoChatProvider t={t}>
         <div
           ref={column}
@@ -364,8 +373,8 @@ function Demo1ShellInner({
           visible={showBar}
           photo={profile.photo}
           verified={profile.emailVerified}
-          resetKey={key}
-          counts={{ cart: 3, chat: 11 }}
+          counts={{ cart: bagCount(bag), chat: 11 }}
+          shrink={barShrink}
           onSelect={(tab) => navigate(tab)}
           t={t}
         />

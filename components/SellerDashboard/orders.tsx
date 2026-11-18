@@ -11,7 +11,7 @@ import { getConfiguredImage, translateFunction, LogError } from "utils/functions
 import SellerDashboardService from "services/sellerDashboard";
 import { subscribeShopOrderTopics } from "utils/shopOrderTopics";
 import { ConfirmModal } from "components/global/ConfirmModal";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -1213,6 +1213,29 @@ const formatItemStatus = (item: any) => {
   return translateFunction("Pending");
 };
 
+// The shop backend lists the statuses an order can move to next in
+// `available_order_status_change`. The seller's item actions exist only while
+// the order can still go to "processing" (confirm) or "packaged" (pack). An
+// end-state order also lists a next status (a delivered order sends
+// ["out_for_return"]), so an empty list is not the signal. When the field is
+// missing, only a "canceled" order is locked.
+const getOrderNextStatuses = (order: any): string[] | null =>
+  Array.isArray(order?.available_order_status_change)
+    ? order.available_order_status_change
+    : null;
+
+const isOrderLocked = (order: any) => {
+  if (order?.order_status === "canceled") return true;
+  const next = getOrderNextStatuses(order);
+  if (!next) return false;
+  return !next.includes("processing") && !next.includes("packaged");
+};
+
+const canCancelOrderItems = (order: any) => {
+  const next = getOrderNextStatuses(order);
+  return !next || next.includes("canceled");
+};
+
 const updateOrderDetailItem = (
   order: any,
   detailId: number | string,
@@ -1505,8 +1528,11 @@ const OrderDetailScreen = ({
   onPackItem,
   onCancelItem,
   error,
+  isLoading = false,
 }: {
   order: any | null;
+  // The order list is still on the way, so a missing order is not known yet.
+  isLoading?: boolean;
   onBack: () => void;
   // Why the shop backend refused the last item action.
   error: string | null;
@@ -1538,9 +1564,15 @@ const OrderDetailScreen = ({
           </h1>
           <div className="w-6" />
         </div>
-        <div className="flex-1 flex items-center justify-center text-[#8D8D8D] text-sm w-full">
-          {translateFunction("No order selected")}
-        </div>
+        {isLoading ? (
+          <div className="p-2 w-full">
+            <SellerOrderCardSkeleton />
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-[#8D8D8D] text-sm w-full">
+            {translateFunction("No order selected")}
+          </div>
+        )}
       </div>
     );
   }
@@ -1568,6 +1600,8 @@ const OrderDetailScreen = ({
   const allPacked = itemCount > 0 && packedCount >= itemCount;
   const allCollected = itemCount > 0 && collectedCount >= itemCount;
   const remainingMinutes = Number(order?.remaining_in_minutes || 0);
+  const orderLocked = isOrderLocked(order);
+  const canCancel = canCancelOrderItems(order);
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="flex flex-col h-full bg-white font-sans w-full">
@@ -1767,11 +1801,16 @@ const OrderDetailScreen = ({
             const itemTotalPrice = offerPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
             const isPacked = Boolean(item?.is_packed);
-            const isCanceled=order.order_status === "canceled"||item.qty===0;
+            const isCanceled = item.qty === 0;
             const isWaiting = !isConfirmed;
             const isActionLoading =
               orderDetailActionLoading === String(item?.id);
-            const statusLabel = formatItemStatus(item);
+            // On a locked order the line flags can be stale (a delivered
+            // order's line can still say is_confirm false), so the order's
+            // own status is shown.
+            const statusLabel = orderLocked
+              ? translateFunction(formatStatusLabel(order.order_status))
+              : formatItemStatus(item);
 
             return (
               <div
@@ -1851,7 +1890,7 @@ const OrderDetailScreen = ({
                   </div>
                 </div>
 
-                {isWaiting ? (
+                {orderLocked ? null : isWaiting ? (
                   <div className="flex gap-3">
                     <button
                       onClick={() => onConfirmItem(order.id, item)}
@@ -1862,13 +1901,15 @@ const OrderDetailScreen = ({
                         ? translateFunction("Updating...")
                         : translateFunction("Confirm & Start Packing")}
                     </button>
-                    <button
-                      onClick={() => onCancelItem(order.id, item)}
-                     disabled={isActionLoading||isCanceled}
-                      className="px-6 py-2.5 rounded-[10px] border border-[#FF9FA5] text-[#FF6B6B] bg-white font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {translateFunction("Cancel")}
-                    </button>
+                    {canCancel && (
+                      <button
+                        onClick={() => onCancelItem(order.id, item)}
+                        disabled={isActionLoading||isCanceled}
+                        className="px-6 py-2.5 rounded-[10px] border border-[#FF9FA5] text-[#FF6B6B] bg-white font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {translateFunction("Cancel")}
+                      </button>
+                    )}
                   </div>
                 ) : !isPacked ? (
                   <div className="flex gap-3">
@@ -1926,10 +1967,68 @@ const RenderOrders = ({
 
   const [ordersMeta, setOrdersMeta] = useState<any>(null);
   const [ordersPage, setOrdersPage] = useState(1);
-  const [screen, setScreen] = useState<"list" | "detail">("list");
+
+  // The open order is also in the URL (`?order=<id>`), so browser back from an
+  // order returns to the list and a link can open one order. The state below
+  // decides what is drawn; the URL follows it, and drives it on browser back /
+  // forward. Opening an order from the list PUSHES the entry; this flag says
+  // so, and lives in sessionStorage so a refresh keeps it.
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const orderParam = searchParams.get("order");
+  const detailPushedKey = `seller-orders-detail-pushed:${sellerId}`;
+
+  const [screen, setScreen] = useState<"list" | "detail">(
+    orderParam ? "detail" : "list",
+  );
   const [selectedOrderId, setSelectedOrderId] = useState<
     number | string | null
-  >(null);
+  >(orderParam);
+
+  // Only a CHANGE of `?order=` counts: opening an order sets the screen first,
+  // before the URL catches up.
+  const lastOrderParam = useRef(orderParam);
+  useEffect(() => {
+    if (orderParam === lastOrderParam.current) return;
+    lastOrderParam.current = orderParam;
+    if (orderParam) {
+      setSelectedOrderId(orderParam);
+      setScreen("detail");
+    } else {
+      sessionStorage.removeItem(detailPushedKey);
+      setScreen("list");
+      setSelectedOrderId(null);
+    }
+  }, [orderParam, detailPushedKey]);
+
+  const openOrder = (order: any) => {
+    setOrdersError(null);
+    setSelectedOrderId(order?.id ?? null);
+    setScreen("detail");
+    if (order?.id == null) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("order", String(order.id));
+    sessionStorage.setItem(detailPushedKey, "1");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const closeOrder = () => {
+    setOrdersError(null);
+    setScreen("list");
+    setSelectedOrderId(null);
+    if (sessionStorage.getItem(detailPushedKey)) {
+      // The list entry is right behind this one: step back to it.
+      sessionStorage.removeItem(detailPushedKey);
+      router.back();
+      return;
+    }
+    if (!orderParam) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("order");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
   const [selectedOrderFilterTab, setSelectedOrderFilterTab] =
     useState<OrderFilterTabLabel>("All");
   // "Cancel" removes the whole item quantity, so it asks first.
@@ -2267,11 +2366,7 @@ const RenderOrders = ({
                   setScreen("list");
                   setSelectedOrderId(null);
                 }}
-                onSelectOrder={(order) => {
-                  setOrdersError(null);
-                  setSelectedOrderId(order?.id ?? null);
-                  setScreen("detail");
-                }}
+                onSelectOrder={openOrder}
               />
 
               {sellerId.length > 0 && !ordersLoading && !loadingMore && (
@@ -2281,7 +2376,8 @@ const RenderOrders = ({
           ) : (
             <OrderDetailScreen
               order={selectedOrder}
-              onBack={() => { setOrdersError(null); setScreen("list"); setSelectedOrderId(null); }}
+              isLoading={ordersLoading}
+              onBack={closeOrder}
               error={ordersError}
               orderStatusOptions={orderStatusOptions}
               selectedOrderStatuses={selectedOrderStatuses}

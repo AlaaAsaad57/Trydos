@@ -1,6 +1,7 @@
 import React from "react";
 import { act } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { motionValue } from "framer-motion";
 import { renderWithProviders } from "../../../render";
 
 // A reload of one chat's URL (`/sy-en/chat/conversation?id=12`): the chat
@@ -93,6 +94,7 @@ const nav: DemoNav = {
   back: vi.fn(),
   locale: "sy-en",
   t: (key) => key,
+  barShrink: motionValue(1),
 };
 
 function Screen({ value, Body }: { value: ChatApi; Body: React.ComponentType }) {

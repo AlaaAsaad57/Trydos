@@ -39,7 +39,6 @@ import {
   WALLET_BANK_ACCOUNT,
   WALLET_BRAND,
   WALLET_CASH_IN,
-  WALLET_CASH_IN_WAYS,
   WALLET_CRYPTO,
   WALLET_CRYPTO_APPS,
   WALLET_RECIPIENT,
@@ -56,6 +55,7 @@ import {
   WithBank,
 } from "./WalletCashOutSheet";
 import { InfoField } from "./WalletInfoSheet";
+import PayWays from "./PayWays";
 import { PictureLayer } from "./WalletWithdrawalRequest";
 
 /**
@@ -84,8 +84,8 @@ const TOP: Record<Step, number> = { ways: 216, rdb: 90, crypto: 90, code: 90 };
 /** The boards end at y 930. */
 const BOARD_END = 930;
 
-/** The safety rules lie on a second sheet from y 265 (`Home Page – 39`). */
-const RULES_TOP = 265;
+/** The safety rules lie on a second sheet from y 265 (`Home Page – 39`, and the checkout's `– 102`). */
+export const RULES_TOP = 265;
 
 /** Where the head of a step (the title row and the line under it) ends. */
 const HEAD_END = textBottom(180, 24);
@@ -406,93 +406,16 @@ function Ways({
         {/* Two lines of 18 from y 282 end at 318. */}
         <BrandCard y={338} mt={338 - (282 + 36)} onClick={onRdb} />
 
-        {/* The row starts 1 px above the tiles, so the outer half of their
-            lines (ON the edge) is not cut off by the row's own edge. */}
-        <div
-          data-pw="demo-wallet-cash-in-ways-row"
-          className="flex shrink-0 overflow-x-auto overflow-y-hidden overscroll-x-contain"
-          style={{
-            marginTop: 534 - (338 + 188) - 1,
-            paddingTop: 1,
-            height: 1 + (669 - 534),
-            scrollbarWidth: "none",
+        <PayWays
+          mt={534 - (338 + 188)}
+          t={t}
+          testId={{
+            row: "demo-wallet-cash-in-ways-row",
+            way: "demo-wallet-cash-in-way",
+            soon: "demo-wallet-cash-in-soon",
           }}
-        >
-          {WALLET_CASH_IN_WAYS.map((way, i) => (
-            <div
-              key={way.id}
-              className="flex flex-col shrink-0"
-              style={{
-                marginInlineStart: i === 0 ? 20 : 8,
-                // The row ends 20 px after the last tile, as it starts.
-                marginInlineEnd: i === WALLET_CASH_IN_WAYS.length - 1 ? 20 : 0,
-              }}
-            >
-              <motion.button
-                type="button"
-                aria-label={
-                  way.name === "Visa | Mastercard" ? way.name : t(way.name)
-                }
-                data-pw={`demo-wallet-cash-in-way-${way.id}`}
-                onClick={way.id === "crypto" ? onCrypto : undefined}
-                disabled={way.soon}
-                whileTap={way.soon ? undefined : { scale: 0.97 }}
-                className={`shrink-0 ${way.soon ? "" : "cursor-pointer"}`}
-              >
-                <Box
-                  w={125}
-                  h={125}
-                  radius={15}
-                  fill={C.card}
-                  stroke={C.line}
-                  strokeAlign="center"
-                  style={{ padding: 12 }}
-                >
-                  {way.icon ? (
-                    <Box
-                      w={101}
-                      h={101}
-                      radius={15}
-                      fill={C.white}
-                      stroke={C.line}
-                      strokeAlign="center"
-                    >
-                      <Icon name={way.icon} />
-                    </Box>
-                  ) : (
-                    <img
-                      src={`/assets/demo/xd/${way.picture}.jpg`}
-                      alt=""
-                      draggable={false}
-                      width={101}
-                      height={101}
-                      className="block object-cover select-none pointer-events-none"
-                      style={{ width: 101, height: 101, borderRadius: 15 }}
-                    />
-                  )}
-                </Box>
-              </motion.button>
-              {way.soon && (
-                // The tag hangs 9 px over the tile's bottom edge.
-                <Box
-                  w={76}
-                  h={19}
-                  mt={650 - (534 + 125)}
-                  ml={45 - 20}
-                  radius={6.8}
-                  fill={C.card}
-                  stroke={C.hint}
-                  data-pw="demo-wallet-cash-in-soon"
-                  className="flex flex-col"
-                >
-                  <Txt center size={9} mt={gapTo(650, 663, 9)}>
-                    {t("Soon available")}
-                  </Txt>
-                </Box>
-              )}
-            </div>
-          ))}
-        </div>
+          onCrypto={onCrypto}
+        />
 
         <Box
           w={fill(20)}
@@ -1568,6 +1491,19 @@ const RULES: {
   },
 ];
 
+/**
+ * What the two rules sheets change: the shield's top, how far the rules sit
+ * under the wallet's (`drop`), the title and how far off centre the file
+ * starts it (the wallet's at x 126, the policies' at x 154).
+ */
+const SAFE_LOOK = {
+  wallet: { shieldY: 288.91, drop: 0, title: "Your transactions are safe", nudge: 1.5 },
+  policies: { shieldY: 289.24, drop: 1, title: "Policies and terms", nudge: 0 },
+} as const satisfies Record<string, { shieldY: number; drop: number; title: DemoKey; nudge: number }>;
+
+/** The checkout's "I Agree" (`– 102`): 188 x 45 at y 811, centred. */
+const POLICIES_AGREE = { y: 811, w: 188, h: 45 } as const;
+
 /** The file writes the list in SF Pro Rounded, 12 px on an 18 px line. */
 const SF_LINE = { fontFamily: SF_ROUNDED, fontSize: 12, lineHeight: "18px" };
 
@@ -1582,23 +1518,37 @@ const SF_LINE = { fontFamily: SF_ROUNDED, fontSize: 12, lineHeight: "18px" };
  *     rule and its notes sit 2 px left of the others;
  *   - "I Agree", 370 x 60 at (30, 803), and "I Disagree & Cancel" (16 px)
  *     on baseline 891.
+ *
+ * The checkout's "Policies And Terms" (`– 102`) is the same sheet with the
+ * same rules, with these changes (`policies`): the shield and the rules
+ * 0.33 and 1 px lower, the title "Policies And Terms", and "I Agree" 188 x 45,
+ * centred at y 811, `#388CFF`, round 30 at the top and 14 at the bottom, with
+ * its 13 px Medium words on baseline +28. "I Disagree & Cancel" keeps its
+ * place over the sheet's end.
  */
-function Safe({
+export function Safe({
   end,
   onAgree,
   onCancel,
+  policies = false,
+  testId = "demo-wallet-cash-in",
 }: {
   /** The design y where the screen ends. */
   end: number;
   onAgree: () => void;
   onCancel: () => void;
+  /** The checkout's policies and terms (`– 102`), not the wallet's safety rules (`– 39`). */
+  policies?: boolean;
+  /** The start of every `data-pw` name. */
+  testId?: string;
 }) {
   const { t, body } = useDemoCase();
   const narrow = useNarrow();
-  const first = sfTop(389, 12, 18);
+  const look = policies ? SAFE_LOOK.policies : SAFE_LOOK.wallet;
+  const first = sfTop(389 + look.drop, 12, 18);
   return (
     <div
-      data-pw="demo-wallet-cash-in-safe-rules"
+      data-pw={`${testId}-safe-rules`}
       className="flex flex-col shrink-0"
       // As tall as the screen lets it be: the shield and the title stay in
       // place, and the rules and the buttons scroll under them.
@@ -1607,22 +1557,22 @@ function Safe({
       {/* The shield keeps its size, centred as in the file. */}
       <Icon
         name="shieldSafe"
-        mt={288.91 - (RULES_TOP + 13)}
+        mt={look.shieldY - (RULES_TOP + 13)}
         style={{ marginInlineStart: fromCentre(197.98, DESIGN_W) }}
       />
-      {/* The file starts the title at x 126: 1.5 px right of centre. */}
+      {/* Centred, as far off centre as the file draws it (look.nudge). */}
       <Txt
         center
-        nudge={1.5}
+        nudge={look.nudge}
         size={14}
         weight="medium"
-        mt={gapTo(288.91 + 40.09, 354, 14)}
+        mt={gapTo(look.shieldY + 40.09, 354, 14)}
       >
-        {t("Your transactions are safe")}
+        {t(look.title)}
       </Txt>
 
       <Under
-        testId="demo-wallet-cash-in-safe-under"
+        testId={`${testId}-safe-under`}
         minHeight={BOARD_END - textBottom(354, 14)}
       >
         {RULES.map((item, i) => {
@@ -1693,35 +1643,61 @@ function Safe({
 
         <div
           className="flex flex-col shrink-0 mt-auto"
-          style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
+          // The policies sheet ends 1 px lower (931), and its buttons with it.
+          style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 - look.drop }}
         >
+          {policies ? (
+            <motion.button
+              type="button"
+              data-pw={`${testId}-agree`}
+              onClick={onAgree}
+              whileTap={{ scale: 0.98 }}
+              className="flex flex-col shrink-0 self-center cursor-pointer"
+              style={{
+                width: POLICIES_AGREE.w,
+                height: POLICIES_AGREE.h,
+                borderRadius: "30px 30px 14px 14px",
+                background: C.blue,
+              }}
+            >
+              {/* Baseline 28 in the button (839 - 811). */}
+              <Txt center size={13} weight="medium" color={C.white} mt={gapTo(0, 28, 13)}>
+                {t("I agree")}
+              </Txt>
+            </motion.button>
+          ) : (
+            <motion.button
+              type="button"
+              data-pw={`${testId}-agree`}
+              onClick={onAgree}
+              whileTap={{ scale: 0.98 }}
+              className="relative flex flex-col shrink-0 cursor-pointer"
+              style={{
+                marginInlineStart: 30,
+                width: fill(30),
+                height: 60,
+                borderRadius: 20,
+                background: C.cryptoBlue,
+              }}
+            >
+              {/* Baseline 36 in the button (839 - 803). */}
+              <Txt center size={16} color={C.white} mt={gapTo(0, 36, 16)}>
+                {t("I agree")}
+              </Txt>
+              <Stroke color={C.agreeLine} radius={20} />
+            </motion.button>
+          )}
           <motion.button
             type="button"
-            data-pw="demo-wallet-cash-in-agree"
-            onClick={onAgree}
-            whileTap={{ scale: 0.98 }}
-            className="relative flex flex-col shrink-0 cursor-pointer"
-            style={{
-              marginInlineStart: 30,
-              width: fill(30),
-              height: 60,
-              borderRadius: 20,
-              background: C.cryptoBlue,
-            }}
-          >
-            {/* Baseline 36 in the button (839 - 803). */}
-            <Txt center size={16} color={C.white} mt={gapTo(0, 36, 16)}>
-              {t("I agree")}
-            </Txt>
-            <Stroke color={C.agreeLine} radius={20} />
-          </motion.button>
-          <motion.button
-            type="button"
-            data-pw="demo-wallet-cash-in-disagree"
+            data-pw={`${testId}-disagree`}
             onClick={onCancel}
             whileTap={{ scale: 0.98 }}
             className="flex flex-col shrink-0 cursor-pointer"
-            style={{ marginTop: gapTo(803 + 60, 891, 16) }}
+            style={{
+              marginTop: policies
+                ? gapTo(POLICIES_AGREE.y + POLICIES_AGREE.h, 892, 16)
+                : gapTo(803 + 60, 891, 16),
+            }}
           >
             {/* XD's letter spacing 25 is 25 / 1000 em. */}
             <Txt center size={16} style={{ letterSpacing: "0.025em" }}>

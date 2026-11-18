@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { motionValue } from "framer-motion";
 import React from "react";
 import { act, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../../render";
@@ -59,7 +60,7 @@ function value(extras?: Partial<ChatExtras>): ChatApi {
   };
 }
 
-const nav: DemoNav = { shown: "chat/contact", navigate: vi.fn(), back: vi.fn(), locale: "sy-en", t: (key) => key };
+const nav: DemoNav = { shown: "chat/contact", navigate: vi.fn(), back: vi.fn(), locale: "sy-en", t: (key) => key, barShrink: motionValue(1) };
 
 const show = (api: ChatApi) =>
   renderWithProviders(

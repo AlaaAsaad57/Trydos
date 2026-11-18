@@ -115,6 +115,7 @@ describe("taking the last one out of the bag from the out-of-stock widget", () =
 async function renderWidget(
   props: Record<string, any> = {},
   localCart: any[] = [],
+  bag: any[] = [],
 ) {
   const updateQuantity = vi.fn();
   const notifyAction = vi.fn();
@@ -136,7 +137,7 @@ async function renderWidget(
       updateQuantity={updateQuantity}
       {...props}
     />,
-    { country: "sy", path: "/product/blue-shirt", store: { localCart } },
+    { country: "sy", path: "/product/blue-shirt", store: { localCart, cart: bag } },
   );
   return { updateQuantity, notifyAction, setLoading };
 }
@@ -175,6 +176,23 @@ describe("lowering a quantity above one from the out-of-stock widget", () => {
         "the widget did not roll the quantity down after the core backend agreed",
       ).toHaveBeenCalledWith(true, 7, "decrease"),
     );
+  });
+
+  // Business rule: a line already in the bag keeps the price it was added at.
+  it("sends the bag line's own price, not the new product price, as showed_price", async () => {
+    UpdateCart.mockResolvedValue(true);
+    await renderWidget(
+      { product: productWithVariations, selectedVariant: { id: 7, offer_price: 12, price: 12 } },
+      [{ id: 101, item_id: "cart-2", quantity: 2, product_variation_id: 7, offer_price: 10 }],
+      [{ id: "cart-2", product_id: 101, product_variation_id: 7, price: 10, offer_price: 10, quantity: 2 }],
+    );
+
+    await userEvent.click(minus());
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "bag line cart-2 costs 10 and the variant costs 12 now; minus sent a price other than the bag line's 10 to /cart/update",
+    ).toBe(10);
   });
 
   it("rolls the quantity back when the core backend refuses the change", async () => {

@@ -47,7 +47,15 @@ vi.mock("embla-carousel-react", async (importOriginal) => {
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
-import { UNDER_BAR } from "components/DemoApp1/demo1Layout";
+import {
+  TAB_BAR,
+  TAB_BAR_BOTTOM,
+  TAB_BAR_MIN_SCALE,
+  TAB_PAGE_MIN_HEIGHT,
+  STATUS_BAR,
+  UNDER_BAR,
+  textBottom,
+} from "components/DemoApp1/demo1Layout";
 import {
   DEMO_SCREENS,
   hrefFor,
@@ -929,6 +937,170 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     });
   });
 
+  // The product page's bag sits at the window's top, on the highest z-index. A
+  // tie is settled by DOM order, and the strip is made late, when a layer first
+  // opens, so it came after the bag and cut the bag's top 12 px.
+  it("keeps the top strip under the highest z-index, so the bag at the window's top is never cut", async () => {
+    await onAPhone(async () => {
+      const { unmount } = openOn("home");
+      await waitFor(() =>
+        expect(topStrip(), "the home screen put no strip at the top for Safari to read").not.toBeNull(),
+      );
+      expect(
+        Number(topStrip()!.style.zIndex),
+        "the top strip ties with the bag's z-index, so it can paint over the bag's top",
+      ).toBeLessThan(2147483647);
+      unmount();
+    });
+  });
+
+  // Seen on the iPhone (2026-11-11, the bar filled red with the debug picker):
+  // Safari 26 cut the lowest 7 px of the profile's tab bar flat at the
+  // window's end, on no other tab screen. The profile is the only tab screen
+  // with no header, so it was the only one with no white strip at the top.
+  // With the strip the bar was whole: a blended fixed box at the top changes
+  // how Safari paints the fixed bar at the bottom. A plain strip, with no
+  // blend, did not help.
+  it("paints Safari's top bar white on the profile too, which has no header, so Safari paints the tab bar whole", async () => {
+    await onAPhone(async () => {
+      const { unmount } = openOn("settings");
+      await waitFor(() =>
+        expect(topStrip(), "the profile put no strip at the top for Safari to read").not.toBeNull(),
+      );
+      expect(topStrip()!.style.visibility, "the top strip is hidden on the profile").toBe("visible");
+      expect(topStrip()!.style.backgroundColor, "the top strip on the profile is not white").toMatch(WHITE);
+      expect(
+        topStrip()!.style.mixBlendMode,
+        "the profile's strip is not blended like a header's strip; a plain strip left the tab bar cut",
+      ).toBe("multiply");
+      unmount();
+      expect(topStrip()!.style.visibility, "the top strip stays on after the profile is closed").toBe("hidden");
+    });
+  });
+
+  // Seen on the iPhone (2026-11-11): the bag and the search were exactly the
+  // window's height, and Safari cut the tab bar's lowest 7 px, which lie
+  // under the window's end. Home, the chat and the profile run under the
+  // window's end, and their bar was whole. So every tab screen's page runs to
+  // the bar's bottom edge (TAB_PAGE_MIN_HEIGHT); the bar itself does not move.
+  it("makes every tab screen's page run down to the tab bar's bottom edge in iPhone Safari 26, so the bar is not cut", () => {
+    const pages = {
+      home: "demo-home",
+      search: "demo-search",
+      cart: "demo-cart",
+      chat: "demo-chat",
+      settings: "demo-profile",
+    } as const;
+    for (const [screen, testId] of Object.entries(pages) as [DemoScreen, string][]) {
+      const { container, unmount } = openOn(screen);
+      const page = container.querySelector<HTMLElement>(`[data-pw="${testId}"]`);
+      expect(page, `the "${screen}" screen has no page`).not.toBeNull();
+      expect(
+        page!.style.minHeight,
+        `the "${screen}" page does not run down to the tab bar's bottom edge under Safari's bar`,
+      ).toBe(TAB_PAGE_MIN_HEIGHT);
+      unmount();
+    }
+  });
+
+  // Seen on the client's iPhone (2026-11-11, after the two fixes above): at the
+  // end of a scroll down the profile, the tab bar was cut flat again. In
+  // iPhone Safari 26 the bar went 13 px down, to sit near Safari's toolbar, so
+  // its lowest 7 px lay under the window's end. Safari draws a fixed box under
+  // that line only while the document itself lies there. At the end of a
+  // scroll the document stops exactly at the window's end, on every page, so
+  // those 7 px went; a longer page cannot help there. So in Safari the bar's
+  // bottom edge stays at least 1 px inside the window.
+  it("keeps the tab bar's bottom edge inside the window in iPhone Safari 26, so the end of a scroll cannot cut it", () => {
+    const agent =
+      Object.getOwnPropertyDescriptor(navigator, "userAgent") ??
+      Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent");
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+    });
+    try {
+      const { unmount } = openOn("settings");
+      const bar = document.body.querySelector<HTMLElement>('[data-pw="demo-tab-bar"]');
+      expect(bar, "the tab bar is missing").not.toBeNull();
+      expect(
+        bar!.style.bottom,
+        "the tab bar's bottom edge is not measured from TAB_BAR_BOTTOM less Safari's band",
+      ).toContain(`${TAB_BAR_BOTTOM}px - var(--demo-safari-band`);
+      const band = document.documentElement.style.getPropertyValue("--demo-safari-band");
+      expect(band, "the tab bar did not go down by Safari's band in iPhone Safari 26").toMatch(
+        /^\d+(\.\d+)?px$/,
+      );
+      expect(
+        parseFloat(band),
+        "the tab bar's bottom edge lies under the window's end in iPhone Safari 26; Safari cuts it there at the end of a scroll",
+      ).toBeLessThanOrEqual(TAB_BAR_BOTTOM - 1);
+      unmount();
+    } finally {
+      if (agent) Object.defineProperty(navigator, "userAgent", agent);
+      else delete (navigator as unknown as Record<string, unknown>).userAgent;
+    }
+  });
+
+  // The bag's price panel rests on the tab bar's top edge. On a scroll down
+  // the bar shrinks about its centre and drops, so its bottom edge stays put
+  // and its top edge goes down by up to 27 px. The panel stayed where it was,
+  // and a gap opened between the two. It must go down with the bar's top
+  // edge, as a plain move: the panel itself never shrinks.
+  it("moves the bag's price panel down with the tab bar's top edge on a scroll, and never scales it", async () => {
+    /** One number of a framer transform, e.g. `translateY` or `scale`; `fallback` when it is not there. */
+    const part = (el: HTMLElement, name: string, fallback: number) => {
+      const found = el.style.transform.match(new RegExp(`${name}\\((-?[\\d.]+)`));
+      return found ? parseFloat(found[1]) : fallback;
+    };
+    const nextFrame = () => act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+
+    const { unmount } = openOn("cart");
+    const panel = document.body.querySelector<HTMLElement>('[data-pw="demo-bag-panel"]');
+    expect(panel, "the bag has no price panel").not.toBeNull();
+    const anchor = panel!.parentElement!;
+    const box = document.body.querySelector<HTMLElement>('[data-pw="demo-tab-box"]');
+    expect(box, "the tab bar has no box for its tabs").not.toBeNull();
+
+    for (let y = 100; y <= 1600; y += 100) {
+      scrollY = y;
+      fireEvent.scroll(window);
+      await nextFrame();
+    }
+    await waitFor(
+      () =>
+        expect(
+          part(box!, "scale", 1),
+          "the tab bar did not shrink to its smallest size on a scroll down",
+        ).toBeCloseTo(TAB_BAR_MIN_SCALE, 2),
+      { timeout: 3000 },
+    );
+
+    // The bar keeps its bottom edge, so its top edge goes down by the height it loses.
+    const barTopDrop = TAB_BAR.height * (1 - part(box!, "scale", 1));
+    expect(
+      part(anchor, "translateY", 0) + part(panel!, "translateY", 0),
+      `the price panel did not go down with the tab bar's top edge (${barTopDrop.toFixed(1)} px); a gap opened between them`,
+    ).toBeCloseTo(barTopDrop, 1);
+    expect(part(anchor, "scale", 1), "the price panel's anchor was scaled with the tab bar").toBe(1);
+    expect(part(panel!, "scale", 1), "the price panel was scaled with the tab bar").toBe(1);
+
+    // Back at the top the bar is full size again, and the panel is back on its top edge.
+    scrollY = 0;
+    fireEvent.scroll(window);
+    await waitFor(
+      () =>
+        expect(part(box!, "scale", 1), "the tab bar did not grow back at the top of the page").toBeCloseTo(1, 2),
+      { timeout: 3000 },
+    );
+    expect(
+      part(anchor, "translateY", 0) + part(panel!, "translateY", 0),
+      "the price panel did not go back up onto the full-size tab bar at the top of the page",
+    ).toBeCloseTo(TAB_BAR.height * (1 - part(box!, "scale", 1)), 1);
+    unmount();
+  });
+
   /**
    * Opens the store page on a phone, with a clock the test moves: each scroll
    * step is one frame (about 17 ms) later than the one before.
@@ -1235,6 +1407,34 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     ).toBeNull();
   });
 
+  it("turns a bag item's three product labels over like the store page's, and keeps \"Hurry up\" still beside them", () => {
+    const { container } = openOn("cart");
+    for (const id of ["bag-1", "bag-2"]) {
+      const labels = container.querySelector<HTMLElement>(
+        `[data-pw="demo-bag-item-${id}"] [data-pw="demo-bag-labels"]`,
+      );
+      expect(labels, `the bag item ${id} has no product labels`).not.toBeNull();
+      const track = labels!.querySelector<HTMLElement>(".demo-labels-3");
+      expect(track, `the bag item ${id} does not take turns between its three product labels`).not.toBeNull();
+      expect(
+        labels!.querySelector("style")?.textContent,
+        `the bag item ${id}'s labels do not turn over like a card (rotateX to -180deg), as on the store page`,
+      ).toContain("rotateX(-180deg)");
+      const words = ([...track!.children] as HTMLElement[]).map((slot) => slot.textContent);
+      expect(words[0], `the best-price label is not the first of the bag item ${id}`).toBe("! Best Price Last 3 Days!");
+      expect(words[1], `the trend label does not come after the best price on the bag item ${id}`).toBe("Trend Color !");
+      expect(words[2], `the best-sell label does not come third on the bag item ${id}`).toBe("Best Sell Last Week !");
+      expect(
+        labels!.querySelector('[data-pw="demo-bag-label-hurry"]'),
+        `"Hurry up" takes turns with the product labels on the bag item ${id}; it must stay beside them`,
+      ).toBeNull();
+    }
+    expect(
+      container.querySelector('[data-pw="demo-bag-item-bag-2"] [data-pw="demo-bag-label-hurry"]'),
+      "the second bag item lost its \"Hurry up\" label",
+    ).not.toBeNull();
+  });
+
   it("flips the labels on the colour sheet's cards too, the same way as on the store page", () => {
     const { container } = openOn("store/zara");
     const dots = container.querySelector(
@@ -1355,7 +1555,7 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
   const strip = () =>
     document.body.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
 
-  it("puts the sheet's grey at the top while it is open, and hides the strip again when it closes", () => {
+  it("puts the sheet's grey at the top while it is open, and hides the strip again when it closes", async () => {
     const { rerender } = render(
       <Sheet open onClose={() => {}} y={400} testId="sheet">
         <span>a</span>
@@ -1373,14 +1573,19 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
       Number(/(\d+)px/.exec(strip()!.style.height)?.[1] ?? 0),
       `the top strip is ${strip()!.style.height} tall; Safari ignores the colour of a box 10 px tall or less`,
     ).toBeGreaterThan(10);
-    expect(
-      strip()!.style.visibility,
-      "the top strip is hidden while the sheet is open",
-    ).toBe("visible");
-    expect(
-      strip()!.style.backgroundColor,
-      "the top strip is not the dimmed page's grey",
-    ).toBe("rgb(52, 52, 52)");
+    // The strip fades in with the backdrop (next test); judge it at the end.
+    await waitFor(() =>
+      expect(
+        strip()!.style.visibility,
+        "the top strip is hidden while the sheet is open",
+      ).toBe("visible"),
+    );
+    await waitFor(() =>
+      expect(
+        strip()!.style.backgroundColor,
+        "the top strip is not the dimmed page's grey once the sheet is open",
+      ).toBe("rgb(52, 52, 52)"),
+    );
     expect(
       strip()!.style.mixBlendMode,
       "the sheet's grey strip blends with the page under it, so its grey is not the grey Safari's bar shows",
@@ -1395,10 +1600,394 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
       strip(),
       "the strip was taken away on close; Safari only looks again when a fixed layer repaints, so it must stay and change",
     ).not.toBeNull();
+    await waitFor(() =>
+      expect(
+        strip()!.style.visibility,
+        "the strip still shows after the sheet closed, so the page's own header cannot colour the bar",
+      ).toBe("hidden"),
+    );
+  });
+
+  // Seen in WebKit on the checkout's address sheet: the strip jumped to the
+  // full grey on the first frame while the backdrop took 0.25 s to fade in,
+  // and jumped back to white on close while the backdrop was still dark.
+  // Then seen on the client's iPhone (issue-video.mp4, 0 to 2 s): Safari
+  // shows the strip's colour one frame after the backdrop's opacity, so a
+  // strip set to the backdrop's own grey trailed the dimming page as a
+  // lighter band. The design's top area is the dimmed page, so on every
+  // frame the strip is set to the grey the backdrop shows one frame on, both ways.
+  it("sets the top strip, frame by frame, to the grey the backdrop shows one frame on, when the sheet opens and when it closes", async () => {
+    // The time of the last frame drawn, as the browser stamps it.
+    let at = 0;
+    const nextFrame = () =>
+      act(
+        () =>
+          new Promise<void>((done) =>
+            requestAnimationFrame((stamp) => {
+              at = stamp;
+              done();
+            }),
+          ),
+      );
+    const backdrop = () =>
+      document.body.querySelector<HTMLElement>('[data-pw="demo-sheet-backdrop"]');
+    /** The grey of the white page under the backdrop (`#1D1D1D` at 90 %) at `opacity`. */
+    const pageGrey = (opacity: number) => 255 - (255 - 29) * 0.9 * opacity;
+    /** The grey the strip shows (white when it is hidden: the page shows through). */
+    const stripGrey = () => {
+      const s = strip();
+      if (!s || s.style.visibility === "hidden") return 255;
+      return Number(/\d+/.exec(s.style.backgroundColor)?.[0] ?? NaN);
+    };
+    /** Runs frames until the backdrop's fade ends; checks the strip on every frame where it is part-way. */
+    const followFade = async (way: string, done: () => boolean) => {
+      // Every frame of the fade: when it was, the backdrop's opacity and the strip's grey.
+      const frames: { at: number; opacity: number; strip: number }[] = [];
+      for (let frame = 0; frame < 120 && !done(); frame++) {
+        await nextFrame();
+        const el = backdrop();
+        if (!el) break;
+        frames.push({ at, opacity: Number(el.style.opacity || 1), strip: stripGrey() });
+      }
+      const off: string[] = [];
+      let partWay = false;
+      for (let i = 1; i < frames.length; i++) {
+        const { opacity, strip } = frames[i];
+        const last = frames[i - 1];
+        // Past the ends the style shows the clamped opacity, not the spring's, so no speed can be read there.
+        if (Math.min(opacity, last.opacity) <= 0.02 || Math.max(opacity, last.opacity) >= 0.98) continue;
+        partWay = true;
+        // The fade's speed, as framer measures a motion value's: over the last frame, 30 ms at most.
+        const perSecond = ((opacity - last.opacity) / Math.min(frames[i].at - last.at, 30)) * 1000;
+        const ahead = Math.min(1, Math.max(0, opacity + perSecond / 60));
+        const want = pageGrey(ahead);
+        if (Math.abs(strip - want) > 4) {
+          off.push(
+            `backdrop at ${opacity.toFixed(2)}, ${ahead.toFixed(2)} a frame on at this speed: page grey ${Math.round(want)} a frame on, strip ${strip}`,
+          );
+        }
+      }
+      expect(partWay, `the backdrop's fade on ${way} was never seen part-way, so the strip was not checked`).toBe(true);
+      expect(
+        off,
+        `on ${way}, the top strip is not the grey the dimmed page shows one frame on: Safari shows it a frame late, so it trails the backdrop`,
+      ).toEqual([]);
+    };
+
+    const { rerender } = render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet">
+        <span>a</span>
+      </Sheet>,
+    );
+    await followFade("open", () => Number(backdrop()?.style.opacity || 0) >= 0.999);
+    expect(stripGrey(), "the top strip is not the dimmed page's grey once the sheet is open").toBe(52);
+
+    rerender(
+      <Sheet open={false} onClose={() => {}} y={400} testId="sheet">
+        <span>a</span>
+      </Sheet>,
+    );
+    await followFade("close", () => backdrop() === null);
+    await waitFor(() =>
+      expect(
+        strip()?.style.visibility,
+        "the strip still shows after the sheet closed, so the page's own header cannot colour the bar",
+      ).toBe("hidden"),
+    );
+  });
+});
+
+describe("Demo1 addresses — the empty list and the bottom blocks on a real phone", () => {
+  // Seen on the client's iPhone (402 x 712 window): the empty list's words
+  // keep the file's distance from the note at the top, while the "Why" card
+  // keeps the file's distance from the window's end. On a window shorter than
+  // the file (882 under the status bar) the two met: 35 px apart on that
+  // phone, and on a 375 x 635 phone the card covered the words.
+  const innerHeight = Object.getOwnPropertyDescriptor(window, "innerHeight");
+  const setHeight = (value: number) =>
+    Object.defineProperty(window, "innerHeight", { configurable: true, value });
+  afterEach(() => {
+    if (innerHeight) Object.defineProperty(window, "innerHeight", innerHeight);
+  });
+  /** The empty list's help mark: the block just before "Your Address List Is Empty". */
+  const emptyMark = () => {
+    const lines = [...document.body.querySelectorAll<HTMLElement>("p, span, div")].filter(
+      (el) => el.children.length === 0 && /address list is empty/i.test(el.textContent ?? ""),
+    );
+    const words = lines[0];
     expect(
-      strip()!.style.visibility,
-      "the strip still shows after the sheet closed, so the page's own header cannot colour the bar",
-    ).toBe("hidden");
+      words,
+      `the empty address list has no "Your Address List Is Empty" line (screen: ${document.body.querySelector("[data-demo-screen]")?.getAttribute("data-demo-screen")})`,
+    ).toBeDefined();
+    return words!.previousElementSibling as HTMLElement;
+  };
+  /** The file's gap above the mark (design y 432.5 less where the block starts), and the block's own height. */
+  const fileAbove = (from: number) => 432.5 - from;
+  const BLOCK = textBottom(492, 11) - 432.5;
+  /** The gap above the mark on a window `height` tall: the free room split as the file splits it. */
+  const wantAbove = (from: number, fromWindow: number, cardTopFromEnd: number, height: number) => {
+    const room = height - cardTopFromEnd - fromWindow;
+    const roomFile = 700 - from;
+    return (fileAbove(from) * (room - BLOCK)) / (roomFile - BLOCK);
+  };
+
+  const openSheet = () => {
+    const opened = openOn("cart/checkout");
+    const choose = document.body.querySelector<HTMLElement>('[data-pw="demo-checkout-choose-address"]');
+    expect(choose, "the checkout has no \"Choose delivery Address\" button").not.toBeNull();
+    fireEvent.click(choose!);
+    return opened;
+  };
+
+  it("keeps the empty list's words where the file has them on a window as tall as the file", () => {
+    setHeight(882);
+    const { unmount } = openSheet();
+    expect(
+      parseFloat(emptyMark().style.marginTop),
+      "the checkout's address sheet moved the empty list's help mark on a window as tall as the file",
+    ).toBeCloseTo(fileAbove(204), 1);
+    unmount();
+    const profile = openOn("settings/profile/address");
+    expect(
+      parseFloat(emptyMark().style.marginTop),
+      "the profile's address screen moved the empty list's help mark on a window as tall as the file",
+    ).toBeCloseTo(fileAbove(148), 1);
+    profile.unmount();
+  });
+
+  it("splits the free room above and below the empty list's words as the file does, on a phone shorter than the file", () => {
+    setHeight(712);
+    const { unmount } = openSheet();
+    // The sheet's note ends at window y 154; the card's top is 232 above the window's end.
+    expect(
+      parseFloat(emptyMark().style.marginTop),
+      "the checkout's address sheet keeps the file's gap above the empty list on a short phone, so the \"Why\" card comes up to the words",
+    ).toBeCloseTo(wantAbove(204, 154, 232, 712), 1);
+    unmount();
+    // The profile's banner ends at window y 98.
+    const profile = openOn("settings/profile/address");
+    expect(
+      parseFloat(emptyMark().style.marginTop),
+      "the profile's address screen keeps the file's gap above the empty list on a short phone, so the \"Why\" card comes up to the words",
+    ).toBeCloseTo(wantAbove(148, 98, 232, 712), 1);
+    profile.unmount();
+  });
+
+  it("puts the address sheet's button and \"Why\" card the file's 36 px lower in iPhone Safari 26, where Safari's bar already holds the home bar's room", () => {
+    const agent =
+      Object.getOwnPropertyDescriptor(navigator, "userAgent") ??
+      Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent");
+    const bottoms = () => ({
+      add: document.body.querySelector<HTMLElement>('[data-pw="demo-cart-address-add"]')?.style.bottom,
+      why: document.body.querySelector<HTMLElement>('[data-pw="demo-cart-address-sheet"] [data-pw="demo-why-card"]')?.style.bottom,
+    });
+    let opened = openSheet();
+    const elsewhere = bottoms();
+    opened.unmount();
+    expect(elsewhere.add, "outside iPhone Safari the add button does not keep the file's 36 px to the window's end").toMatch(/^calc\(36px/);
+    expect(elsewhere.why, "outside iPhone Safari the \"Why\" card does not keep the file's 108 px to the window's end").toMatch(/^calc\(108px/);
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+    });
+    try {
+      opened = openSheet();
+      const safari = bottoms();
+      opened.unmount();
+      expect(safari.add, "in iPhone Safari 26 the add button still keeps 36 px above the window's end, over Safari's own bar room").toMatch(/^calc\(0px/);
+      expect(safari.why, "in iPhone Safari 26 the \"Why\" card did not go down with the button (it keeps 27 px above it)").toMatch(/^calc\(72px/);
+    } finally {
+      if (agent) Object.defineProperty(navigator, "userAgent", agent);
+      else delete (navigator as unknown as Record<string, unknown>).userAgent;
+    }
+  });
+});
+
+/** Walks the address form's place sheet to its last level, then types the detailed address and the title. */
+const fillForm = async () => {
+  const field = (id: string) => document.body.querySelector<HTMLElement>(`[data-pw="${id}"]`);
+  expect(field("demo-address-place"), "the address form has no \"Select from list\" field").not.toBeNull();
+  fireEvent.click(field("demo-address-place")!);
+  // Each pick slides the old list out while the next level's list comes in;
+  // wait for the new list's first row, never the one going out.
+  const clicked = new Set<HTMLElement>();
+  for (let level = 0; level < 4; level++) {
+    const row = await waitFor(() => {
+      const rows = [...document.body.querySelectorAll<HTMLElement>('[data-pw="demo-place-0"]')].filter((r) => !clicked.has(r));
+      if (rows.length !== 1) throw new Error(`the place sheet shows no new list for level ${level + 1}`);
+      return rows[0];
+    });
+    clicked.add(row);
+    fireEvent.click(row);
+  }
+  const detail = field("demo-address-detail") as HTMLInputElement | null;
+  const title = field("demo-address-title") as HTMLInputElement | null;
+  expect(detail, "the address form has no detailed address field").not.toBeNull();
+  expect(title, "the address form has no title field").not.toBeNull();
+  fireEvent.change(detail!, { target: { value: "Street 1" } });
+  fireEvent.change(title!, { target: { value: "Home" } });
+};
+
+describe("Demo1 addresses — \"Add & save\" is there from the start, off until the form is filled", () => {
+  const checkOffThenOn = async (saveId: string, where: string) => {
+    const save = () => document.body.querySelector<HTMLElement>(`[data-pw="${saveId}"]`);
+    expect(save(), `${where}: "Add & save" is hidden on the empty form; it should be there, off`).not.toBeNull();
+    expect(save()!.getAttribute("aria-disabled"), `${where}: "Add & save" is not marked off on the empty form`).toBe("true");
+    const offLook = { bg: save()!.style.backgroundColor, color: save()!.style.color, bottom: save()!.style.bottom };
+    expect(offLook.bg, `${where}: "Add & save" keeps the purple fill while the form is empty`).toBe("rgb(195, 195, 195)");
+    await fillForm();
+    await waitFor(() =>
+      expect(save()!.getAttribute("aria-disabled"), `${where}: "Add & save" stays off after the form is filled`).toBeNull(),
+    );
+    await waitFor(() =>
+      expect(save()!.style.backgroundColor, `${where}: "Add & save" did not turn purple when the form was filled`).toBe("rgb(74, 49, 231)"),
+    );
+    expect(save()!.style.bottom, `${where}: "Add & save" moved when it turned on`).toBe(offLook.bottom);
+  };
+
+  it("on the profile's new address form", async () => {
+    const { unmount } = openOn("settings/profile/address/new");
+    await checkOffThenOn("demo-address-save", "profile form");
+    unmount();
+  });
+
+  it("on the checkout's address sheet, after \"Add Shipping Address\"", async () => {
+    const { unmount } = openOn("cart/checkout");
+    fireEvent.click(document.body.querySelector<HTMLElement>('[data-pw="demo-checkout-choose-address"]')!);
+    const add = await waitFor(() => {
+      const el = document.body.querySelector<HTMLElement>('[data-pw="demo-cart-address-add"]');
+      if (!el) throw new Error("the checkout's address sheet has no \"Add Shipping Address\" button");
+      return el;
+    });
+    fireEvent.click(add);
+    await waitFor(() =>
+      expect(document.body.querySelector('[data-pw="demo-address-place"]'), "the sheet did not turn into the address form").not.toBeNull(),
+    );
+    await checkOffThenOn("demo-cart-address-save", "checkout sheet");
+    unmount();
+  });
+});
+
+describe("Demo1 address form — the bottom bar steps aside while the phone's own keyboard types", () => {
+  // A phone: useIsTouchDevice takes a window 768 px wide or less as one.
+  const wide = window.innerWidth;
+  beforeEach(() => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 430 });
+  });
+  afterEach(() => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: wide });
+  });
+
+  it("hides \"Add & save\"'s bar while the detailed address has focus, and brings it back on a blur", async () => {
+    const { unmount } = openOn("settings/profile/address/new");
+    const foot = () => document.body.querySelector<HTMLElement>('[data-pw="demo-address-form"] [data-pw="demo1-foot"]');
+    const detail = await waitFor(() => {
+      const el = document.body.querySelector<HTMLInputElement>('[data-pw="demo-address-detail"]');
+      if (!el) throw new Error("the address form has no detailed address field");
+      return el;
+    });
+    expect(foot(), "the address form has no bottom bar for \"Add & save\"").not.toBeNull();
+    expect(foot()!.style.display, "the bottom bar is hidden before any field has focus").toBe("");
+    expect(detail.inputMode, "the detailed address is typed with the page's keyboard, not the phone's own").not.toBe("none");
+    act(() => detail.focus());
+    await waitFor(() =>
+      expect(
+        foot()!.style.display,
+        "the bottom bar stays on while the phone's own keyboard types the address (on the iPhone it jumps with each key)",
+      ).toBe("none"),
+    );
+    act(() => detail.blur());
+    await waitFor(() =>
+      expect(foot()!.style.display, "the bottom bar did not come back after the field lost focus").toBe(""),
+    );
+    unmount();
+  });
+});
+
+describe("Demo1 checkout — the delivery method sheet's bottom blocks", () => {
+  /** Adds an address on the checkout (the demo starts with none), then opens "Choose Delivery Method". */
+  const openDeliverySheet = async () => {
+    const opened = openOn("cart/checkout");
+    const el = (id: string) => document.body.querySelector<HTMLElement>(`[data-pw="${id}"]`);
+    const find = (id: string, what: string) =>
+      waitFor(() => {
+        const found = el(id);
+        if (!found) throw new Error(what);
+        return found;
+      });
+    fireEvent.click(await find("demo-checkout-choose-address", "the checkout has no \"Choose delivery Address\" button"));
+    fireEvent.click(await find("demo-cart-address-add", "the address sheet has no \"Add Shipping Address\" button"));
+    await find("demo-address-place", "the address sheet did not turn into the address form");
+    await fillForm();
+    await waitFor(() =>
+      expect(el("demo-cart-address-save")?.getAttribute("aria-disabled"), "\"Add & save\" stays off after the form is filled").toBeNull(),
+    );
+    fireEvent.click(el("demo-cart-address-save")!);
+    fireEvent.click(await find("demo-checkout-choose-method", "the checkout shows no \"Choose Delivery Method\" after the address was saved"));
+    await find("demo-delivery-done", "\"Choose Delivery Method\" did not open the delivery method sheet");
+    return opened;
+  };
+  const bottoms = () => ({
+    done: document.body.querySelector<HTMLElement>('[data-pw="demo-delivery-done"]')?.style.bottom,
+    why: document.body.querySelector<HTMLElement>('[data-pw="demo-delivery-sheet"] [data-pw="demo-why-card"]')?.style.bottom,
+  });
+
+  // The same rule as the checkout's address sheet (fixed in 8dc70a9d2): in
+  // iPhone Safari 26 the window ends above Safari's floating bar, which already
+  // takes the home bar's room, so the file's 36 px under the button were
+  // counted twice there.
+  it("puts \"Done\" and the \"Why\" card the file's 36 px lower in iPhone Safari 26, as on the address sheet", async () => {
+    const agent =
+      Object.getOwnPropertyDescriptor(navigator, "userAgent") ??
+      Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent");
+    let opened = await openDeliverySheet();
+    const elsewhere = bottoms();
+    opened.unmount();
+    expect(elsewhere.done, "outside iPhone Safari \"Done\" does not keep the file's 36 px to the window's end").toMatch(/^calc\(36px/);
+    expect(elsewhere.why, "outside iPhone Safari the \"Why\" card does not keep the file's 108 px to the window's end").toMatch(/^calc\(108px/);
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+    });
+    try {
+      opened = await openDeliverySheet();
+      const safari = bottoms();
+      opened.unmount();
+      expect(safari.done, "in iPhone Safari 26 \"Done\" still keeps 36 px above the window's end, over Safari's own bar room").toMatch(/^calc\(0px/);
+      expect(safari.why, "in iPhone Safari 26 the \"Why\" card did not go down with \"Done\" (it keeps 27 px above it)").toMatch(/^calc\(72px/);
+    } finally {
+      if (agent) Object.defineProperty(navigator, "userAgent", agent);
+      else delete (navigator as unknown as Record<string, unknown>).userAgent;
+    }
+  });
+  // The title and its line change with a short fade, the old one over the
+  // new one: framer's popLayout takes the old one out of the flow with its
+  // own `position: absolute !important`. A Tailwind position class on that
+  // block wins over it (the app's Tailwind is `important`, and an important
+  // rule in a cascade layer beats an unlayered one), so for the fade
+  // both titles stood in the flow and the place and the cards jumped 89 px
+  // down and back (seen in WebKit, frame by frame).
+  it("takes the leaving title out of the flow when Pickup is tapped, so the cards under it do not jump", async () => {
+    const opened = await openDeliverySheet();
+    fireEvent.click(document.body.querySelector<HTMLElement>('[data-pw="demo-delivery-pickup"]')!);
+    const sheet = document.body.querySelector<HTMLElement>('[data-pw="demo-delivery-sheet"]')!;
+    // jsdom has no layout, so framer does not mark the leaving block here:
+    // check both blocks while they trade places (the old one is still there).
+    const blocks = [...sheet.querySelectorAll("h2")].map((h) => h.parentElement!);
+    expect(
+      blocks.map((b) => b.textContent?.includes("Delivery Method")),
+      "the old title (\"Delivery Method\") is not kept for its fade while the new one comes in",
+    ).toContain(true);
+    const positionClasses = blocks.flatMap((b) =>
+      b.className.split(/\s+/).filter((c) => ["relative", "absolute", "fixed", "sticky", "static"].includes(c)),
+    );
+    expect(
+      positionClasses,
+      "a title block carries a Tailwind position class, which beats popLayout's position: absolute, so both titles stand in the flow and the cards jump",
+    ).toEqual([]);
+    opened.unmount();
   });
 });
 
@@ -1682,11 +2271,22 @@ describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies ov
   });
 
   // The site's <html> carries `overflow-x: clip` (a class in the [lang]
-  // layout). /demo does not need it: its page column clips itself. A clip
-  // on the root is one more thing between the document and what Safari 26
-  // draws under its bar, so the shell takes it off while the demo is open.
-  it("takes the site's sideways clip off <html> while the demo is open, and gives it back", () => {
+  // layout). A clip on the root is one more thing between the document and
+  // what Safari 26 draws under its bar, so on a touch phone the shell takes it
+  // off while the demo is open.
+  it("on a touch phone, takes the site's sideways clip off <html> while the demo is open, and gives it back", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      media: query,
+      matches: query === "(pointer: coarse)",
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+      addListener: () => {},
+      removeListener: () => {},
+    }));
     const { unmount } = openOn("home");
+    vi.unstubAllGlobals();
     const html = document.documentElement;
     expect(
       html.style.getPropertyValue("overflow-x"),
@@ -1701,6 +2301,18 @@ describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies ov
       html.style.getPropertyValue("overflow-x"),
       "the demo left its own value on <html> after it closed",
     ).toBe("");
+  });
+
+  // With a mouse the scrollbar takes room from the page, and a sheet's backdrop
+  // is 100vw wide, which counts the scrollbar. Without the site's clip the page
+  // gets wider than the window and a sideways scrollbar shows with each sheet.
+  it("with a mouse, leaves the site's sideways clip on <html>, so a sheet makes no sideways scrollbar", () => {
+    const { unmount } = openOn("home");
+    expect(
+      document.documentElement.style.getPropertyValue("overflow-x"),
+      "the demo took the site's sideways clip off <html> on a device with a mouse",
+    ).toBe("");
+    unmount();
   });
 
   // On the iPhone the window (innerHeight) ends ABOVE Safari 26's floating
@@ -2198,5 +2810,283 @@ describe("Demo1 product page — likes and the rows of cards (XD `Home Page – 
     ]) {
       expect(text, `the product page does not show the body text "${words}" in sentence style`).toContain(words);
     }
+  });
+});
+
+describe("Demo1 sheets — a tall sheet's bounce stays under the status bar", () => {
+  // Seen on the client's iPhone 18 Pro Max (sheet-top-cut.mp4): the spring
+  // every sheet moves on (SHEET_TRANSITION) passes its end by 4.6 % of the
+  // way. A sheet at design y 90 travels about 893 px there, so its top rose
+  // 41 px, past the 40 px between it and the status bar (design y 50). The
+  // status bar band is covered by the demo's top strip and by the band Safari
+  // paints over it, so the sheet's round top was cut flat for about 170 ms.
+  const PANEL_HEIGHT = 893;
+  const ROOM = 90 - STATUS_BAR;
+
+  it("the white top of a y 90 sheet never rises as far as the status bar while the spring passes its end", async () => {
+    // jsdom lays nothing out: the panel is as tall as on that phone.
+    const tall = vi
+      .spyOn(HTMLElement.prototype, "offsetHeight", "get")
+      .mockImplementation(function (this: HTMLElement) {
+        return this.dataset.pw === "demo-sheet-panel" ? PANEL_HEIGHT : 0;
+      });
+    render(
+      <Sheet open onClose={() => {}} y={90} testId="sheet-bounce">
+        <span>a</span>
+      </Sheet>,
+    );
+    const panel = document.body.querySelector<HTMLElement>(
+      '[data-pw="sheet-bounce"] [data-pw="demo-sheet-panel"]',
+    );
+    expect(panel, "the open sheet has no panel").not.toBeNull();
+    // The white box: its own box inside the panel, or the panel itself.
+    const box =
+      panel!.querySelector<HTMLElement>('[data-pw="demo-sheet-box"]') ?? panel!;
+
+    /** translateY of a box, in px (a percent is of the panel's height). */
+    const shift = (el: HTMLElement) => {
+      const m = /translateY\(([-\d.]+)(%|px)?\)/.exec(el.style.transform);
+      if (!m) return 0;
+      const v = parseFloat(m[1]);
+      return m[2] === "%" ? (v / 100) * PANEL_HEIGHT : v;
+    };
+    // Every frame of the spring: where the panel is, and where the white top is.
+    const frames: { panel: number; top: number }[] = [];
+    const read = () => {
+      const p = shift(panel!);
+      frames.push({ panel: p, top: box === panel ? p : p + shift(box) });
+    };
+    const tick = setInterval(read, 8);
+    await new Promise((r) => setTimeout(r, 900));
+    clearInterval(tick);
+    tall.mockRestore();
+
+    const deepest = Math.min(...frames.map((f) => f.panel));
+    expect(
+      deepest,
+      `the panel's spring rose only ${-deepest} px past its end, less than the ${ROOM} px of room: this test saw no bounce to hold`,
+    ).toBeLessThan(-ROOM);
+    const highest = Math.min(...frames.map((f) => f.top));
+    expect(
+      highest,
+      `the sheet's white top rose ${-highest} px above its rest; the status bar strip is ${ROOM} px above it and would cut it`,
+    ).toBeGreaterThan(-ROOM);
+    expect(
+      highest,
+      `the sheet's white top rose only ${-highest} px: the bounce the client picked is gone`,
+    ).toBeLessThan(-15);
+  });
+});
+
+describe("Demo1 layers — a sheet stays put while the phone's keyboard types into it", () => {
+  // Seen on the client's iPhone, the checkout's address sheet, "Address title":
+  // the field sits under the keyboard's top bar. On each key iOS scrolls the
+  // page to show the caret; the layer's anchor followed that scroll and grew
+  // the page by another UNDER_BAR, so the field stayed under the keys and the
+  // next key started the same scroll again. The page jumped on every key.
+  const wide = window.innerWidth;
+  const points = navigator.maxTouchPoints;
+  beforeEach(() => {
+    // A phone: useIsTouchDevice takes a window 768 px wide or less as one.
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 430 });
+    // The layer's page room is made on a touch device only.
+    Object.defineProperty(navigator, "maxTouchPoints", { configurable: true, value: 1 });
+  });
+  afterEach(() => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: wide });
+    Object.defineProperty(navigator, "maxTouchPoints", { configurable: true, value: points });
+  });
+
+  const open = async (field: React.ReactNode) => {
+    render(
+      <Sheet open onClose={() => {}} y={90} testId="sheet-typing">
+        {field}
+      </Sheet>,
+    );
+    const layer = await waitFor(() => {
+      const el = document.body.querySelector<HTMLElement>('[data-pw="sheet-typing"]');
+      if (!el) throw new Error("the open sheet was not drawn");
+      return el;
+    });
+    const anchor = layer.parentElement!;
+    const room = await waitFor(() => {
+      const el = document.body.querySelector<HTMLElement>('[data-pw="demo-doc-room"]');
+      if (!el) throw new Error("the layer made no page room under Safari's bar");
+      return el;
+    });
+    const scrolled = (to: number) => {
+      scrollY = to;
+      act(() => {
+        window.dispatchEvent(new Event("scroll"));
+      });
+    };
+    return { anchor, room, scrolled };
+  };
+  const reach = (at: number) => `${at + window.innerHeight + UNDER_BAR}px`;
+
+  it("does not chase iOS's caret scroll while a field of the sheet has focus, and is back in its place after the blur", async () => {
+    const { anchor, room, scrolled } = await open(<input data-pw="typed" placeholder="title" />);
+    const field = document.body.querySelector<HTMLInputElement>('[data-pw="typed"]')!;
+
+    scrolled(30);
+    expect(anchor.style.top, "with no keyboard the layer did not follow a scroll of the page").toBe("30px");
+    expect(room.style.height, "with no keyboard the page room did not follow a scroll of the page").toBe(reach(30));
+
+    act(() => field.focus());
+    // iOS scrolls the page to show the caret under the keys.
+    scrolled(150);
+    expect(
+      anchor.style.top,
+      "the layer followed iOS's caret scroll while the field was typed, so the field stayed under the keys",
+    ).toBe("30px");
+    expect(
+      room.style.height,
+      "the page room grew with iOS's caret scroll, so the next key could scroll the page again",
+    ).toBe(reach(30));
+
+    act(() => field.blur());
+    await waitFor(() =>
+      expect(scrollTo, "the window was not scrolled back to where it was before the keyboard").toHaveBeenCalledWith(0, 30),
+    );
+    expect(anchor.style.top, "after the blur the layer is not back at its place").toBe("30px");
+    expect(room.style.height, "after the blur the page room is not back at its size").toBe(reach(30));
+
+    scrolled(60);
+    expect(anchor.style.top, "after the blur the layer no longer follows a scroll of the page").toBe("60px");
+  });
+
+  it("lifts the page as the keyboard comes up, when the field has no scroll box of its own, so it is above the keys before the first key", async () => {
+    // Seen on the client's iPhone after the hold above: on the focus
+    // "Address title" still lay half under the keyboard's top bar. iOS lifts
+    // the page only for a field it cannot see at all, so the first key's
+    // caret scroll moved the page, once. The layer lifts it itself as soon as
+    // the keyboard is up.
+    const view = Object.assign(new EventTarget(), { offsetTop: 0, height: window.innerHeight });
+    Object.defineProperty(window, "visualViewport", { configurable: true, value: view });
+    const scrollBy = vi.fn();
+    const realScrollBy = window.scrollBy;
+    window.scrollBy = scrollBy as unknown as typeof window.scrollBy;
+    try {
+      const { anchor, scrolled } = await open(
+        <>
+          <input data-pw="typed" placeholder="detail" />
+          <input data-pw="typed-next" placeholder="title" />
+        </>,
+      );
+      const field = document.body.querySelector<HTMLInputElement>('[data-pw="typed"]')!;
+      const next = document.body.querySelector<HTMLInputElement>('[data-pw="typed-next"]')!;
+      /** A field 23 px tall whose bottom is `bottom` px above the window's end. */
+      const fieldAt = (el: HTMLElement, bottom: number) => {
+        const top = window.innerHeight - bottom - 23;
+        vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+          top, bottom: top + 23, left: 20, right: 320, width: 300, height: 23, x: 20, y: top, toJSON: () => ({}),
+        } as DOMRect);
+      };
+      // The field ends 60 px above the window's end: in view while no keyboard is up.
+      fieldAt(field, 60);
+      fieldAt(next, 20);
+      scrolled(30);
+      act(() => field.focus());
+      expect(scrollBy, "the page was lifted while no keyboard was up").not.toHaveBeenCalled();
+
+      // The keyboard comes up over the window's last 400 px.
+      view.height = window.innerHeight - 400;
+      act(() => {
+        view.dispatchEvent(new Event("resize"));
+      });
+      // The 400 px under the keyboard, less the 60 the field had, plus the gap kept under the field.
+      const lift = 400 - 60 + 16;
+      expect(
+        scrollBy,
+        "the layer did not lift the page when the keyboard came up over the field in use; the first key's caret scroll would move it instead",
+      ).toHaveBeenCalledWith({ top: lift, behavior: "smooth" });
+      expect(anchor.style.top, "the lift moved the layer with the page instead of leaving it held").toBe("30px");
+
+      // With the keyboard up, the next field down gets its own lift.
+      act(() => next.focus());
+      expect(
+        scrollBy,
+        "the layer did not lift the page for the next field, lower than the first, while the keyboard was already up",
+      ).toHaveBeenLastCalledWith({ top: 400 - 20 + 16, behavior: "smooth" });
+    } finally {
+      window.scrollBy = realScrollBy;
+      delete (window as { visualViewport?: unknown }).visualViewport;
+    }
+  });
+
+  it("scrolls the field's own scroll box as the keyboard comes up, not the page, so the sheet keeps its place and its look", async () => {
+    // Seen on the client's iPhone after the lift above: the page lift took
+    // the whole sheet up by the keyboard's height. Its top went under the
+    // status bar, and "Add & save" stood over the keys above a white gap: a
+    // look the client had rejected. The form in a sheet is a scroll box of
+    // its own. That box is scrolled, with room under its last field
+    // (KEYBOARD_ROOM) for as much of it as the keyboard covers, and the
+    // sheet does not move.
+    const view = Object.assign(new EventTarget(), { offsetTop: 0, height: window.innerHeight });
+    Object.defineProperty(window, "visualViewport", { configurable: true, value: view });
+    const scrollBy = vi.fn();
+    const realScrollBy = window.scrollBy;
+    window.scrollBy = scrollBy as unknown as typeof window.scrollBy;
+    try {
+      const { anchor, scrolled } = await open(
+        <div data-pw="form-box" style={{ overflowY: "auto" }}>
+          <input data-pw="typed" placeholder="title" />
+        </div>,
+      );
+      const box = document.body.querySelector<HTMLElement>('[data-pw="form-box"]')!;
+      const field = document.body.querySelector<HTMLInputElement>('[data-pw="typed"]')!;
+      const boxScrollBy = vi.fn();
+      box.scrollBy = boxScrollBy as unknown as typeof box.scrollBy;
+      /** A box `height` px tall whose bottom is at `bottom` px from the window's top. */
+      const ending = (el: HTMLElement, bottom: number, height: number) => {
+        const top = bottom - height;
+        vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+          top, bottom, left: 20, right: 320, width: 300, height, x: 20, y: top, toJSON: () => ({}),
+        } as DOMRect);
+      };
+      // The form's box runs on under Safari's bar, as a sheet does; its field ends 60 px above the window's end.
+      ending(box, window.innerHeight + UNDER_BAR, 600);
+      ending(field, window.innerHeight - 60, 23);
+      scrolled(30);
+      act(() => field.focus());
+
+      // The keyboard comes up over the window's last 400 px.
+      view.height = window.innerHeight - 400;
+      act(() => {
+        view.dispatchEvent(new Event("resize"));
+      });
+      expect(
+        anchor.style.getPropertyValue("--demo-keyboard-room"),
+        "the layer gave the form's box no room under its last field for the part of the box under the keyboard, so the box cannot scroll the field above the keys",
+      ).toBe(`${400 + UNDER_BAR}px`);
+      expect(
+        boxScrollBy,
+        "the layer did not scroll the field's own box when the keyboard came up over the field in use",
+      ).toHaveBeenCalledWith({ top: 400 - 60 + 16, behavior: "smooth" });
+      expect(
+        scrollBy,
+        "the layer lifted the page although the field has a scroll box of its own: the sheet's top goes under the status bar and its button over the keys",
+      ).not.toHaveBeenCalled();
+      expect(anchor.style.top, "the sheet's layer moved with the keyboard").toBe("30px");
+
+      act(() => field.blur());
+      await waitFor(() =>
+        expect(
+          anchor.style.getPropertyValue("--demo-keyboard-room"),
+          "after the blur the form's box kept its keyboard room, so with no keyboard it scrolls past its end",
+        ).toBe(""),
+      );
+    } finally {
+      window.scrollBy = realScrollBy;
+      delete (window as { visualViewport?: unknown }).visualViewport;
+    }
+  });
+
+  it("keeps following the page while a field of the page's own keyboard (inputmode none) has focus: that keyboard moves nothing", async () => {
+    const { anchor, scrolled } = await open(<input data-pw="keyed" inputMode="none" placeholder="amount" />);
+    const field = document.body.querySelector<HTMLInputElement>('[data-pw="keyed"]')!;
+    act(() => field.focus());
+    scrolled(45);
+    expect(anchor.style.top, "the layer stopped following the page for a field the page's own keyboard types into").toBe("45px");
   });
 });

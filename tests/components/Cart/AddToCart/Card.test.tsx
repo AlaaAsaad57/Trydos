@@ -142,3 +142,29 @@ describe("the product card in the add-to-cart sheet", () => {
     ).toBe("50");
   });
 });
+
+describe("the pack facts in the add-to-cart card", () => {
+  beforeEach(() => {
+    GetCountries.mockReset();
+    GetCountries.mockResolvedValue([]);
+  });
+
+  it("shows the count and the unit word under the name", async () => {
+    await renderWithProviders(
+      <Card {...baseProps} packInfo={{ count: 500, unit: "gms" }} />,
+      { store },
+    );
+    expect(
+      marked("product-pack-info")[0]?.textContent,
+      "the card must show 'Composed Of: 500 Gram' for 500 gms",
+    ).toBe("Composed Of: 500 Gram");
+  });
+
+  it("shows no pack label when the card gets no pack facts", async () => {
+    await renderWithProviders(<Card {...baseProps} />, { store });
+    expect(
+      marked("product-pack-info")[0],
+      "the card must not show a pack label without pack facts",
+    ).toBeUndefined();
+  });
+});

@@ -94,6 +94,18 @@ describe("useSearchLog", () => {
     expect(io.logSearch, "closing the search lost the word").toHaveBeenCalledWith("shoes", 4);
   });
 
+  it("hands the logged word to the history on screen when it is sent", async () => {
+    const onLogged = vi.fn();
+    const { result } = renderHook(() => useSearchLog("shoes", true, onLogged));
+
+    act(() => result.current.scheduleLog("shoes", 4));
+    expect(onLogged, "the word reached the history before it was logged").not.toHaveBeenCalled();
+
+    await wait(SEARCH_LOG_WAIT_MS);
+    expect(onLogged, "the logged word was not added to the history on screen").toHaveBeenCalledWith("shoes");
+    expect(onLogged, "the logged word was added to the history more than once").toHaveBeenCalledOnce();
+  });
+
   it("logs nothing after cancelLog, because the listing page logs a submitted word", async () => {
     const view = open("shoes");
 

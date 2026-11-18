@@ -222,7 +222,7 @@ export const XD_ICON_SIZE = {
   // The liked state: the heart's outer line only, filled. The XD file has no
   // liked heart, so this one is made from productHeart (and productLove below).
   productHeartFilled: { w: 16, h: 16 },
-  productStars: { w: 86.5, h: 14.5 },
+  productStars: { w: 88, h: 16 },
   productEye: { w: 14, h: 14 },
   productBadge: { w: 14, h: 14 },
   productPeopleGreen: { w: 14, h: 14 },
@@ -260,6 +260,54 @@ export const XD_ICON_SIZE = {
   productPeopleOrange: { w: 14, h: 14 },
   productQuestion: { w: 14, h: 14 },
   productChat: { w: 14, h: 14 },
+  // The product's buy bar and size sheet: `Listing page – 154` and `Home Page – 57`,
+  // `– 59`, `– 67`, `– 68`. buyPlusTail is the plus with its tail, in a box 4 px
+  // bigger on each side than buyPlus, because the tail turns the shape.
+  buyPlus: { w: 25, h: 25 },
+  buyPlusTail: { w: 33, h: 33 },
+  buyPriceHelp: { w: 12, h: 12 },
+  buyHeart: { w: 25, h: 25 },
+  // The liked state: buyHeart's outer line only, filled. The XD file has no liked heart.
+  buyHeartFilled: { w: 25, h: 25 },
+  buyComment: { w: 25, h: 25 },
+  buySend: { w: 25, h: 25 },
+  buySizeMark: { w: 14, h: 14 },
+  buySizeBagged: { w: 14, h: 14 },
+  buyBag: { w: 26, h: 26 },
+  buyBell: { w: 16, h: 16 },
+  buyBellOn: { w: 16, h: 16 },
+  // The bag and the checkout: `Home Page – 50` and `– 56`.
+  cartInfo: { w: 14.01, h: 14 },
+  cartBag: { w: 34, h: 34 },
+  cartTrash: { w: 10, h: 12 },
+  cartPlus: { w: 12, h: 12.01 },
+  cartClock: { w: 14, h: 12.58 },
+  cartOutHelp: { w: 14, h: 14 },
+  cartAddAgain: { w: 14.01, h: 14 },
+  cartCardBag: { w: 20, h: 20 },
+  cartRocket: { w: 19.68, h: 20 },
+  cartMap: { w: 20, h: 19.7 },
+  cartHelpGrey: { w: 16.01, h: 16 },
+  // The checkout's delivery method sheet: `Home Page – 72` and `– 77`.
+  deliveryMap: { w: 30.19, h: 29.73 },
+  // The checkout's payment step: `Home Page – 75` (the section, the pickup card) and `– 73` (the sheet).
+  payPhoneSmall: { w: 19.88, h: 20 },
+  payCardMap: { w: 16, h: 15.76 },
+  payPhone: { w: 29.83, h: 30 },
+  payWallet: { w: 37.84, h: 38 },
+  // The checkout with the wallet chosen: `Home Page – 80` and `– 83`.
+  payWalletSmall: { w: 19.92, h: 20 },
+  // The checkout with the rdb invoice chosen: `Home Page – 85` and `– 86` (the invoice and the QR, the terms, the agree mark).
+  payInvoice: { w: 19.78, h: 20 },
+  payQrSmall: { w: 19.7, h: 19.7 },
+  termsPen: { w: 20, h: 19.12 },
+  agreeOff: { w: 16, h: 16 },
+  agreeOn: { w: 16, h: 16 },
+  // The purchase done, `Home Page – 103`.
+  orderDone: { w: 50, h: 50 },
+  orderNumber: { w: 16.68, h: 20 },
+  orderDate: { w: 20, h: 20 },
+  orderTrack: { w: 18, h: 18 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

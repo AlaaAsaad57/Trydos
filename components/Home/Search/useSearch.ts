@@ -10,6 +10,13 @@ import { GetSearchData, GetSearchSuggestion } from "serverRequests/Search";
 import { useAppStore } from "store";
 import { useSearchHistory } from "./useSearchHistory";
 import { useSearchLog } from "./useSearchLog";
+// Type only, so the lazy SearchImage chunk stays lazy.
+import type { PhotoResults } from "./SearchImage";
+import {
+  NO_PHOTO_CHIPS,
+  photoFiltersKey,
+  requestSimilarProducts,
+} from "./requestSimilarProducts";
 
 /**
  * The search's state and logic, moved out of the old search box
@@ -24,7 +31,10 @@ import { useSearchLog } from "./useSearchLog";
  *  - the inline completion (`GetSearchSuggestion`), with the same wait and
  *    guard;
  *  - "load more" of brands, categories and boutiques;
- *  - Enter opens the result listing (`/[lang]/filters/...?search=`).
+ *  - Enter opens the result listing (`/[lang]/filters/...?search=`);
+ *  - photo search (`SearchImage` → `onPhotoResults`): while the field is
+ *    empty, the photo's products and chips replace the text results. A filter
+ *    change searches the same photo again; a typed word leaves photo mode.
  *
  * `enabled` is the old box's "search is open". The page passes true.
  */
@@ -58,6 +68,8 @@ const EMPTY_RESULTS: SearchResultsState = {
 /** The wait after the last key before a search or a completion is asked for. */
 export const SEARCH_WAIT_MS = 400;
 
+const NO_MORE_CHIPS = { brands: false, categories: false, boutiques: false };
+
 export function useSearch({
   language,
   country,
@@ -75,8 +87,18 @@ export function useSearch({
   const [suggestion, setSuggestion] = useState("");
 
   const [trending, setTrending] = useState<any[]>([]);
-  const { searchHistory, removeHistoryWord, clearHistory } = useSearchHistory(enabled);
-  const { scheduleLog, cancelLog } = useSearchLog(value, enabled);
+  const { searchHistory, addHistoryWord, removeHistoryWord, clearHistory } =
+    useSearchHistory(enabled);
+  const { scheduleLog, cancelLog } = useSearchLog(value, enabled, addHistoryWord);
+
+  // Photo search results. Shown while the search field is empty; typing a word
+  // (or picking one from history / trending) leaves photo mode.
+  const [photoResults, setPhotoResults] = useState<PhotoResults | null>(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const latestPhotoRequestRef = useRef(0);
+  useEffect(() => {
+    if (value.length > 0) setPhotoResults(null);
+  }, [value]);
   const [results, setResults] = useState<SearchResultsState>(EMPTY_RESULTS);
   const [appliedFilters, setAppliedFilters] = useState<AppliedSearchFilters>({
     categories: [],
@@ -116,6 +138,66 @@ export function useSearch({
     }
     return obj;
   };
+
+  // --- Photo search: run again when a filter changes ---
+  // The route keeps the photo's vector for a few minutes, so this is a search
+  // with new filters, not a new Gemini call. Only the newest answer is shown.
+  const photoFilters = normalizeFilters(appliedFilters);
+  const currentPhotoFiltersKey = photoFiltersKey(photoFilters);
+  useEffect(() => {
+    if (!photoResults || photoResults.filtersKey === currentPhotoFiltersKey) return;
+    const requestId = ++latestPhotoRequestRef.current;
+    setPhotoLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const result = await requestSimilarProducts({
+          picture: photoResults.picture,
+          language,
+          country,
+          filters: photoFilters,
+        });
+        if (requestId !== latestPhotoRequestRef.current) return;
+        if (!result.ok) {
+          showErrorNotification(
+            translateFunction(result.error || "failed to search with image"),
+          );
+        }
+        // On a refusal the old products and chips are not kept: they were
+        // found without the new filters.
+        setPhotoResults(
+          (prev) =>
+            prev && {
+              ...prev,
+              products: result.ok ? result.products : [],
+              chips: result.ok ? result.chips : NO_PHOTO_CHIPS,
+              filtersKey: currentPhotoFiltersKey,
+            },
+        );
+      } catch (error) {
+        if (requestId !== latestPhotoRequestRef.current) return;
+        LogError({ error, scenario: "photo search filter change in useSearch" });
+        setPhotoResults(
+          (prev) =>
+            prev && {
+              ...prev,
+              products: [],
+              chips: NO_PHOTO_CHIPS,
+              filtersKey: currentPhotoFiltersKey,
+            },
+        );
+      } finally {
+        if (requestId === latestPhotoRequestRef.current) setPhotoLoading(false);
+      }
+    }, SEARCH_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [photoResults, currentPhotoFiltersKey]);
+  // Leaving photo mode drops any answer still on its way.
+  useEffect(() => {
+    if (!photoResults) {
+      latestPhotoRequestRef.current++;
+      setPhotoLoading(false);
+    }
+  }, [photoResults]);
 
   // --- Main search (debounced, race condition handled) ---
   const performSearch = useCallback(
@@ -190,9 +272,13 @@ export function useSearch({
   };
 
   // --- Search on a text or filter change ---
+  const inPhotoMode = photoResults !== null;
   useEffect(() => {
     if (!enabled) return;
     if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+    // In photo mode the photo search gives the chips (effect above). Leaving
+    // photo mode runs this effect again and brings the text chips back.
+    if (inPhotoMode) return;
     debounceTimeoutRef.current = setTimeout(() => {
       const hasFilters = Object.values(appliedFilters).some((arr) => arr.length > 0);
       if (value.length > 0 || hasFilters) {
@@ -206,7 +292,7 @@ export function useSearch({
     return () => {
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
     };
-  }, [value, appliedFilters, enabled, performSearch]);
+  }, [value, appliedFilters, enabled, performSearch, inPhotoMode]);
 
   // --- Inline completion (ghost text), same conditions as the main search ---
   const fetchSuggestion = useCallback(async () => {
@@ -319,15 +405,33 @@ export function useSearch({
   /** Back to the first state: no text, no results. */
   const clear = () => {
     setValue("");
+    setPhotoResults(null);
     setSuggestion("");
     setResults(EMPTY_RESULTS);
   };
 
+  /** A photo search answered: leave text mode and show its products. */
+  const showPhotoResults = (found: PhotoResults) => {
+    setValue("");
+    setPhotoResults(found);
+  };
+
+  // In photo mode the chips are the photo results' chips, like the text
+  // results' chips in text search, and "Load More" (which pages the text
+  // search) is gone.
+  const chips = photoResults ? photoResults.chips : results;
+
   return {
     value,
     setValue,
-    loading,
+    loading: inPhotoMode ? photoLoading : loading,
     results,
+    chips,
+    photoResults,
+    photoLoading,
+    photoFilters,
+    showPhotoResults,
+    clearPhotoResults: () => setPhotoResults(null),
     trending,
     searchHistory,
     removeHistoryWord,
@@ -335,7 +439,7 @@ export function useSearch({
     appliedFilters,
     setAppliedFilters,
     setOffsets,
-    hasMore,
+    hasMore: inPhotoMode ? NO_MORE_CHIPS : hasMore,
     loadMore: handleLoadMore,
     ghostSuffix,
     acceptSuggestion,

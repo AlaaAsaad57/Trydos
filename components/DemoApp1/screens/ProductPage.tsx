@@ -413,6 +413,7 @@ function Chip({
   bg,
   ink,
   minW,
+  small,
   children,
   testId,
 }: {
@@ -420,17 +421,20 @@ function Chip({
   bg: string;
   ink: string;
   minW: number;
+  /** 18 tall, 2 px less above and under: the colour chip of `Home Page – 51`. */
+  small?: boolean;
   children: React.ReactNode;
   testId?: string;
 }) {
+  const inset = small ? 2 : 4;
   return (
     <h2
       data-pw={testId}
       className="relative shrink-0 font-normal whitespace-nowrap"
       style={{
-        height: 22,
+        height: small ? 18 : 22,
         minWidth: minW,
-        paddingTop: 4,
+        paddingTop: inset,
         paddingInlineStart: 26,
         paddingInlineEnd: 3,
         borderRadius: 6,
@@ -439,7 +443,7 @@ function Chip({
         ...LINE_11,
       }}
     >
-      <XdIcon name={icon} className="absolute" style={{ insetInlineStart: 6, top: 4 }} />
+      <XdIcon name={icon} className="absolute" style={{ insetInlineStart: 6, top: inset }} />
       {children}
     </h2>
   );
@@ -626,17 +630,24 @@ function RowEnd({ more, h, t }: { more: RowMore; h: number; t: T }) {
   );
 }
 
-/** The 11 px text after a mark in the rating row, `ml` px after the item before it. */
-function RowText({ ml, children }: { ml: number; children: React.ReactNode }) {
+/**
+ * The 11 px text in the rating row, `ml` px after the item before it. `w`: the
+ * room up to the next item's x in the file, so the next item lands there
+ * whatever this text's exact width.
+ */
+function RowText({ ml = 0, w, children }: { ml?: number; w?: number; children: React.ReactNode }) {
   return (
-    <span className="block shrink-0 font-normal whitespace-nowrap" style={{ marginInlineStart: ml, ...LINE_11, color: INK }}>
+    <span
+      className="block shrink-0 font-normal whitespace-nowrap"
+      style={{ marginInlineStart: ml, minWidth: w, ...LINE_11, color: INK }}
+    >
       {children}
     </span>
   );
 }
 
-function RowMark({ ml, icon }: { ml: number; icon: XdIconName }) {
-  return <XdIcon name={icon} className="shrink-0" style={{ marginInlineStart: ml }} />;
+function RowMark({ icon }: { icon: XdIconName }) {
+  return <XdIcon name={icon} className="shrink-0" />;
 }
 
 /**
@@ -658,9 +669,10 @@ function Stars({
 }
 
 /**
- * The rating row, y 671 – 685. The file places each item by hand, so the
- * gaps are its own: 6 px after a mark, and 7, 5, 4 and 12 px before the bars.
- * A part with no data is left out with its bar, as on the live page.
+ * The rating row, y 671 – 685. The file places each item by hand at its own x,
+ * 6 px after a mark (the buy bar's boards, `Home Page – 51` on). A longer
+ * translation pushes the rest along. A part with no data is left out with its
+ * bar, as on the live page.
  */
 function RatingRow({
   stats,
@@ -679,42 +691,42 @@ function RatingRow({
       className={`${ROW_SCROLL} shrink-0 items-start`}
       style={{ marginTop: 671 - 659, height: 14, paddingInline: 14, overscrollBehaviorX: "contain" }}
     >
-      {/* The stars' box takes in half of their 0.5 px line on each side. */}
-      <span role="img" aria-label={`${stats.stars}/5`} className="block shrink-0" style={{ margin: -0.25 }}>
+      {/* The stars take 86 x 14 from x 14. Their picture is 1 px bigger on each side, for their 0.5 px line. */}
+      <span role="img" aria-label={`${stats.stars}/5`} className="block shrink-0" style={{ margin: -1 }}>
         <Stars rating={stats.stars} picture="productStars" size={14.1} useFilePicture={filePicture} />
       </span>
       {stats.raters && (
-        <RowText ml={6}>
+        <RowText ml={6} w={190 - 106}>
           <Rich text={t("<b>{count} </b>buyer Rate")} values={{ count: stats.raters }} />
         </RowText>
       )}
       {stats.views && (
         <>
-          <RowText ml={7}>|</RowText>
-          <RowMark ml={6} icon="productEye" />
-          <RowText ml={6}>{stats.views}</RowText>
+          <RowText w={198 - 190}>|</RowText>
+          <RowMark icon="productEye" />
+          <RowText ml={6} w={249 - 218}>{stats.views}</RowText>
         </>
       )}
       {stats.quality && (
         <>
-          <RowText ml={5}>|</RowText>
-          <RowMark ml={6} icon="productBadge" />
-          <RowText ml={6}>{t("Good Quality")}</RowText>
+          <RowText w={257 - 249}>|</RowText>
+          <RowMark icon="productBadge" />
+          <RowText ml={6} w={350 - 277}>{t("Good Quality")}</RowText>
         </>
       )}
       {stats.recommend && (
         <>
-          <RowText ml={4}>|</RowText>
-          <RowMark ml={6} icon="productPeopleGreen" />
-          <RowText ml={6}>
+          <RowText w={358 - 350}>|</RowText>
+          <RowMark icon="productPeopleGreen" />
+          <RowText ml={6} w={528 - 378}>
             <Rich text={t("<m>recommend it by</m> {count} buyer")} values={{ count: stats.recommend }} />
           </RowText>
         </>
       )}
       {origin && (
         <>
-          <RowText ml={12}>|</RowText>
-          <span className="block shrink-0" style={{ marginInlineStart: 6 }}>
+          <RowText w={536 - 528}>|</RowText>
+          <span className="block shrink-0">
             {origin.mark}
           </span>
           <RowText ml={6}>{origin.text}</RowText>
@@ -724,7 +736,12 @@ function RatingRow({
   );
 }
 
-/** The colour chip and a 70 x 98 tile for each colour. The picked tile has a purple line and the glow. */
+/**
+ * The colour chip and a 70 x 98 tile for each colour. The picked tile has a
+ * purple line and the glow. The boards with the buy bar (`Home Page – 51` to
+ * `– 68`) draw the chip 18 tall at y 763 with no help mark, and the tiles at
+ * y 787. `– 49` drew them 2 px lower; the rows after the tiles keep its places.
+ */
 function Colors({
   colors,
   picked,
@@ -739,18 +756,17 @@ function Colors({
   const hint = useRowHint<HTMLUListElement>();
   return (
     <>
-      <div className="flex items-start shrink-0" style={{ marginTop: 761 - 749, paddingInlineStart: 14 }}>
-        <Chip icon="productPalette" bg="#F4F4F4" ink={INK} minW={118} testId="demo-product-colors-chip">
+      <div className="flex items-start shrink-0" style={{ marginTop: 763 - 749, paddingInlineStart: 14 }}>
+        <Chip icon="productPalette" bg="#F4F4F4" ink={INK} minW={118} small testId="demo-product-colors-chip">
           <Rich text={t("Available <b>{count}</b> Color")} values={{ count: colors.length }} />
         </Chip>
-        <HelpMark left={137 - 132} t={t} />
       </div>
       <ul
         ref={hint}
         data-pw="demo-product-colors"
         aria-label={t("Colors")}
         className={`${HINT_ROW_SCROLL} shrink-0 list-none`}
-        style={{ marginTop: 789 - 783, height: 98, gap: 2, paddingBlock: 0, paddingInlineStart: 40, paddingInlineEnd: 14 }}
+        style={{ marginTop: 787 - 781, marginBottom: 2, height: 98, gap: 2, paddingBlock: 0, paddingInlineStart: 40, paddingInlineEnd: 14 }}
       >
         {colors.map((color, i) => {
           const on = i === picked;

@@ -25,9 +25,11 @@ import Card from "./Card";
 import ColorSelect from "./ColorSelect";
 import SizeSelect from "./SizeSelect";
 import PricesRow from "./PricesRow";
+import { getPackInfo } from "components/products/packInfo";
 import ExtraInfoArea from "./ExtraInfoArea";
 import { useLuckTimer } from "hooks/useLuckTimer";
 import { isRedeemed } from "utils/luck";
+import { bagLinePrices, findBagLine } from "utils/cart/pricing";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
 
@@ -270,6 +272,7 @@ function AddToCartComponent({ product, slug, color }) {
 
   const {
     localCart,
+    cart,
     currency,
     selected_product_for_add_to_cart,
     setSelectedProductForCart,
@@ -449,6 +452,26 @@ function AddToCartComponent({ product, slug, color }) {
     }
 
     return null;
+  };
+
+  /** The prices the card and PricesRow show for the picked variant.
+   *  Business rule: a bag line keeps the price it was added at (a luck line
+   *  keeps its luck price), so when the variant is already in the bag, the
+   *  sheet shows the line's own prices and no running luck price. When the
+   *  variant is not in the bag, or its full line is not loaded yet, the sheet
+   *  shows the variant's own prices. */
+  const getSheetPrices = () => {
+    const cartItem = getSelectedItemCart();
+    const variant = getSelectedVariantQty();
+    const kept = bagLinePrices(findBagLine(cart, cartItem));
+    if (kept) return { ...kept, luck_price: false };
+    return {
+      price: variant?.price,
+      offer_price: cartItem?.is_luck
+        ? cartItem?.offer_price
+        : variant?.offer_price,
+      luck_price: luckActive && variant?.luck_price,
+    };
   };
 
   const reachedMaxQty = () => {
@@ -698,6 +721,8 @@ function AddToCartComponent({ product, slug, color }) {
     };
   };
 
+  const sheetPrices = getSheetPrices();
+
   return (
     <BottomSheet
       fromProductPage={product?.fromProductPage}
@@ -734,13 +759,10 @@ function AddToCartComponent({ product, slug, color }) {
             height: 400,
           })}
           name={ProductData?.name}
-          offer_price={
-            getSelectedItemCart()?.is_luck
-              ? getSelectedItemCart()?.offer_price
-              : getSelectedVariantQty()?.offer_price
-          }
-          price={getSelectedVariantQty()?.price}
-          luck_price={luckActive && getSelectedVariantQty()?.luck_price}
+          offer_price={sheetPrices.offer_price}
+          price={sheetPrices.price}
+          luck_price={sheetPrices.luck_price}
+          packInfo={getPackInfo(ProductData)}
           shippingDays={ProductData?.shipping_days}
           shouldShowOrangeBorder={
             ProductData.is_luck ||
@@ -846,14 +868,10 @@ function AddToCartComponent({ product, slug, color }) {
           is_luck={ProductData.is_luck}
           currency={currency}
           language={languageVariable}
-          offer_price={
-            getSelectedItemCart()?.is_luck
-              ? getSelectedItemCart()?.offer_price
-              : getSelectedVariantQty()?.offer_price
-          }
-          price={getSelectedVariantQty()?.price}
+          offer_price={sheetPrices.offer_price}
+          price={sheetPrices.price}
           id={ProductData?.id}
-          luck_price={luckActive && getSelectedVariantQty()?.luck_price}
+          luck_price={sheetPrices.luck_price}
           shipping_cost={product?.shipping_cost}
           shipping_days={ProductData?.shipping_days ?? product?.shipping_days}
           allow_return_in_days={

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { motionValue } from "framer-motion";
 import React from "react";
 import { act } from "@testing-library/react";
 import { renderWithProviders } from "../../../render";
@@ -111,7 +112,7 @@ async function mount(
   store: Record<string, unknown>,
   url?: { path: string; search?: string },
 ) {
-  const nav = { shown: screen, navigate: loads.navigate, back: vi.fn(), locale: "sy-en", t: (k: string) => k } as DemoNav;
+  const nav = { shown: screen, navigate: loads.navigate, back: vi.fn(), locale: "sy-en", t: (k: string) => k, barShrink: motionValue(1) } as DemoNav;
   return renderWithProviders(
     <NavCtx.Provider value={nav}>
       <ChatDataProvider locale="sy-en" screen={screen}>

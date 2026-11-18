@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { motionValue } from "framer-motion";
 import React from "react";
 import { act, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../../../render";
@@ -77,7 +78,7 @@ function value(calls: any[], paging?: Partial<ChatPaging>, dispatch = vi.fn()): 
 }
 
 const navigate = vi.fn();
-const nav: DemoNav = { shown: "chat", navigate, back: vi.fn(), locale: "sy-en", t: (key) => key };
+const nav: DemoNav = { shown: "chat", navigate, back: vi.fn(), locale: "sy-en", t: (key) => key, barShrink: motionValue(1) };
 
 async function callsTab(api: ChatApi) {
   await renderWithProviders(

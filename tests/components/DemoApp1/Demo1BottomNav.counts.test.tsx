@@ -1,6 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { motionValue } from "framer-motion";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/sy-en/demo",
@@ -18,7 +19,7 @@ function renderBar(counts: { cart: number; chat: number }) {
       visible
       photo={null}
       verified={false}
-      resetKey="x"
+      shrink={motionValue(1)}
       onSelect={() => {}}
       t={(key) => key}
       counts={counts}

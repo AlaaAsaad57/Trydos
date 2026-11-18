@@ -11,6 +11,8 @@
  * page shows the store's own logo and name in it.
  */
 
+import { demoAsset } from "./demoAssetVersion";
+
 /** A logo as the Home cards draw it, in design px. */
 export type StoreLogo = {
   src: string;
@@ -33,6 +35,9 @@ export type DemoStore = {
 
 const BRANDS_DIR = "/assets/demo/home/brands";
 
+/** A brand logo's URL, with the version mark (see demoAssetVersion.ts). */
+const brand = (file: string) => demoAsset(`${BRANDS_DIR}/${file}`);
+
 /**
  * Every store on Home. The logo boxes are the ones the Home cards use
  * (XD `Home Page – 2`). Zara, Mango and Vakko are the brand stores: the file
@@ -42,52 +47,52 @@ export const DEMO_STORES: readonly DemoStore[] = [
   {
     slug: "zara",
     name: "Zara",
-    logo: { src: `${BRANDS_DIR}/zara.svg`, w: 47.55, h: 20, top: 65, left: 85.22 },
+    logo: { src: brand(`zara.svg`), w: 47.55, h: 20, top: 65, left: 85.22 },
   },
   {
     slug: "mango",
     name: "Mango",
-    logo: { src: `${BRANDS_DIR}/mango.svg`, w: 124.36, h: 20.22, top: 64.95, left: 46.51 },
+    logo: { src: brand(`mango.svg`), w: 124.36, h: 20.22, top: 64.95, left: 46.51 },
   },
   {
     slug: "vakko",
     name: "Vakko",
-    logo: { src: `${BRANDS_DIR}/vakko.svg`, w: 110.15, h: 20, top: 65, left: 54 },
+    logo: { src: brand(`vakko.svg`), w: 110.15, h: 20, top: 65, left: 54 },
   },
   {
     slug: "ebebek",
     name: "Ebebek",
-    logo: { src: `${BRANDS_DIR}/ebebek.svg`, w: 77.43, h: 20, top: 65 },
+    logo: { src: brand(`ebebek.svg`), w: 77.43, h: 20, top: 65 },
   },
   {
     slug: "boyner",
     name: "Boyner",
     shown: "boyner",
-    logo: { src: `${BRANDS_DIR}/boyner.svg`, w: 140, h: 19.5, top: 65.25 },
+    logo: { src: brand(`boyner.svg`), w: 140, h: 19.5, top: 65.25 },
   },
   {
     slug: "sephora",
     name: "Sephora",
     shown: "sephora",
-    logo: { src: `${BRANDS_DIR}/sephora.svg`, w: 140, h: 18.14, top: 65.93 },
+    logo: { src: brand(`sephora.svg`), w: 140, h: 18.14, top: 65.93 },
   },
   {
     slug: "gratis",
     name: "Gratis",
     shown: "gratis",
-    logo: { src: `${BRANDS_DIR}/gratis.png`, w: 90, h: 50, top: 50 },
+    logo: { src: brand(`gratis.png`), w: 90, h: 50, top: 50 },
   },
   {
     slug: "beymen",
     name: "Beymen",
     shown: "beymen",
-    logo: { src: `${BRANDS_DIR}/beymen.svg`, w: 140, h: 17.5, top: 66.25 },
+    logo: { src: brand(`beymen.svg`), w: 140, h: 17.5, top: 66.25 },
   },
   {
     slug: "rossmann",
     name: "Rossmann",
     shown: "rossmann",
-    logo: { src: `${BRANDS_DIR}/rossmann.svg`, w: 140, h: 19.31, top: 65.35 },
+    logo: { src: brand(`rossmann.svg`), w: 140, h: 19.31, top: 65.35 },
   },
   { slug: "koton", name: "Koton", shown: "koton" },
   { slug: "stradivarius", name: "Stradivarius", shown: "stradivarius" },

@@ -44,6 +44,15 @@ const CREDENTIAL_KEYS = new Set([
   "token",
   "id_token",
   "otp_id_token",
+  // QR login: the one-time token the services check, and the secret that
+  // proves which browser started the login.
+  "qr_id_token",
+  "secret",
+  // The claiming phone also uses the hash as its proof (X-QR-Secret-Hash).
+  "secret_hash",
+  // Not a credential, but personal data: the shopper's IP address, which QR
+  // login sends with web/create and app/claim.
+  "ip",
   "otp",
   "password",
   "access_token",

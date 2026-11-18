@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import { useMotionValueEvent } from "framer-motion";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useAppStore } from "store";
 import { isTabRoot, type DemoTab } from "../DemoApp/demoRoutes";
 import { appScreenFromPath } from "./appScreenPaths";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
-import Demo1BottomNav from "./Demo1BottomNav";
+import Demo1BottomNav, { useTabBarShrink } from "./Demo1BottomNav";
+import { appBarShrink } from "./appBarShrink";
 import { TAB_ROOM } from "./demo1Layout";
 import { litTab, shellStepsAside, tabHref } from "./appRoutes";
 import { openChatFromTab } from "./openChatFromTab";
@@ -50,6 +52,10 @@ export default function AppShell({
   const pageDir = usePageDir();
   const t = (key: DemoKey) => dictionary[key as keyof AppShellDictionary] ?? key;
   const { cartCount, unreadChats, photo, phoneVerified } = useShellData();
+  // The bar's scroll scale. The new screens read it through appBarShrink, so
+  // the bag's price panel moves with the bar in the same frame.
+  const barShrink = useTabBarShrink(pathname);
+  useMotionValueEvent(barShrink, "change", (scale) => appBarShrink.set(scale));
 
   const loginOpen = useAppStore((s) => s.loginOpen);
   const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
@@ -146,7 +152,7 @@ export default function AppShell({
         visible={showBar}
         photo={photo}
         verified={phoneVerified}
-        resetKey={pathname}
+        shrink={barShrink}
         counts={{ cart: cartCount, chat: unreadChats }}
         onSelect={onSelect}
         t={t}

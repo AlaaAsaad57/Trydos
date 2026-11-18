@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { resolveShowedPrice, toShowedPrice } from "utils/cart/pricing";
+import {
+  bagLinePrices,
+  findBagLine,
+  resolveShowedPrice,
+  toShowedPrice,
+} from "utils/cart/pricing";
 
 describe("resolveShowedPrice", () => {
   it("returns luck_price when isLuck is true and variant has luck_price", () => {
@@ -116,6 +121,87 @@ describe("resolveShowedPrice — the variant is already in the bag as a luck lin
       isLuck: false,
     } as any);
     expect(price, "a normal bag line must not change the price the sheet shows").toBe(80);
+  });
+});
+
+// Business rule: a line already in the bag keeps the price it was added at.
+// The product below costs 12 now; the bag line was added at 10.
+describe("resolveShowedPrice — the variant is already in the bag", () => {
+  const product = { price: 12, offer_price: 12 };
+  const selectedVariant = { price: 12, offer_price: 12 };
+
+  it("answers the bag line's price, not the product's new price", () => {
+    const price = resolveShowedPrice({
+      product,
+      selectedVariant,
+      bagLine: { price: 10, offer_price: 10 },
+    });
+    expect(price, "the bag line costs 10, and resolveShowedPrice answered the product's new price").toBe(10);
+  });
+
+  it("answers the bag line's offer price when the line has a discount", () => {
+    const price = resolveShowedPrice({
+      product,
+      selectedVariant,
+      bagLine: { price: 10, offer_price: 8 },
+    });
+    expect(price, "the bag line costs 8 (offer price), and resolveShowedPrice answered another price").toBe(8);
+  });
+
+  it("answers the luck price of a luck line", () => {
+    const price = resolveShowedPrice({
+      product,
+      selectedVariant,
+      bagLine: { is_luck: true, price: 10, offer_price: 9, luck_price: 4 },
+    });
+    expect(price, "the bag line is a luck line that costs 4, and resolveShowedPrice answered another price").toBe(4);
+  });
+
+  // A plain line added before a luck deal keeps its price (10), even when the
+  // shopper adds one more while the luck deal (3) runs.
+  it("answers the bag line's price for a plain line while a luck deal runs", () => {
+    const price = resolveShowedPrice({
+      product,
+      selectedVariant: { ...selectedVariant, luck_price: 3 },
+      bagLine: { price: 10, offer_price: 10 },
+      isLuck: true,
+    });
+    expect(price, "the plain bag line keeps its price 10 while a luck deal (3) runs, and resolveShowedPrice answered another price").toBe(10);
+  });
+
+  it("falls back to the product prices when the bag line has no price", () => {
+    const price = resolveShowedPrice({ product, selectedVariant, bagLine: { price: null, offer_price: null } });
+    expect(price, "the bag line has no usable price, and resolveShowedPrice did not fall back to the variant's 12").toBe(12);
+  });
+});
+
+describe("bagLinePrices — what the sheet shows for a line in the bag", () => {
+  it("answers the normal price and the price of one piece", () => {
+    expect(bagLinePrices({ price: 10, offer_price: 8 }), "the bag line's normal price 10 and offer price 8 were not both answered").toEqual({
+      price: 10,
+      offer_price: 8,
+    });
+  });
+
+  it("answers null with no bag line", () => {
+    expect(bagLinePrices(null), "with no bag line, bagLinePrices answered prices anyway").toBeNull();
+  });
+});
+
+describe("findBagLine — the full line of a localCart entry", () => {
+  const bag = [
+    { id: "cart-1", price: 10 },
+    { id: "cart-2", price: 20 },
+  ];
+
+  it("finds the line whose id is the entry's item_id", () => {
+    expect(findBagLine(bag, { item_id: "cart-2" })?.price, "the localCart entry cart-2 was not matched to bag line cart-2").toBe(20);
+  });
+
+  it("answers null when no line has that id, or there is no entry", () => {
+    expect(findBagLine(bag, { item_id: "cart-9" }), "a missing bag line cart-9 was answered as another line").toBeNull();
+    expect(findBagLine(bag, null), "with no localCart entry, findBagLine answered a line").toBeNull();
+    expect(findBagLine(undefined, { item_id: "cart-1" }), "with no bag loaded, findBagLine answered a line").toBeNull();
   });
 });
 

@@ -11,6 +11,7 @@ import { useDemoNav } from "../screenNav";
 import { useProfileData } from "../useProfileData";
 import Toast, { useToast } from "../chat/Toast";
 import { C, fill, lineBox, top } from "../demo1Layout";
+import { SHEET_TRANSITION } from "./buyMotion";
 import {
   Layer,
   ScreenHeader,
@@ -235,12 +236,8 @@ export default function PhotoScreen() {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{
-                type: "spring",
-                stiffness: 320,
-                damping: 34,
-                mass: 0.9,
-              }}
+              // The same timing as every sheet (the buy sheet's, Sheet in ui.tsx).
+              transition={SHEET_TRANSITION}
             />
           </Layer>
         )}

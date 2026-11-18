@@ -205,6 +205,8 @@ async function arriveAgain(rerender: (ui: React.ReactElement) => void) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // The page remembers in sessionStorage that it pushed a section entry.
+  sessionStorage.clear();
   cartsTab.real = false;
   getSellerPermissions.mockResolvedValue(permissionsPayload);
   getShopes.mockResolvedValue({ success: true, data: [] });
@@ -595,10 +597,47 @@ describe("the seller dashboard home", () => {
 
     fireEvent.click(byPw("seller-dashboard-tab-products"));
 
-    expect(routerSpies.replace, "the Products tile did not move the URL to ?tab=products").toHaveBeenCalledWith(
+    expect(routerSpies.push, "the Products tile did not move the URL to ?tab=products").toHaveBeenCalledWith(
       `/sy-ar/sellerProfile/sellerDashboard/${SELLER_ID}?tab=products`,
       { scroll: false },
     );
+  });
+
+  // BUG-seller-709: changeTab opened a section with router.replace, which wrote
+  // over the dashboard home's history entry. Browser back from a section then
+  // skipped the home and landed on the shop list (/sellerProfile).
+  it("BUG-seller-709: opening a section keeps the home in the browser history", async () => {
+    await openAs(["SUPER_ADMIN"]);
+
+    fireEvent.click(byPw("seller-dashboard-tab-orders"));
+
+    expect(
+      routerSpies.push,
+      "the Orders tile must push ?tab=orders, so browser back returns to the dashboard home",
+    ).toHaveBeenCalledWith(`${DASH_PATH}?tab=orders`, { scroll: false });
+    expect(
+      routerSpies.replace,
+      "the Orders tile wrote over the home's history entry; browser back would skip to the shop list",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("BUG-seller-709: back inside a section opened from the home rewinds history", async () => {
+    const home = await openAs(["SUPER_ADMIN"]);
+    fireEvent.click(byPw("seller-dashboard-tab-orders"));
+    // The router stand-in does not move the URL, so play the arrival on ?tab=orders.
+    home.unmount();
+    await openAs(["SUPER_ADMIN"], "orders");
+
+    fireEvent.click(byPw("seller-dashboard-screen-back-button"));
+
+    expect(
+      routerSpies.back,
+      "back in a section the seller opened from the home must step back to the home entry",
+    ).toHaveBeenCalled();
+    expect(
+      routerSpies.replace,
+      "back in a section opened from the home must not write a second home entry",
+    ).not.toHaveBeenCalled();
   });
 
   it("shows the stories total on the Stories tile, without opening the side menu", async () => {
@@ -771,12 +810,26 @@ describe("the seller dashboard side menu", () => {
       fireEvent.click(byPw("seller-dashboard-menu-btn"));
       await settle();
       fireEvent.click(byPw(`seller-dashboard-menu-${tab}`));
-      expect(routerSpies.replace, `the side menu's ${tab} item did not open ?tab=${tab}`).toHaveBeenCalledWith(
+      expect(routerSpies.push, `the side menu's ${tab} item did not open ?tab=${tab}`).toHaveBeenCalledWith(
         `${DASH_PATH}?tab=${tab}`,
         { scroll: false },
       );
     }
     expect(getShopes, "opening the menu did not ask the core backend for the shop list").toHaveBeenCalledWith(true);
+  });
+
+  it("swaps one section for another without adding a history entry", async () => {
+    await openAs(["SUPER_ADMIN"], "orders");
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+    fireEvent.click(byPw("seller-dashboard-menu-products"));
+
+    expect(
+      routerSpies.replace,
+      "Orders to Products must replace the entry, so one browser back still reaches the home",
+    ).toHaveBeenCalledWith(`${DASH_PATH}?tab=products`, { scroll: false });
+    expect(routerSpies.push, "Orders to Products added a history entry").not.toHaveBeenCalled();
   });
 
   it("closes from the overlay, from Escape, from a click outside and from its own button", async () => {

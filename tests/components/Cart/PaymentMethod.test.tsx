@@ -2,7 +2,8 @@
 //
 // The box lists the methods the core backend offers (`available_payment_method`)
 // and keeps the shopper's pick in `orderData.payment` as one row:
-//   id 0 = cash on delivery, 1 = RDB wallet, 2 = card, 3 = crypto.
+//   id 0 = cash on delivery, 1 = RDB wallet, 2 = card, 3 = crypto,
+//   4 = Trydos wallet.
 // Tapping a picked method again clears the pick.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -42,7 +43,14 @@ vi.mock("components/Cart/couponElement", () => ({
 }));
 
 const baseStore = (extra: Record<string, any> = {}) => ({
-  available_payment_method: ["cash_on_delivery", "rdb", "crypto", "card", "bank_transfer"],
+  available_payment_method: [
+    "cash_on_delivery",
+    "trydos_wallet",
+    "rdb",
+    "crypto",
+    "card",
+    "bank_transfer",
+  ],
   cart: [{ product_id: 5, name: "Shoe", quantity: 2 }],
   total: 100,
   total_cash: 110,
@@ -76,8 +84,21 @@ describe("PaymentMethod", () => {
     ).toBe("42.50 $");
   });
 
+  it("shows all three methods the core backend sends today: cash, Trydos wallet and RDB", async () => {
+    await renderWithProviders(<PaymentMethod />, {
+      store: baseStore({
+        available_payment_method: ["cash_on_delivery", "trydos_wallet", "rdb"],
+      }),
+    });
+
+    expect(screen.getByText("Cash On Delivery"), "cash on delivery row is missing").toBeInTheDocument();
+    expect(screen.getByText("Trydos Wallet"), "Trydos wallet row is missing").toBeInTheDocument();
+    expect(screen.getByText("RDB Wallet"), "RDB wallet row is missing").toBeInTheDocument();
+  });
+
   it.each([
     ["Cash-on-delivery", 0, 110, "cash_on_delivery"],
+    ["trydos-wallet-way", 4, 100, "trydos_wallet"],
     ["second-bay-way", 1, 100, "wallet"],
     ["crypto-bay-way", 3, 100, "crypto"],
     ["dredit-way", 2, 100, "credit"],

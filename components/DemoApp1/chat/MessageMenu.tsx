@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT, MENU_ACTIONS } from "./chatTheme";
 import type { Side } from "./chatModel";
+import { demoAsset } from "../../DemoApp/demoAssetVersion";
 import { TAB_BAR } from "../../DemoApp/demoLayout";
 import { C } from "../demo1Layout";
 import { Txt } from "../ui";
@@ -144,7 +145,7 @@ export const menuHeight = (canEdit: boolean, canForward: boolean, canDeleteForAl
  */
 function InkIcon({ name, color, size }: { name: XdIconName; color: string; size: number }) {
   const box = XD_ICON_SIZE[name];
-  const url = `url(/assets/demo/xd/${name}.svg)`;
+  const url = `url(${demoAsset(`/assets/demo/xd/${name}.svg`)})`;
   return (
     <span
       aria-hidden="true"

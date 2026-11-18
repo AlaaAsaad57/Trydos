@@ -4,16 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import jsQR from "jsqr";
 import { translateFunction } from "utils/functions";
-import { parseQrPayload } from "services/qrLogin";
+import { parseQrPayload, type ScannedQr } from "services/qrLogin";
 import "public/styles/qrLogin.css";
 
 type Props = {
   isRtl: boolean;
   language: string;
-  onDetected: (requestId: string) => void;
+  /** A Trydos QR link was found. Any other QR is ignored. */
+  onDetected: (qr: ScannedQr) => void;
   onClose: () => void;
 };
 
+// The camera view of the phone scanner (components/Login/QrScanFlow.tsx).
+// It reads frames with jsQR until it finds a Trydos QR link.
 function QrScannerModal({ isRtl, language, onDetected, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,12 +65,12 @@ function QrScannerModal({ isRtl, language, onDetected, onClose }: Props) {
       ctx.drawImage(video, 0, 0, w, h);
       const img = ctx.getImageData(0, 0, w, h);
       const code = jsQR(img.data, w, h, { inversionAttempts: "dontInvert" });
-      const requestId = code ? parseQrPayload(code.data) : null;
-      if (requestId && !doneRef.current) {
+      const qr = code ? parseQrPayload(code.data) : null;
+      if (qr && !doneRef.current) {
         doneRef.current = true;
         setHit(true);
         stop();
-        hitTimeoutRef.current = setTimeout(() => onDetectedRef.current(requestId), 180);
+        hitTimeoutRef.current = setTimeout(() => onDetectedRef.current(qr), 180);
         return;
       }
       rafRef.current = requestAnimationFrame(tick);

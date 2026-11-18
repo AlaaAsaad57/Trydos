@@ -174,7 +174,9 @@ export function ImageCropWidget({
           <ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
             <img
               ref={imageRef}
-              src={imageUrl}
+              // Empty until FileReader answers; an empty src would make the
+              // browser fetch the page again.
+              src={imageUrl || undefined}
               alt="Upload"
               className="max-h-[50vh] object-contain"
             />

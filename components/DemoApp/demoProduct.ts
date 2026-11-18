@@ -56,6 +56,18 @@ const COLOR_TILE: Readonly<Record<string, string>> = {
 export const colorTileOf = (color: ProductColor) =>
   COLOR_TILE[color.images[0]] ?? color.images[0];
 
+/**
+ * The round photo of an item in the bag (the size sheet, `Home Page – 59`; 34 px in
+ * the file), at 3x: the file's own photo, cut square from its middle. A colour
+ * with no cut of its own shows its round swatch.
+ */
+const RING_PHOTO: Readonly<Record<string, string>> = {
+  [`${LISTING_DIR}/product-shirt.webp`]: `${PRODUCT_DIR}/ring-shirt.webp`,
+  [`${LISTING_DIR}/product-shirt-pink.webp`]: `${PRODUCT_DIR}/ring-shirt-pink.webp`,
+};
+
+export const ringPhotoOf = (color: ProductColor) => RING_PHOTO[color.images[0]] ?? color.swatch;
+
 /** The video card over the gallery (121 x 170 in the file) shows this cut of the back view. */
 const VIDEO_POSTER: Readonly<Record<string, string>> = {
   [`${LISTING_DIR}/product-jeans.webp`]: `${PRODUCT_DIR}/video-jeans.webp`,

@@ -10,6 +10,7 @@ import {
   LogError,
   translateFunction,
 } from "utils/functions";
+import { unitKey } from "components/products/packInfo";
 import { CartItemLink, QuantutyInput } from ".";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
@@ -422,7 +423,7 @@ function OldCartContainer() {
                   >
                     {translateFunction("Composed Of:")}{" "}
                     <span className="regular">
-                      {product.count_of_pieces} {translateFunction("Piece")}
+                      {product.count_of_pieces} {translateFunction(unitKey(product.unit))}
                     </span>
                   </span>
                 </div>

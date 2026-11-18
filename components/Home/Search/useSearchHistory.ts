@@ -33,6 +33,16 @@ export function useSearchHistory(enabled: boolean) {
     await loadHistory();
   };
 
+  /**
+   * Show a word that was just logged, on top, without a new read. The search log
+   * is an Elasticsearch copy and lags, so a read now could miss the word. The
+   * server stores the word trimmed and in lower case, so the list does too.
+   */
+  const addHistoryWord = (word: string) => {
+    const term = word.trim().toLowerCase();
+    setSearchHistory((list) => [term, ...list.filter((s) => s !== term)]);
+  };
+
   const removeHistoryWord = (word: string) => {
     setSearchHistory((list) => list.filter((s) => s !== word));
     return sendRemoval({ term: word });
@@ -43,5 +53,5 @@ export function useSearchHistory(enabled: boolean) {
     return sendRemoval({ all: true });
   };
 
-  return { searchHistory, removeHistoryWord, clearHistory };
+  return { searchHistory, addHistoryWord, removeHistoryWord, clearHistory };
 }

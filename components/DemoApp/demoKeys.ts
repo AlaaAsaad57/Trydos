@@ -66,6 +66,40 @@ const PRODUCT_PAGE_KEYS = [
   "<b>a</b> {name}",
   "{n} minute answered",
   "Need help ? Start Chat about this product !",
+  // The buy bar and the size sheet (`Listing page – 154`, `Home Page – 57`).
+  "All inclusive without additions",
+  "Buy",
+  "<b>Buy</b> now !<b> {price}</b> {currency}",
+  "Please Select the required size & Quantity",
+  "CM",
+  "INC",
+  "Standart",
+  "EU",
+  "IN",
+  "US",
+  "UK",
+  "XX Small",
+  "X Small",
+  "Medium",
+  "X Large",
+  "XX Large",
+  "<m>{size} | {number}</m> Recommended size for you <m>last {stock}</m>",
+  "<m>{size} | {number}</m> Selected <m>last {stock}</m>",
+  "<m>{size} | {number}</m> Added to your bag",
+  "<m>{size} | {number}</m> Not available now, stock is sold out",
+  "look at other color Available",
+  "we can notify you when available soon !",
+  "Buy now",
+  "Add to bag",
+  "Add More",
+  "Notify me",
+  "don’t Notify me",
+  "Added <m>{count}</m> item {size} to bag",
+  "Added <m>{count}</m> items {size} to bag",
+  "Added {count} item to your bag",
+  "Added {count} items to your bag",
+  "Your bag",
+  "Comments",
   "Good Quality",
   "Expected Shipping & delivery Date",
   "Free Shipping",
@@ -92,6 +126,102 @@ const PRODUCT_PAGE_KEYS = [
  * list does not compile. Each key must also exist in all three
  * public/translations files — `pnpm lint` and `pnpm lint:i18n-parity` check that.
  */
+/**
+ * The words of the bag, the checkout and its address sheet, `Home Page – 50`,
+ * `– 56`, `– 70` and `– 76`. The
+ * English is written in Apple's title style on the screen (demoCase.ts), so a
+ * key here is the file's own words.
+ */
+const CART_KEYS = [
+  "Shopping bag",
+  "Shopping <b>bag</b>",
+  "<m>{count}</m> item . <m>{price}</m> {currency}",
+  "<m>{count}</m> item <m>.</m> <m>{price}</m> {currency}",
+  "Item Availability and pricing are not guaranteed until payment is final",
+  "Color",
+  "Size",
+  "Composed of",
+  "{count} piece",
+  "<b>Hurry up ! </b>quantity running out.<b> -{time}</b>",
+  "<b>Out of Bag ! </b>time running out",
+  "<b>Out of Bag ! </b>time running out<m> -{time}</m>",
+  "ADD AGAIN",
+  "Delete",
+  "Add one more",
+  "Confirm & continue",
+  "Checkout / Complete",
+  "Price details",
+  "<b>{count}</b> item",
+  "Shipping & delivery Address",
+  "Please Select your shipping address to receive Your Package",
+  "Choose delivery Address",
+  "Your <m>Address</m>",
+  "We will send your Package to below address",
+  "Choose Delivery Method",
+] as const;
+
+/**
+ * The words of the checkout's delivery method sheet, `Home Page – 72` and
+ * `– 77`. Written in Apple's title or sentence style on the screen
+ * (demoCase.ts), so a key here is the file's own words.
+ */
+const DELIVERY_KEYS = [
+  "Delivery Method",
+  "Choose the Method you would like to Collect your shipment",
+  "Choose the center or point through which you would like to Collect your shipment",
+  "pickup | Collect Point",
+  "You will Collect your shipment yourself",
+  "Select one from our centers",
+  "Delivery to address",
+  "Coming soon !",
+  "Not Available in your Location for now",
+  "What is the collection point ?",
+  "El Jamiliya Center",
+  "El Furkan Center",
+  "El Bab El Faraj Center",
+  "Done",
+] as const;
+
+/** `Home Page – 75`, `– 73`, `– 79`, `– 80` and `– 83`: the checkout's payment step (demoCase.ts too). */
+const PAYMENT_KEYS = [
+  "Payment Method",
+  "Wallet",
+  "Please choose your payment method about your bag",
+  "Choose Payment Method",
+  "You will Collect your shipment yourself from center",
+  "Center",
+  "Choose the Method you would like to pay your bag payments",
+  "Your balance <b>{amount}</b> USD",
+  "Pay Invoice at centers or request Online pay",
+  // `– 79`, the rdb step of the payment sheet.
+  "Payment Option",
+  "Via {bank} app",
+  "Connect to {bank} app & pay Directly",
+  "Via Invoice <b>QR</b>",
+  "Pay invoice within <m>{hours} hours</m> in many easy way",
+  // `– 80` and `– 83`, the checkout with the wallet chosen.
+  "your payment method about your bag",
+  "Balance",
+  "your balance <m>{amount}</m> {currency}",
+  "{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>",
+  "top up | Cash in",
+  "Other Solutions",
+  // `– 85`, `– 86` and `– 102`: the checkout with the rdb invoice chosen, and its policies and terms.
+  "Pay invoice within {hours} hours in many easy way",
+  "Read and agree to the <m>policies</m> and <m>terms</m>",
+  "You read and agreed to the <m>policies</m> and <m>terms</m>",
+  "I <m>read</m> and <m>agree</m> to the <a>policies</a> and <a>terms</a>",
+  "Policies and terms",
+  // `– 103`: the purchase done.
+  "The Purchase Was Completed Successfully",
+  "Order Number",
+  "Order Date",
+  "Order Invoice",
+  "Today",
+  "You Can Track The Status Of Your Order Through ",
+  "My Account / My Orders",
+] as const;
+
 export const DEMO_KEYS = [
   "Main",
   "Home",
@@ -499,6 +629,12 @@ export const DEMO_KEYS = [
   "Foot size must be between 20 and 55",
   // The photo screen: the old photo form's refusal text.
   "File upload failed.",
+  // The bag and the checkout (`Home Page – 50`, `– 56`).
+  ...CART_KEYS,
+  // The checkout's delivery method sheet (`Home Page – 72`, `– 77`).
+  ...DELIVERY_KEYS,
+  // The checkout's payment step (`Home Page – 75`, `– 73`).
+  ...PAYMENT_KEYS,
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
@@ -534,6 +670,12 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   "blue",
   // `Home Page – 49`, the product page (see demoCase.ts).
   ...PRODUCT_PAGE_KEYS,
+  // `Home Page – 50` and `– 56`, the bag and the checkout (demoCase.ts too).
+  ...CART_KEYS,
+  // `Home Page – 72` and `– 77`, the delivery method sheet (demoCase.ts too).
+  ...DELIVERY_KEYS,
+  // `Home Page – 75` and `– 73`, the payment step (demoCase.ts too).
+  ...PAYMENT_KEYS,
 ]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;

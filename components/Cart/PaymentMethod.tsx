@@ -58,6 +58,29 @@ function PaymentMethod() {
       });
     }
   };
+  // The Trydos wallet (id 4) is placed like cash on delivery: one checkout
+  // call with `trydos_wallet`. The core backend checks the wallet balance.
+  const handleTrydosWalletPayment = () => {
+    if (orderData?.payment?.find((s) => s.id === 4)) {
+      setOrderData({ payment: [] });
+    } else {
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.TRYDOS_WALLET,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.TRYDOS_WALLET,
+      });
+      setOrderData({ payment: [{ id: 4, balance: total }] });
+    }
+  };
   const handleWalletPayment = () => {
     if (orderData?.payment?.find((s) => s.id === 1)) {
       setOrderData({ payment: [] });
@@ -283,6 +306,21 @@ function PaymentMethod() {
                   />
                 );
               }
+              if (item?.toLowerCase() === "trydos_wallet") {
+                return (
+                  <TrydosWalletPayInput
+                    key={key}
+                    active={
+                      orderData?.payment?.filter((s) => s.id === 4).length > 0
+                    }
+                    setActive={() => {
+                      if (!orderLoading) {
+                        handleTrydosWalletPayment();
+                      }
+                    }}
+                  />
+                );
+              }
               if (item?.toLowerCase() === "rdb".toLowerCase()) {
                 return (
                   <div
@@ -420,6 +458,44 @@ const CODInput = ({ active, setActive, total, disabled = false }) => {
             {currency?.symbol}
           </span>
         )}
+      </div>
+    </div>
+  );
+};
+const TrydosWalletPayInput = ({ active, setActive }) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
+  return (
+    <div
+      data-pw="trydos-wallet-way"
+      onClick={() => setActive()}
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } w-full cursor-pointer mt-[10px] items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
+      style={{
+        border: active && "1px solid rgb(56 144 255 / 51%)",
+      }}
+    >
+      <div
+        className={`flex-row items-center gap-[8px] ${
+          isRtl ? "flex-row-reverse" : ""
+        }`}
+      >
+        <img
+          src="/icons/WalletIcon.svg"
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+        />
+        <span
+          data-pw="trydos-wallet-way-text"
+          className={`${
+            active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+          } regular text-[12px]`}
+        >
+          {translateFunction("Trydos Wallet")}
+        </span>
       </div>
     </div>
   );

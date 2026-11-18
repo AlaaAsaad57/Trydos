@@ -8,6 +8,7 @@ import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
 import { countryNameFromIso } from "utils/server/country";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
+import { PackInfo, PackInfoLabel } from "components/products/packInfo";
 
 function Card({
   image,
@@ -18,6 +19,18 @@ function Card({
   offer_price,
   price,
   luck_price,
+  packInfo = null,
+}: {
+  image: any;
+  shouldShowOrangeBorder: any;
+  brandImabge: any;
+  name: any;
+  shippingDays: any;
+  offer_price: any;
+  price: any;
+  luck_price: any;
+  /** The count and sale unit; null shows nothing. */
+  packInfo?: PackInfo | null;
 }) {
   const { settings } = useAppStore();
   const [countries, setCountries] = useState([]);
@@ -117,6 +130,12 @@ function Card({
           >
             {name}
           </div>
+          <PackInfoLabel
+            info={packInfo}
+            isRtl={isRtl}
+            className="text-[10px]"
+            t={(key) => translateFunction(key, language)}
+          />
           {/*  */}
           <div
             className={`${

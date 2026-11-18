@@ -315,6 +315,41 @@ describe("adding to the bag from the add-to-cart button", () => {
     ).toBe(35);
   });
 
+  // The bag line keeps the price it was added at (10), even when the product
+  // costs 12 now. The sheet shows the bag line's price, so /cart/update sends
+  // it. Sending 12 would save a showed_price the line never costs.
+  it("sends the bag line's own price, not the new product price, when adding one more", async () => {
+    UpdateCart.mockResolvedValue(true);
+    await renderButton(
+      { selectedVariant: { offer_price: 12, price: 12 } },
+      {
+        localCart: [{ id: 101, item_id: "cart-1", quantity: 2, offer_price: 10 }],
+        cart: [{ id: "cart-1", product_id: 101, price: 10, offer_price: 10, quantity: 2 }],
+      },
+    );
+    await tapAdd();
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "bag line cart-1 costs 10 and the product costs 12 now; adding one more sent a price other than the bag line's 10 to /cart/update",
+    ).toBe(10);
+  });
+
+  it("sends the bag line's offer price when the bag line has a discount", async () => {
+    UpdateCart.mockResolvedValue(true);
+    await renderButton(
+      { selectedVariant: { offer_price: 12, price: 15 } },
+      {
+        localCart: [{ id: 101, item_id: "cart-1", quantity: 2, offer_price: 8 }],
+        cart: [{ id: "cart-1", product_id: 101, price: 10, offer_price: 8, quantity: 2 }],
+      },
+    );
+    await tapAdd();
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "bag line cart-1 costs 8 (offer price, normal price 10); adding one more sent another price to /cart/update",
+    ).toBe(8);
+  });
+
   it("logs when the core backend refuses one more", async () => {
     UpdateCart.mockResolvedValue(false);
     const { updateQuantity } = await renderButton({}, { localCart: [{ id: 101, item_id: "cart-1", quantity: 2 }] });
@@ -420,6 +455,22 @@ describe("taking one out of the bag when more than one is in it", () => {
     ).toBe(80);
   });
 
+  it("sends the bag line's own price, not the new product price, when lowering the row", async () => {
+    UpdateCart.mockResolvedValue(true);
+    await renderButton(
+      { selectedVariant: { offer_price: 12, price: 12 } },
+      {
+        localCart: [{ id: 101, item_id: "cart-1", quantity: 3, offer_price: 10 }],
+        cart: [{ id: "cart-1", product_id: 101, price: 10, offer_price: 10, quantity: 3 }],
+      },
+    );
+    await tapMinus();
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "bag line cart-1 costs 10 and the product costs 12 now; lowering the row sent a price other than the bag line's 10 to /cart/update",
+    ).toBe(10);
+  });
+
   it("logs when the core backend refuses to lower the row", async () => {
     UpdateCart.mockResolvedValue(false);
     const { updateQuantity } = await renderButton({}, { localCart: [{ id: 101, item_id: "cart-1", quantity: 3 }] });
@@ -499,17 +550,30 @@ describe("asking the shopper when the price changed while adding", () => {
     expect(dialog(), "only line cart-3 changed price, and the add of cart-7 asked about it").toBeNull();
   });
 
-  it("asks when one more is added to a line whose price changed", async () => {
+  // Business rule: a line already in the bag keeps the price it was added at.
+  // So adding one more of it (/cart/update) never changes what the shopper
+  // pays, and there is nothing to ask about.
+  it("does not ask when one more is added to a line whose product price changed", async () => {
     UpdateCart.mockResolvedValue(true);
-    bagAfterAdd({ id: "cart-1", product_id: 101, price: 100, offer_price: 95, showed_price: 80, quantity: 3 });
-    await renderButton({}, { currency: money, localCart: [{ id: 101, item_id: "cart-1", quantity: 2 }] });
+    // The product costs 12 now. The bag line was added at 10 and keeps 10. The
+    // saved showed_price (12) is a price the sheet once sent for this line; it
+    // must not turn one more of the same line into a price question.
+    bagAfterAdd({ id: "cart-1", product_id: 101, price: 10, offer_price: 10, showed_price: 12, quantity: 3 });
+    const refreshPricing = vi.fn().mockResolvedValue(undefined);
+    await renderButton(
+      { refreshPricing, selectedVariant: { offer_price: 12, price: 12 } },
+      {
+        currency: money,
+        localCart: [{ id: 101, item_id: "cart-1", quantity: 2 }],
+        cart: [{ id: "cart-1", product_id: 101, price: 10, offer_price: 10, showed_price: 10, quantity: 2 }],
+      },
+    );
 
     await tapAdd();
 
     expect(UpdateCart, "adding one more never reached the cart service").toHaveBeenCalled();
-    expect(dialog(), "line cart-1 costs 95 now but the sheet showed 80, and the shopper was not asked").toHaveTextContent(
-      "Price Changed From 80 $ To 95 $",
-    );
+    expect(dialog(), "one more was added to bag line cart-1, which keeps its price, and the shopper was asked about a price change").toBeNull();
+    expect(refreshPricing, "one more was added to bag line cart-1 and the sheet read the product prices again as if the price changed").not.toHaveBeenCalled();
   });
 
   it("reads the product prices again when the price changed", async () => {

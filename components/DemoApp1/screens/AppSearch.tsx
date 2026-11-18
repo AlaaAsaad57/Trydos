@@ -69,8 +69,8 @@ function SearchResultsSkeleton() {
  * The new header (XD `Home Page – 1`) over the old search:
  *  - the field searches with the old logic (useSearch): results 1.5 s after
  *    the last key, the inline completion, Enter opens the result listing;
- *  - Voice is the old voice search, Scan the old image search, each with the
- *    design's mark;
+ *  - Voice is the old voice search, Scan the photo search (products that look
+ *    like the photo, found by vector), each with the design's mark;
  *  - the chip row shows only "For you", picked, with no effect (S7-6);
  *  - under the header, the old results body (history and trending first,
  *    then the results, the filter bar and the "Search" button).
@@ -140,7 +140,8 @@ export default function AppSearch({
               }
               scan={
                 <SearchImage
-                  setSearchValue={pick}
+                  filters={s.photoFilters}
+                  onPhotoResults={s.showPhotoResults}
                   label={t("Scan")}
                   icon={<XdIcon name="searchScan" />}
                 />
@@ -167,11 +168,14 @@ export default function AppSearch({
                 value={s.value}
                 setValue={s.setValue}
                 loading={s.loading}
+                photoResults={s.photoResults}
+                photoLoading={s.photoLoading}
+                clearPhotoResults={s.clearPhotoResults}
                 products={s.results.products}
-                brands={s.results.brands}
-                categories={s.results.categories}
-                boutiques={s.results.boutiques}
-                related_categories={s.results.related_categories}
+                brands={s.chips.brands}
+                categories={s.chips.categories}
+                boutiques={s.chips.boutiques}
+                related_categories={s.chips.related_categories}
                 trending={s.trending}
                 searchHistoryItems={s.searchHistory}
                 removeHistoryWord={s.removeHistoryWord}

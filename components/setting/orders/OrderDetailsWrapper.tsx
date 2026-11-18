@@ -24,6 +24,7 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
+import { unitKey } from "components/products/packInfo";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import NextLink from "components/global/NextLink";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -1276,7 +1277,9 @@ const ProductCard = ({
                 </span>
                 <span className="text-[#505050] text-[10px] medium mx-[2px]">
                   {product?.product_details?.count_of_pieces}{" "}
-                  {translateFunction("Pieces")}
+                  {translateFunction(
+                    unitKey(product?.product_details?.unit, "Pieces"),
+                  )}
                 </span>
               </div>
 

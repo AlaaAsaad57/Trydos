@@ -1063,6 +1063,9 @@ export async function getRelatedProducts(
     const productResponse = await client.search({
       index: catalog_index,
       size: 1,
+      // The pair is all this step reads. A full read would also download
+      // every photo vector of the product (about 4.5x the bytes).
+      _source: ["categories.gender", "categories.group_age"],
       query: {
         term: { id: productId }
       }

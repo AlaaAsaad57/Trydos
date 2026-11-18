@@ -65,6 +65,7 @@ export function Stroke({
   visible = true,
   align = "inside",
   dash,
+  dashCap,
 }: {
   color: string;
   width?: number;
@@ -74,6 +75,8 @@ export function Stroke({
   align?: "inside" | "center";
   /** XD's dashed line, as "dash gap" in px ("3 3" on `Home Page – 30`). */
   dash?: string;
+  /** The ends of each dash: XD's "round" cap (the address box of `Home Page – 56`). */
+  dashCap?: "round";
 }) {
   const id = `demo-stroke-${React.useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const centred = align === "center";
@@ -104,6 +107,7 @@ export function Stroke({
         stroke={color}
         strokeWidth={centred ? width : width * 2}
         strokeDasharray={dash}
+        strokeLinecap={dashCap}
         clipPath={centred ? undefined : `url(#${id})`}
         style={{ transition: "stroke 0.3s" }}
       />
@@ -182,6 +186,7 @@ export function Box({
   strokeVisible = true,
   strokeAlign = "inside",
   strokeDash,
+  strokeDashCap,
   radius = 0,
   className = "",
   style,
@@ -198,6 +203,7 @@ export function Box({
   strokeVisible?: boolean;
   strokeAlign?: "inside" | "center";
   strokeDash?: string;
+  strokeDashCap?: "round";
   radius?: number;
   className?: string;
   style?: React.CSSProperties;
@@ -227,6 +233,7 @@ export function Box({
           visible={strokeVisible}
           align={strokeAlign}
           dash={strokeDash}
+          dashCap={strokeDashCap}
         />
       )}
     </div>

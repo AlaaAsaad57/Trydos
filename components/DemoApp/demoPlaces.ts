@@ -56,7 +56,11 @@ const PLACES: Record<DemoCountry, Tree> = {
       Mezzeh: { "Villat Gharbiya": ["Jalaa St."] },
       "Abu Rummaneh": { Malki: ["Malki St."] },
     },
-    Aleppo: { Aziziyeh: { Sulaymaniyah: ["Faisal St."] } },
+    Aleppo: {
+      Aziziyeh: { Sulaymaniyah: ["Faisal St."] },
+      // The checkout's address in the file (`Home Page – 76`): "El Jamiliya | Aleppo | Syria".
+      "Old City": { "El Jamiliya": ["Baron St."] },
+    },
     Latakia: { "Al-Ziraa": { Tishreen: ["8 March St."] } },
   },
   iq: {

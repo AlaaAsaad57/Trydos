@@ -492,6 +492,45 @@ describe("stock, price and the max quantity", () => {
   });
 });
 
+// Business rule: a line already in the bag keeps the price it was added at.
+// When the picked variant is in the bag, the sheet shows that line's price,
+// because adding one more is charged at it, not at the product's new price.
+describe("the price of an item already in the bag", () => {
+  const variation = [{ product_variation_id: 11, color: { name: "Red" }, size: "S", qty: 3, price: 15, offer_price: 12 }];
+  const product = { id: 1, slug: "a", variation, sync_color_images: [red], colors: [{ name: "Red" }] };
+  const inBag = (line: Record<string, any>) => ({
+    localCart: [{ id: 1, item_id: "cart-5", product_variation_id: 11, quantity: 1, offer_price: line.offer_price }],
+    cart: [{ id: "cart-5", product_id: 1, product_variation_id: 11, quantity: 1, ...line }],
+  });
+
+  it("shows the bag line's price and offer price, not the variant's new ones", async () => {
+    await renderSheet(product, { store: inBag({ price: 10, offer_price: 8 }) });
+    expect(seen.PricesRow.price, "bag line cart-5 has a normal price of 10, and the sheet showed the variant's new price").toBe(10);
+    expect(seen.PricesRow.offer_price, "bag line cart-5 costs 8, and the sheet showed the variant's new offer price").toBe(8);
+    expect(seen.Card.price, "the sheet's card showed the variant's new normal price, not bag line cart-5's 10").toBe(10);
+    expect(seen.Card.offer_price, "the sheet's card showed the variant's new offer price, not bag line cart-5's 8").toBe(8);
+  });
+
+  it("shows the bag line's luck price for a luck line", async () => {
+    await renderSheet(product, { store: inBag({ is_luck: true, price: 10, offer_price: 9, luck_price: 4 }) });
+    expect(seen.PricesRow.offer_price, "bag line cart-5 is a luck line that costs 4, and the sheet showed another price").toBe(4);
+  });
+
+  it("shows the bag line's price, not the luck price, for a plain line while a luck deal runs", async () => {
+    luck.luckActive = true;
+    const luckVariation = variation.map((v) => ({ ...v, luck_price: 3 }));
+    await renderSheet({ ...product, is_luck: true, variation: luckVariation }, { store: inBag({ price: 10, offer_price: 10 }) });
+    expect(seen.PricesRow.offer_price, "plain bag line cart-5 keeps its price 10 while a luck deal (3) runs, and the sheet showed another price").toBe(10);
+    expect(seen.PricesRow.luck_price, "plain bag line cart-5 keeps its price 10, and the sheet still showed the luck price").toBeFalsy();
+  });
+
+  it("shows the variant's own prices when the picked variant is not in the bag", async () => {
+    await renderSheet(product, { store: { localCart: [], cart: [] } });
+    expect(seen.PricesRow.price, "nothing is in the bag, and the sheet did not show the variant's normal price 15").toBe(15);
+    expect(seen.PricesRow.offer_price, "nothing is in the bag, and the sheet did not show the variant's offer price 12").toBe(12);
+  });
+});
+
 describe("picking a colour or size", () => {
   const variation = [
     { id: 11, color: { name: "Red" }, size: "S", qty: 1, offer_price: 80, luck_price: 60 },
@@ -666,5 +705,29 @@ describe("the notify-me button", () => {
     // The sheet moves off S because it has no stock; pick it again by hand.
     await act(async () => seen.SizeSelect.setSelectedSize("S"));
     expect(screen.queryByTestId("NotifyButton"), "an out-of-stock variant did not offer notify").toBeInTheDocument();
+  });
+});
+
+describe("the pack facts in the sheet card", () => {
+  const product = { id: 9, slug: "soap", name: "Soap", available_quantity: 50, packed_after_ordering: 0 };
+
+  it("hands the number of pieces and the unit from the market backend to the card", async () => {
+    getProductDataForAddToCart.mockResolvedValue({ count_of_pieces: 12, unit: "Box" });
+    await renderSheet(product, { open: { id: 9, slug: "soap" } });
+
+    await waitFor(() =>
+      expect(
+        seen.Card?.packInfo,
+        "the card did not get the 12 pieces and the Box unit the market backend sent",
+      ).toEqual({ count: 12, unit: "Box" }),
+    );
+  });
+
+  it("hands no pack facts to the card when the market backend sends neither field", async () => {
+    getProductDataForAddToCart.mockResolvedValue({ name: "Soap" });
+    await renderSheet(product, { open: { id: 9, slug: "soap" } });
+
+    await waitFor(() => expect(seen.Card?.name, "the loaded product never reached the card").toBe("Soap"));
+    expect(seen.Card.packInfo, "the card must get no pack facts when both fields are missing").toBeNull();
   });
 });

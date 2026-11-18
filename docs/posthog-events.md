@@ -174,7 +174,7 @@ Summary of what exists today:
 | Confirm step | `checkout_confirm_clicked`, `checkout_blocked_address_missing`, `checkout_blocked_payment_missing`, `checkout_blocked_balance_insufficient`, `checkout_blocked_phone_unverified`, `checkout_blocked_cart_unavailable`, `checkout_empty_cart` |
 | Verify sub-flow | `verify_flow_opened` (`flow_source`; verify widget mount, `ConfirmMobilePhoneWidget.tsx`), `verify_otp_failed` (`flow_source`, `reason`; OTP failure, `services/auth.ts:VerifyOtp`), `verify_completed_returned_to_checkout` (`flow_source`; verify success when opened from checkout, `ConfirmMobilePhoneWidget.tsx`) |
 | Place order | `terms_agreed_toggled`, `place_order_clicked`, `place_order_blocked_terms_not_agreed`, `place_order_blocked_phone_unverified`, `place_order_blocked_cart_unavailable`, `place_order_empty_cart` |
-| Payment exec (COD/crypto/card) | `order_submit_attempt`, `payment_redirect_opened`, `order_place_failed` (`reason`, `stage`, `payment_method`) |
+| Payment exec (COD/Trydos wallet/crypto/card) | `order_submit_attempt`, `payment_redirect_opened`, `order_place_failed` (`reason`, `stage`, `payment_method`) |
 | Payment exec (wallet) | `wallet_modal_opened` (the shopper picked the RDB payment method; this opens the RDB payment screen, `PlaceOrderButtons.tsx`), `wallet_balance_refreshed` (refresh icon on the payment method row, `PaymentMethod.tsx`) |
 | Payment exec (RDB) | see [RDB payment requests](#rdb-payment-requests-posthog-only) below |
 | Completion | `order_completed` (clears `order_attempt_id`), `order_success_done_clicked` |

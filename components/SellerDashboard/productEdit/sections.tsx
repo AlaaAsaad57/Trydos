@@ -31,6 +31,8 @@ import {
   VariantRow,
   emptyVariantRow,
   seedVariantDefaults,
+  followProductPrice,
+  ProductPriceField,
   ImageItem,
   parseDescriptorOptions,
   sanitizeSellerProductId,
@@ -264,6 +266,8 @@ function Num({
   fieldKey,
   suffix,
   decimalDigits,
+  onFocus,
+  onBlur,
 }: {
   label: string;
   value: string;
@@ -277,6 +281,8 @@ function Num({
   /** Static overlay at the input's inline end (e.g. a currency code). */
   suffix?: string;
   decimalDigits?: number;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }) {
   const { tooltip, handleKeyDown, handleChange } = useDecimalRestriction({
     decimalDigits,
@@ -299,6 +305,8 @@ function Num({
             disabled={disabled}
             onKeyDown={handleKeyDown}
             onChange={handleChange}
+            onFocus={onFocus}
+            onBlur={onBlur}
             className={`${dashInputClass} ${suffix ? "pe-14" : ""} ${
               error ? "border-[#f85555]" : ""
             } ${disabled ? "opacity-70" : ""}`}
@@ -548,8 +556,30 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
   );
 }
 
-export function PricingSection({ form, patch, errors, disabled, currency, decimalDigits, pricesLocked }: SectionProps) {
+export function PricingSection({ form, patch, errors, disabled, currency, decimalDigits, pricesLocked, isCreate }: SectionProps) {
   const hasVariants = combos(form).length > 0;
+  // Variants follow a product price change once, when the seller leaves the
+  // field: from the value on entering it to the final value. Moving them on
+  // every keystroke would pass through half-typed prices ("1" on the way to
+  // "120"), and a variant that lands on 0 there would stop following.
+  const priceOnFocus = useRef<Partial<Record<ProductPriceField, string>>>({});
+  const followVariants = (field: ProductPriceField) => ({
+    onFocus: () => {
+      priceOnFocus.current[field] = form[field];
+    },
+    onBlur: () => {
+      const from = priceOnFocus.current[field];
+      delete priceOnFocus.current[field];
+      if (from === undefined) return;
+      const variations = followProductPrice(form, field, from, form[field], decimalDigits);
+      if (variations !== form.variations) patch({ variations });
+    },
+  });
+  // An unapproved seller's edits wait for an admin, but the backend saves
+  // return_days at once. Not on create: the whole new product waits there.
+  const returnDaysHint = pricesLocked && !isCreate
+    ? `${t("Leave empty to use the seller or category days. 0 means this product cannot be returned.")} ${t("Return days apply at once.")}`
+    : t("Leave empty to use the seller or category days. 0 means this product cannot be returned.");
   // Every price except Purchase Price is hidden for an unapproved seller — an
   // input that cannot be filled is noise, so it is not rendered at all rather
   // than shown greyed out. Non-price fields below (stock, weight, qty, pieces,
@@ -559,14 +589,14 @@ export function PricingSection({ form, patch, errors, disabled, currency, decima
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {!pricesLocked && (
-          <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ unit_price: v })} />
+          <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ unit_price: v })} {...followVariants("unit_price")} />
         )}
         {!pricesLocked && (
-          <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ discount_price: v })} />
+          <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ discount_price: v })} {...followVariants("discount_price")} />
         )}
         <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ purchase_price: v })} />
         {!pricesLocked && (
-          <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} error={errors.luck_price} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ luck_price: v })} />
+          <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} error={errors.luck_price} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ luck_price: v })} {...followVariants("luck_price")} />
         )}
         <Num
           label="Current Stock"
@@ -584,6 +614,8 @@ export function PricingSection({ form, patch, errors, disabled, currency, decima
           <Num label="Shipping Cost" fieldKey="shipping_cost" value={form.shipping_cost} error={errors.shipping_cost} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ shipping_cost: v })} />
         )}
         <Num label="Shipping Days" fieldKey="shipping_days" value={form.shipping_days} error={errors.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
+        {/* Empty = not set (seller or category days apply). 0 = no returns. */}
+        <Num label="Return Days" fieldKey="return_days" value={form.return_days} error={errors.return_days} hint={returnDaysHint} disabled={disabled} step="1" onChange={(v) => patch({ return_days: v })} />
         {/* A flat tax is an amount in the display currency and is converted
             server-side; any other type is read as a percentage (contract §1b).
             Tax changes what the buyer pays, so it follows the same rule as the

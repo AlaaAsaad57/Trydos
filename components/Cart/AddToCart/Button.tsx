@@ -10,7 +10,11 @@ import { getCart, LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { isLuckActive } from "utils/luck";
-import { resolveShowedPrice, showedPriceChange } from "utils/cart/pricing";
+import {
+  findBagLine,
+  resolveShowedPrice,
+  showedPriceChange,
+} from "utils/cart/pricing";
 import { DetectScreen } from "utils/tinyUtils";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
@@ -43,8 +47,11 @@ function AddToCartButton({
     to: number;
   } | null>(null);
   const [removingChanged, setRemovingChanged] = useState(false);
-  /** Look in the bag the add read back for the line the add touched. When its
-   *  price is not the one the sheet showed (`showed_price`), ask the shopper. */
+  /** Look in the bag the add read back for the new line the add made. When
+   *  its price is not the one the sheet showed (`showed_price`), ask the
+   *  shopper. Only a new line (`/cart/add`) is asked about: a line already in
+   *  the bag keeps the price it was added at, so one more of it
+   *  (`/cart/update`) never changes the price. */
   const askIfPriceChanged = async (bag: any, itemId: any) => {
     if (itemId === undefined || itemId === null) return;
     const line = bag?.cart?.find((s) => s?.id === itemId);
@@ -283,27 +290,32 @@ function AddToCartButton({
         // A2-14: read the luck flag when the shopper taps, not when the sheet
         // opened. After the timer ends the redeemed cookie turns it off.
         const luckNow = isLuckActive(product, id);
-        const raisedItemId = isVariantInCart({ exact: false })?.item_id;
         let response = await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
           isFromAddWidget: true,
           is_luck: luckNow,
-          // The price of ONE piece the sheet shows (PricesRow).
+          // The price of ONE piece the sheet shows (PricesRow). For a line
+          // already in the bag, that is the line's own price.
           showed_price: resolveShowedPrice({
             product,
             selectedVariant,
             cartItem: isVariantInCart({ exact: false }),
+            bagLine: findBagLine(
+              useAppStore.getState().cart,
+              isVariantInCart({ exact: false }),
+            ),
             isLuck: luckNow,
           }),
         });
         if (response === false) {
           throw "error";
         }
-        const bag = await getCart({
+        // The line keeps the price it was added at, so there is no price
+        // change to ask about here (askIfPriceChanged is for a new line only).
+        await getCart({
           callback: () => {},
         });
-        await askIfPriceChanged(bag, raisedItemId);
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
@@ -447,11 +459,16 @@ function AddToCartButton({
           cart_id: isVariantInCart({ exact: true })?.item_id,
           qty: isVariantInCart({ exact: true })?.quantity - 1,
           isFromAddWidget: true,
-          // The price of ONE piece the sheet shows (PricesRow).
+          // The price of ONE piece the sheet shows (PricesRow). For a line
+          // already in the bag, that is the line's own price.
           showed_price: resolveShowedPrice({
             product,
             selectedVariant,
             cartItem: isVariantInCart({ exact: true }),
+            bagLine: findBagLine(
+              useAppStore.getState().cart,
+              isVariantInCart({ exact: true }),
+            ),
             isLuck: isLuckActive(product, id),
           }),
         });
