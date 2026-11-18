@@ -335,10 +335,8 @@ export function useAddressForm({
       >
         {/* The 18 px flag at (12, 29), the name from x 38 on baseline 43. */}
         <div className="flex items-start shrink-0" style={{ marginTop: 6 }}>
-          {countryOf(country).flag && (
-            <Icon name={countryOf(country).flag!} size={18} />
-          )}
-          <Txt ml={countryOf(country).flag ? 8 : 26} size={14} weight="medium">
+          <Icon name={countryOf(country).flag} size={18} />
+          <Txt ml={8} size={14} weight="medium">
             {countryName}
           </Txt>
         </div>
@@ -573,7 +571,7 @@ function PlaceSheet({
           paddingLeft: 1.33 * 2,
         }}
       >
-        {flag && <Icon name={flag} size={18} />}
+        <Icon name={flag} size={18} />
         <span
           className="whitespace-nowrap"
           style={{

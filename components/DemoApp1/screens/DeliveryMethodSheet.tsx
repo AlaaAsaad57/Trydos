@@ -324,8 +324,8 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
 /**
  * The address's place under the line, centred: the flag, then the country
  * (Medium) and "| province | town", as "Syria | Aleppo | El Jamiliya".
- * Syria has no flag of its own yet (demoPlaces.ts): the file draws the Turkish
- * one there, so Syria shows none.
+ * The file draws the Turkish flag for Syria too; Syria shows its own flag
+ * (flagSyRow, demoPlaces.ts).
  */
 function Place({ address, t }: { address: DemoAddress; t: T }) {
   // The address stores street, neighbourhood, district, province.
@@ -343,9 +343,7 @@ function Place({ address, t }: { address: DemoAddress; t: T }) {
         ...LINE_14,
       }}
     >
-      {country.flag && (
-        <XdIcon name={country.flag} size={FLAG.size} className="shrink-0" style={{ marginRight: FLAG.gap }} />
-      )}
+      <XdIcon name={country.flag} size={FLAG.size} className="shrink-0" style={{ marginRight: FLAG.gap }} />
       {/* One text line: a flex item drops its leading space, so the two parts share one span. */}
       <span className="font-normal">
         <span className="font-medium">{t(country.name)}</span>

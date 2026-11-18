@@ -3371,6 +3371,13 @@ const translations = {
   "Your new <m>shopping buddy</m>": "<m>هاوڕێی بازاڕکردنی</m> نوێت",
   "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>": "بۆ بەکارهێنانی هەموو تایبەتمەندییەکان، <m>تکایە دەست پێبکە</m>، لەوێ تایبەتمەندیی نایاب و وەشانی تەواو دەدۆزیتەوە. <a>زانیاری زیاتر</a>",
   "Get Started": "دەستپێکردن",
+  "Exclusive Shopping & Boutiques": "بازاڕکردنی تایبەت و بوتیکەکان",
+  "Discover exclusive shopping channels, boutiques and premium deals tailored for you.": "کەناڵە تایبەتەکانی بازاڕکردن، بوتیکەکان و ئۆفەرە نایابەکان بدۆزەرەوە کە بۆ تۆ ئامادەکراون.",
+  "Social E-Commerce & Community": "بازرگانیی ئەلیکترۆنیی کۆمەڵایەتی و کۆمەڵگە",
+  "Connect, shop together, and experience interactive social commerce like never before.": "پەیوەندی بکە، پێکەوە بازاڕ بکە و ئەزموونی بازرگانیی کۆمەڵایەتیی کارلێککەر بکە وەک هەرگیز پێشتر نەتکردووە.",
+  "Smart, Fast & Rewarding": "زیرەک، خێرا و بەسوود",
+  "Invest, earn points, and enjoy seamless one-touch checkout with total safety.": "وەبەرهێنان بکە، خاڵ کۆبکەرەوە و چێژ لە پارەدانێکی ئاسان بە یەک دەستلێدان وەربگرە بە ئاسایشی تەواو.",
+  "Slide": "سلاید",
 };
 
 export default translations;

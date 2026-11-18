@@ -79,6 +79,8 @@ export const XD_ICON_SIZE = {
   flagTr: { w: 30, h: 30 },
   flagIq: { w: 30, h: 30 },
   flagLb: { w: 30, h: 30 },
+  /** Syria's row flag: not in the files (they draw the Turkish one), made from flagIq. */
+  flagSyRow: { w: 30, h: 30 },
   searchSmall: { w: 18, h: 18 },
   pin: { w: 28.96, h: 37.53 },
   edit: { w: 15, h: 15 },

@@ -219,6 +219,16 @@ const PAYMENT_KEYS = [
  * the sign-in request sheet 4 seconds later (`Sign In request`). The country
  * names are the address form's (below).
  */
+/** The words of the preview slides (NewLoginDesign/previewSlides.tsx), in their order. */
+const SLIDE_KEYS = [
+  "Exclusive Shopping & Boutiques",
+  "Discover exclusive shopping channels, boutiques and premium deals tailored for you.",
+  "Social E-Commerce & Community",
+  "Connect, shop together, and experience interactive social commerce like never before.",
+  "Smart, Fast & Rewarding",
+  "Invest, earn points, and enjoy seamless one-touch checkout with total safety.",
+] as const;
+
 const INTRO_KEYS = [
   "Select Your Region",
   // The file writes this line in small letters (KEEP_CASE).
@@ -228,6 +238,11 @@ const INTRO_KEYS = [
   "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>",
   "Get Started",
   "Later, take a look at the app",
+  // The slides of the sign-in request's card: the quick preview's slides
+  // (NewLoginDesign/previewSlides.tsx), written as there (SLIDE_KEYS, KEEP_CASE).
+  ...SLIDE_KEYS,
+  // The page dots' label: "Slide 2".
+  "Slide",
 ] as const;
 
 export const DEMO_KEYS = [
@@ -654,6 +669,8 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   // The country picker's line and the sign-in request's paragraph (INTRO_KEYS).
   "Your new <m>shopping buddy</m>",
   "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>",
+  // The preview slides keep the quick preview's own case (sentences stay sentences).
+  ...SLIDE_KEYS,
   // `Home Page – 49`, the product page (see demoCase.ts).
   ...PRODUCT_PAGE_KEYS,
   // `Home Page – 50` and `– 56`, the bag and the checkout (demoCase.ts too).

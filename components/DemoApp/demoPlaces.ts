@@ -17,17 +17,19 @@ export const LEVELS = ["Province", "District", "Town", "Street"] as const;
 export type Country = {
   id: DemoCountry;
   name: DemoKey;
-  flag: XdIconName | null;
+  flag: XdIconName;
 };
 
 /**
  * The four countries of `Home Page – 95`. The file draws Syria with the
- * Turkish flag — a placeholder — so Syria shows no flag until the designer
- * sends one.
+ * Turkish flag, a placeholder. Syria's flag (flagSyRow) is drawn in the style
+ * of the file's other row flags: Iraq's file, with the green on top and three
+ * red stars in place of the writing (the colours of the set: `#73AF00`,
+ * `#F5F5F5`, `#464655`, `#FF4B55`).
  */
 export const COUNTRIES: Country[] = [
   { id: "tr", name: "Turkiye", flag: "flagTr" },
-  { id: "sy", name: "Syria", flag: null },
+  { id: "sy", name: "Syria", flag: "flagSyRow" },
   { id: "iq", name: "Iraq", flag: "flagIq" },
   { id: "lb", name: "Lebanon", flag: "flagLb" },
 ];

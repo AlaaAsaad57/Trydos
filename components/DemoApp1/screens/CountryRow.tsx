@@ -15,8 +15,8 @@ import { Icon, Stroke, Txt } from "../ui";
  * Not chosen, the box is `#FCFCFC`. Chosen, it is `#F8F8F8` with a 0.5 px
  * `#402CDD` line on the inside of its edge.
  *
- * The files draw Syria with the Turkish flag, a placeholder, so Syria shows a
- * grey square until the designer sends its flag (see COUNTRIES in demoPlaces.ts).
+ * The files draw Syria with the Turkish flag, a placeholder; Syria shows its
+ * own flag, drawn in the same style (see COUNTRIES in demoPlaces.ts).
  */
 export default function CountryRow({
   country,
@@ -51,20 +51,7 @@ export default function CountryRow({
         background: on ? C.field : C.card,
       }}
     >
-      {country.flag ? (
-        <Icon name={country.flag} ml={12} />
-      ) : (
-        <span
-          className="block shrink-0"
-          style={{
-            marginLeft: 12,
-            width: 30,
-            height: 30,
-            borderRadius: 5,
-            background: "#EFEFEF",
-          }}
-        />
-      )}
+      <Icon name={country.flag} ml={12} />
       <Txt ml={66 - 12 - 12 - 30} size={14}>
         {label}
       </Txt>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { animate, useReducedMotion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { demoAsset } from "../../DemoApp/demoAssetVersion";
 import type { DemoCountry } from "../../DemoApp/DemoData";
@@ -26,15 +27,34 @@ import CountryRow from "./CountryRow";
  *  - the four rows from y 594, 4 apart (CountryRow, as the address form's
  *    country sheet).
  *
- * A tap on a row, or on a country of the map, chooses it. The page shows the
- * choice (`– 15`) for HOLD_MS, then hands it to the shell, which opens the app.
+ * A tap on a row, or on a country of the map, chooses it. The grey fills the
+ * country on the map from the tap (FILL), then the page shows the choice
+ * (`– 15`) until HOLD_MS, and hands it to the shell, which opens the app.
  *
  * The page is in the document, as every screen of /demo, so it scrolls on a
  * short phone and Safari 26 draws it under its glass bar.
  */
 
-/** How long the chosen country is shown before the app opens, in ms. */
-export const HOLD_MS = 600;
+/**
+ * The chosen country's fill on the map: the grey spreads from the tap (from
+ * the country's middle for a tap on a row) to the whole country, in seconds.
+ */
+const FILL = { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const };
+
+/** The fill's soft edge, as a share of the gradient's radius. */
+const FILL_EDGE = 0.02;
+
+/**
+ * How long after the tap the app opens, in ms: the fill, then a moment on
+ * the finished choice (`– 15`).
+ */
+export const HOLD_MS = 1000;
+
+/** Where the fill starts, as a share of the country's box (0 to 1 on each side). */
+type FillFrom = { x: number; y: number };
+
+/** The country's middle: where a tap on a row starts the fill. */
+const MIDDLE: FillFrom = { x: 0.5, y: 0.5 };
 
 /** The map's box in the file, in design px: its viewBox, and where it sits. */
 const MAP = { x: 11.75, y: 287.75, w: 406.5, h: 286.5 } as const;
@@ -43,6 +63,9 @@ const MAP = { x: 11.75, y: 287.75, w: 406.5, h: 286.5 } as const;
 const MAP_ORDER: DemoCountry[] = ["sy", "lb", "iq", "tr"];
 
 const MAP_FILE = demoAsset("/assets/demo/xd/countryMap.svg");
+
+/** A country on the map that is not chosen: `#F4F4F4`, as the file fills it. */
+const EMPTY = "#F4F4F4";
 
 export default function CountryPickerScreen({
   onDone,
@@ -53,6 +76,7 @@ export default function CountryPickerScreen({
   const { t } = useDemoNav();
   usePageColor(C.white);
   const [picked, setPicked] = useState<DemoCountry | null>(null);
+  const [from, setFrom] = useState<FillFrom>(MIDDLE);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -61,9 +85,10 @@ export default function CountryPickerScreen({
     [],
   );
 
-  const pick = (id: DemoCountry) => {
+  const pick = (id: DemoCountry, at: FillFrom = MIDDLE) => {
     // The first choice wins: the app is already on its way.
     if (picked) return;
+    setFrom(at);
     setPicked(id);
     timer.current = setTimeout(() => onDone(id), HOLD_MS);
   };
@@ -115,7 +140,12 @@ export default function CountryPickerScreen({
         style={{ marginTop: 98 - (56 + 30) }}
       />
 
-      <CountryMap picked={picked} onPick={pick} mt={MAP.y - (98 + 150)} />
+      <CountryMap
+        picked={picked}
+        from={from}
+        onPick={pick}
+        mt={MAP.y - (98 + 150)}
+      />
 
       <div
         role="group"
@@ -140,23 +170,74 @@ export default function CountryPickerScreen({
 
 /**
  * The map, from countryMap.svg: one `<path id>` per country with no paint of
- * its own. Each `<use>` gives its country the fill and the line, so the
- * chosen one changes colour with a CSS transition. A second set of `<use>`
- * draws only the chosen one's purple line, over all the others, so the
- * neighbours' grey lines never cover it.
+ * its own. Each `<use>` gives its country the fill and the line. A second set
+ * of `<use>` draws only the chosen one's purple line, over all the others, so
+ * the neighbours' grey lines never cover it.
+ *
+ * The chosen country fills with a radial gradient, in the country's own box:
+ * a grey disc that grows from the tap (FILL), with a soft edge (FILL_EDGE). Once it
+ * covers the country, the fill is the plain grey of `– 15`. Its purple line
+ * fades in over the same time. With "reduce motion" on, the grey and the line
+ * come at once.
  *
  * The map keeps the file's width (406.5) on a 430 px phone, and its distance
  * to both edges on a narrower one; its height follows its width.
  */
 function CountryMap({
   picked,
+  from,
   onPick,
   mt,
 }: {
   picked: DemoCountry | null;
-  onPick: (id: DemoCountry) => void;
+  from: FillFrom;
+  onPick: (id: DemoCountry, at: FillFrom) => void;
   mt: number;
 }) {
+  const calm = useReducedMotion();
+  const grey = useRef<SVGStopElement>(null);
+  const edge = useRef<SVGStopElement>(null);
+  const [filled, setFilled] = useState(false);
+
+  useEffect(() => {
+    if (!picked) return;
+    if (calm) {
+      setFilled(true);
+      return;
+    }
+    // The disc's edge, as a share of the gradient's radius. Past 1 the
+    // whole box is grey, from any start.
+    const run = animate(0, 1.05, {
+      ...FILL,
+      onUpdate: (at) => {
+        grey.current?.setAttribute("offset", String(at));
+        edge.current?.setAttribute("offset", String(at + FILL_EDGE));
+      },
+      onComplete: () => setFilled(true),
+    });
+    return () => run.stop();
+  }, [picked, calm]);
+
+  /** Where in the country's box the tap landed, as shares of the box. */
+  const tapIn = (e: React.MouseEvent<SVGUseElement>): FillFrom => {
+    const use = e.currentTarget;
+    const svg = use.ownerSVGElement;
+    const matrix = svg?.getScreenCTM()?.inverse();
+    let box: DOMRect | null = null;
+    try {
+      box = use.getBBox();
+    } catch {
+      box = null;
+    }
+    if (!svg || !matrix || !box || !box.width || !box.height) return MIDDLE;
+    const point = new DOMPoint(e.clientX, e.clientY).matrixTransform(matrix);
+    const share = (v: number) => Math.min(1, Math.max(0, v));
+    return {
+      x: share((point.x - box.x) / box.width),
+      y: share((point.y - box.y) / box.height),
+    };
+  };
+
   return (
     <svg
       data-pw="demo-country-map"
@@ -170,6 +251,22 @@ function CountryMap({
         overflow: "visible",
       }}
     >
+      {picked && !filled && (
+        <defs>
+          {/* r 1.5: the disc covers the box from any corner (its diagonal is 1.42). */}
+          <radialGradient
+            id="demo-country-fill"
+            cx={from.x}
+            cy={from.y}
+            fx={from.x}
+            fy={from.y}
+            r={1.5}
+          >
+            <stop ref={grey} offset={0} stopColor={C.grey} />
+            <stop ref={edge} offset={FILL_EDGE} stopColor={EMPTY} />
+          </radialGradient>
+        </defs>
+      )}
       {MAP_ORDER.map((id) => {
         const on = id === picked;
         return (
@@ -178,13 +275,13 @@ function CountryMap({
             href={`${MAP_FILE}#${id}`}
             data-pw={`demo-country-map-${id}`}
             data-on={on || undefined}
-            fill={on ? C.grey : "#F4F4F4"}
+            fill={!on ? EMPTY : filled ? C.grey : "url(#demo-country-fill)"}
             stroke={on ? C.purple : C.line}
             strokeWidth={0.5}
-            onClick={() => onPick(id)}
+            onClick={(e) => onPick(id, tapIn(e))}
             style={{
               cursor: "pointer",
-              transition: "fill 0.3s, stroke 0.3s",
+              transition: `stroke ${FILL.duration}s`,
             }}
           />
         );
@@ -199,7 +296,7 @@ function CountryMap({
           pointerEvents="none"
           style={{
             opacity: id === picked ? 1 : 0,
-            transition: "opacity 0.3s",
+            transition: calm ? undefined : `opacity ${FILL.duration}s`,
           }}
         />
       ))}

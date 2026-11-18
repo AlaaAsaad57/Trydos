@@ -3321,6 +3321,13 @@ const translations = {
   "Your new <m>shopping buddy</m>": "<m>رفيق تسوّقك</m> الجديد",
   "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>": "للوصول إلى جميع الميزات، <m>يرجى البدء</m>، حيث ستجد ميزات رائعة والنسخة الكاملة. <a>معلومات أكثر</a>",
   "Get Started": "البدء",
+  "Exclusive Shopping & Boutiques": "تسوّق حصري وبوتيكات",
+  "Discover exclusive shopping channels, boutiques and premium deals tailored for you.": "اكتشف قنوات تسوّق حصرية وبوتيكات وعروضاً مميزة مصمّمة لك.",
+  "Social E-Commerce & Community": "تجارة إلكترونية اجتماعية ومجتمع",
+  "Connect, shop together, and experience interactive social commerce like never before.": "تواصل وتسوّق مع الآخرين، وعِش تجربة تجارة اجتماعية تفاعلية لم تعرفها من قبل.",
+  "Smart, Fast & Rewarding": "ذكي وسريع ومُجزٍ",
+  "Invest, earn points, and enjoy seamless one-touch checkout with total safety.": "استثمر واكسب النقاط واستمتع بدفع سلس بلمسة واحدة وبأمان تام.",
+  "Slide": "الشريحة",
 };
 
 export default translations;

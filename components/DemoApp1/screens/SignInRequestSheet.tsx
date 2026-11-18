@@ -14,6 +14,7 @@ import {
 } from "../demo1Layout";
 import { FileLines, Sheet, Stroke, Txt } from "../ui";
 import { Rich } from "./ListingParts";
+import SignInSlides from "./SignInSlides";
 
 /**
  * The sheet that asks the shopper to sign in: XD `Sign In request`. The shell
@@ -27,9 +28,8 @@ import { Rich } from "./ListingParts";
  *  - two centred lines of 14 (baselines 521 and 541): "Please Get Started"
  *    Medium, "More Info" `#388CFF`;
  *  - a white card, 390 x 186 at (20, 565), radius 20, a 0.5 px `#4A31E7`
- *    line. The file leaves it empty: the slides are still to come;
- *  - the page dots at y 761: a 16 x 8 `#1D1D1D` pill, then two 8 px rings
- *    with a 1 px `#404040` line, 6 px apart (centred on the screen);
+ *    line, and the page dots at y 761. The file leaves the card empty; it
+ *    holds the quick preview's slides, as its slider (SignInSlides);
  *  - "Get Started", 390 x 60 at (20, 789), radius 20, `#FAFAFA` with a 0.5 px
  *    `#5D5C5D` dashed line (3 on, 3 off), the words 16 Regular `#3C3C3C`;
  *  - "Later, Take A Look At The App", 14 Regular `#4D84FF`, baseline 893.
@@ -41,9 +41,6 @@ import { Rich } from "./ListingParts";
 /** The file's sheet: its top, and the shadow on its top edge. */
 const TOP = 285;
 const SHADOW = "0 -3px 10px rgba(0, 0, 0, 0.1)";
-
-/** The card's least height on a short window, in px: about half the file's 186. */
-const CARD_MIN = 96;
 
 /** The least white under "Later" on a short window, in px. */
 const BOTTOM_MIN = 16;
@@ -122,52 +119,8 @@ export default function SignInRequestSheet({
         <Rich text={words} keepLinks />
       </FileLines>
 
-      {/* The slides' card. Empty in the file. On a window shorter than the
-          sheet (an iPhone SE in Safari) the sheet stops under the status bar
-          (Sheet keepHeight), and the card is the one block that gives up
-          height for it, down to CARD_MIN. */}
-      <div
-        data-pw="demo-sign-in-request-card"
-        className="relative"
-        style={{
-          marginTop: 565 - (paraTop(521, 14, 20) + 40),
-          marginLeft: 20,
-          width: fill(20),
-          height: 186,
-          flexShrink: 1,
-          minHeight: CARD_MIN,
-          borderRadius: 20,
-          background: C.white,
-        }}
-      >
-        <Stroke color={C.purple} radius={20} />
-      </div>
-
-      {/* The page dots: the pill on the first slide, 6 px between each. */}
-      <div
-        data-pw="demo-sign-in-request-dots"
-        aria-hidden="true"
-        className="flex self-center shrink-0"
-        style={{ marginTop: 761 - (565 + 186), gap: 215 - (193 + 16) }}
-      >
-        <span
-          className="block"
-          style={{ width: 16, height: 8, borderRadius: 4, background: C.ink }}
-        />
-        {[0, 1].map((i) => (
-          <span
-            key={i}
-            className="block"
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              boxSizing: "border-box",
-              border: `1px solid ${C.inkSoft}`,
-            }}
-          />
-        ))}
-      </div>
+      {/* The card and its dots: the quick preview's slider (SignInSlides). */}
+      <SignInSlides mt={565 - (paraTop(521, 14, 20) + 40)} />
 
       <motion.button
         type="button"

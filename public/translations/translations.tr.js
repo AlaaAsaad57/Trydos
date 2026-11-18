@@ -3354,6 +3354,13 @@ const translations = {
   "Your new <m>shopping buddy</m>": "Yeni <m>alışveriş arkadaşın</m>",
   "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>": "Tüm Özelliklere Erişmek İçin <m>Lütfen Başlayın</m>, Harika Özellikleri Ve Tam Sürümü Bulacaksınız. <a>Daha Fazla Bilgi</a>",
   "Get Started": "Başlayın",
+  "Exclusive Shopping & Boutiques": "Özel Alışveriş ve Butikler",
+  "Discover exclusive shopping channels, boutiques and premium deals tailored for you.": "Sana özel alışveriş kanallarını, butikleri ve seçkin fırsatları keşfet.",
+  "Social E-Commerce & Community": "Sosyal E-Ticaret ve Topluluk",
+  "Connect, shop together, and experience interactive social commerce like never before.": "Bağlan, birlikte alışveriş yap ve etkileşimli sosyal ticareti daha önce hiç olmadığı gibi yaşa.",
+  "Smart, Fast & Rewarding": "Akıllı, Hızlı ve Kazandıran",
+  "Invest, earn points, and enjoy seamless one-touch checkout with total safety.": "Yatırım yap, puan kazan ve tek dokunuşla, tam güvenli ödemenin keyfini çıkar.",
+  "Slide": "Slayt",
 };
 
 export default translations;
