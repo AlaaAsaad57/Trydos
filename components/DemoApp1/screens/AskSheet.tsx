@@ -45,6 +45,41 @@ export type AskAnswer = {
   testId: string;
 };
 
+/**
+ * The main answer: the sheets' dark "Done" (`Home Page – 72`). Grey and with
+ * no tap while it is busy or not ready. `waiting` stops the tap while another
+ * answer of the same question is busy.
+ */
+export function MainAnswer({ answer, waiting = false, mt }: { answer: AskAnswer; waiting?: boolean; mt: number }) {
+  const off = waiting || answer.busy || answer.disabled;
+  return (
+    <motion.button
+      type="button"
+      data-pw={answer.testId}
+      disabled={off}
+      aria-busy={answer.busy || undefined}
+      onClick={answer.onPress}
+      whileTap={off ? undefined : { scale: 0.98 }}
+      className="flex justify-center shrink-0 self-center font-normal whitespace-nowrap [-webkit-tap-highlight-color:transparent]"
+      style={{
+        marginTop: mt,
+        minWidth: MAIN.width,
+        height: MAIN.height,
+        paddingTop: textTop(28, 13),
+        paddingInline: 20,
+        borderRadius: `${MAIN.height / 2}px ${MAIN.height / 2}px 14px 14px`,
+        background: answer.busy || answer.disabled ? C.hint : C.ink,
+        color: C.white,
+        cursor: off ? "default" : "pointer",
+        transition: "background-color 0.2s",
+        ...LINE_13,
+      }}
+    >
+      {answer.label}
+    </motion.button>
+  );
+}
+
 export default function AskSheet({
   open,
   title,
@@ -109,29 +144,7 @@ export default function AskSheet({
             {note}
           </p>
         )}
-        <motion.button
-          type="button"
-          data-pw={main.testId}
-          disabled={waiting || main.disabled}
-          onClick={main.onPress}
-          whileTap={waiting || main.disabled ? undefined : { scale: 0.98 }}
-          className="flex justify-center shrink-0 font-normal whitespace-nowrap [-webkit-tap-highlight-color:transparent]"
-          style={{
-            marginTop: 28,
-            minWidth: MAIN.width,
-            height: MAIN.height,
-            paddingTop: textTop(28, 13),
-            paddingInline: 20,
-            borderRadius: `${MAIN.height / 2}px ${MAIN.height / 2}px 14px 14px`,
-            background: main.busy || main.disabled ? C.hint : C.ink,
-            color: C.white,
-            cursor: waiting || main.disabled ? "default" : "pointer",
-            transition: "background-color 0.2s",
-            ...LINE_13,
-          }}
-        >
-          {main.label}
-        </motion.button>
+        <MainAnswer answer={main} waiting={waiting} mt={28} />
         {other && (
           <button
             type="button"

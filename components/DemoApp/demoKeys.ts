@@ -272,6 +272,10 @@ export const DEMO_KEYS = [
   "Empty",
   "Your cart is empty",
   "Items you add to your cart will show here",
+  // The bag's read error (Stage 7d): the old error's words.
+  "Cart Loading Error",
+  "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.",
+  "Try Again",
   "Web",
   "lock",
   "client ID",

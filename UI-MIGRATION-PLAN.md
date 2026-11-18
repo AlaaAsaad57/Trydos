@@ -1587,7 +1587,11 @@ The designs came from `development` (XD `Home Page – 50` to `– 103`, built a
     page column's width.
   - The bag's unavailable and country-restricted lines already show in the new style (the red line in
     `BagPage`), and checkout stops on them ("Please Review Your Cart Info").
-  - Not redrawn: the bag's read error still shows the old `CartErrorComponent` (no board, not in S7d-11).
+  - The bag's read error (owner's OK, 2026-11-18): drawn as the empty bag is (`EmptyTabScreen`), with
+    the old error's words, the core backend's line in red, and "Try Again" as the sheets' dark button
+    (`MainAnswer`, shared with `AskSheet`). The error stays on show while the retry reads the cart, with the
+    button waiting, so the screen no longer drops to an empty bag and back. The old `CartErrorComponent`
+    stays for the old cart. Tests: `tests/components/DemoApp1/AppCartError.test.tsx`.
 - **Tests:** `AppShell.test.tsx` used a product page as "a page of no tab". It now uses a listing page
   (`/sy-en/filters/x`), and the product page is in the list of pages with no shell bar. The full unit suite
   has no new failures: the 53 red tests left fail the same way on the merge commit `9b0807853`.

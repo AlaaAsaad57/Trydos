@@ -11,12 +11,12 @@ import {
   raiseLine,
   retryBag,
 } from "components/Cart/bagActions";
-import CartErrorComponent from "components/Cart/CartErrorComponent";
 import { useDemoNav } from "../screenNav";
 import { useDemoCase } from "../demoCase";
 import { useBagData } from "../useBagData";
 import { BagSkeleton } from "../ScreenSkeleton";
 import { BagPage } from "./BagPage";
+import EmptyTabScreen from "./EmptyTabScreen";
 
 // Opens only when the core backend refuses a raise on stock: its own chunk.
 const BagNotifySheet = dynamic(() => import("./BagNotifySheet"), { ssr: false });
@@ -37,8 +37,8 @@ const BagNotifySheet = dynamic(() => import("./BagNotifySheet"), { ssr: false })
  *    checkout.
  *
  * While the cart is read for the first time the screen shows the bag's
- * skeleton. A failed read shows the old error with its retry (the design has
- * no board for it).
+ * skeleton. A failed read shows the old error's words and its retry, drawn as
+ * the empty bag is (the design has no board for it).
  */
 export default function AppCart() {
   const { navigate, locale } = useDemoNav();
@@ -71,11 +71,23 @@ export default function AppCart() {
 
   const empty = bag.view.items.length === 0 && bag.view.out.length === 0;
   if (!read && empty) return <BagSkeleton />;
-  if (bag.error && !bag.loading)
+  // The error stays on show while "Try Again" reads the cart again: the
+  // button waits, so the screen does not jump to an empty bag and back.
+  if (bag.error)
     return (
-      <div data-pw="app-cart-error" className="w-full min-h-dvh bg-white">
-        <CartErrorComponent errorMessage={bag.error} onRetry={() => void retryBag()} />
-      </div>
+      <EmptyTabScreen
+        testId="app-cart-error"
+        title="Cart"
+        message="Cart Loading Error"
+        hint="We encountered an error while loading your cart. Don't worry, we'll fix this issue for you."
+        note={bag.error}
+        action={{
+          label: t("Try Again"),
+          onPress: () => void retryBag(),
+          busy: bag.loading,
+          testId: "app-cart-error-retry",
+        }}
+      />
     );
 
   const view = {

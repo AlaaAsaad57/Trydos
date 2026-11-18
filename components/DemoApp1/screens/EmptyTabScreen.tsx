@@ -5,6 +5,10 @@ import React from "react";
 import { useDemoNav } from "../screenNav";
 import { BODY_Y, C, gapTo, textBottom } from "../demo1Layout";
 import { Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
+import { MainAnswer, type AskAnswer } from "./AskSheet";
+
+/** A line that may wrap: the error's sentence is longer than the screen. */
+const WRAP = { whiteSpace: "normal", paddingInline: 30 } as const;
 
 /**
  * The cart. The XD file has no design for it yet (chat has its own now:
@@ -17,20 +21,33 @@ import { Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
  * an 11 Regular line under it, all `#C3C3C3`, centred on the artboard). The
  * address page's banner, card and button are left out: the file has no copy
  * for them on these screens.
+ *
+ * The bag's read error uses the same screen (Stage 7d): its own words, the
+ * server's line under them in red, and "Try Again" as the sheets' dark
+ * button. The file has no board for the error, so it is drawn as the empty
+ * bag is. With no `note` and no `action` the screen is the empty one.
  */
 export default function EmptyTabScreen({
   title,
   message,
   hint,
+  note,
+  action,
+  testId,
 }: {
   title: DemoKey;
   message: DemoKey;
   hint: DemoKey;
+  /** A line from the server (not a key), in red under the hint. */
+  note?: string | null;
+  /** A button under the lines (the error's "Try Again"). */
+  action?: AskAnswer;
+  testId?: string;
 }) {
   const { t } = useDemoNav();
   return (
     <ScreenPage
-      testId={`demo-${title.toLowerCase()}`}
+      testId={testId ?? `demo-${title.toLowerCase()}`}
       header={<ScreenHeader title={title} small t={t} />}
       tabBar
     >
@@ -56,9 +73,24 @@ export default function EmptyTabScreen({
         size={11}
         color={C.hint}
         mt={gapTo(textBottom(472, 13), 492, 11)}
+        style={action ? WRAP : undefined}
       >
         {t(hint)}
       </Txt>
+      {note && (
+        <Txt
+          as="p"
+          center
+          size={11}
+          color={C.red}
+          mt={6}
+          data-pw={testId ? `${testId}-note` : undefined}
+          style={WRAP}
+        >
+          {note}
+        </Txt>
+      )}
+      {action && <MainAnswer answer={action} mt={28} />}
     </ScreenPage>
   );
 }
