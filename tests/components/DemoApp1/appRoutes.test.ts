@@ -101,7 +101,7 @@ describe("isSearchPath", () => {
 });
 
 describe("shellStepsAside", () => {
-  it.each(["/sy-en/demo", "/sy-en/demo/settings/wallet", "/sy-en/loginDemo", "/sy-en/login"])(
+  it.each(["/sy-en/demo", "/sy-en/demo/settings/wallet", "/sy-en/loginDemo", "/sy-en/login", "/sy-en/products/a-dress"])(
     "steps aside on %s",
     (path) => {
       expect(shellStepsAside(path), `the shell should step aside on ${path}`).toBe(

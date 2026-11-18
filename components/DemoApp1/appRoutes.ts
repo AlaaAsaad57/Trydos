@@ -43,8 +43,9 @@ export function litTab(
   return null;
 }
 
-// Pages that draw their own bar. The shell shows no bar on them.
+// Pages that draw their own bar. The shell shows no bar on them. A product's
+// page has the buy bar in the tab bar's place (Stage 7d, `Listing page – 154`).
 export function shellStepsAside(pathname: string): boolean {
   const [first] = afterLocale(pathname);
-  return first === "demo" || first === "loginDemo" || first === "login";
+  return first === "demo" || first === "loginDemo" || first === "login" || first === "products";
 }

@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import Spinner from "components/global/Spinner";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { CancelRdbRequest, GetRdbRequest } from "services/rdbPayment";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import RdbPaymentModal from "./RdbPaymentModal";
+import AskSheet from "components/DemoApp1/screens/AskSheet";
 
 /** Same cadence as `RdbPaymentModal`'s own poll (design doc §4). Only one of
  *  the two ever runs at once — see the effect below. */
 const POLL_INTERVAL_MS = 4000;
+
+/** The old sheet's layer: over every sheet of the old pages. */
+const LOCK_Z = 9999999998;
 
 /**
  * Shown when the core backend refuses a cart write because an RDB payment
@@ -28,13 +30,11 @@ const POLL_INTERVAL_MS = 4000;
  * never unlock the cart.
  */
 export default function RdbPaymentLockedSheet() {
-  const { rdbLock, setRdbLock, language, rdbPaymentScreenOpen } =
-    useAppStore();
+  const { rdbLock, setRdbLock, rdbPaymentScreenOpen } = useAppStore();
   const [showPayment, setShowPayment] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [alreadyPaid, setAlreadyPaid] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const isRtl = language === "ar" || language === "ku";
 
   // Every refused cart write stores a new lock object, even for the same
   // pending reference. Show the sheet again each time: a dismiss hides it only
@@ -159,59 +159,30 @@ export default function RdbPaymentLockedSheet() {
     );
   };
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[9999999998] flex items-center justify-center bg-black/60 px-[16px]"
-      data-pw="rdb-cart-locked"
-      onClick={() => setDismissed(true)}
-    >
-      <div
-        className={`flex-col relative w-full max-w-[400px] bg-white rounded-[20px] px-[20px] py-[24px] gap-[12px] ${
-          isRtl ? "items-end" : "items-start"
-        }`}
-        style={{ boxShadow: "0px 4px 30px rgba(0,0,0,0.15)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <img
-          src="/icons/CloseIcon.svg"
-          alt={translateFunction("Close")}
-          data-pw="rdb-lock-close"
-          className={`absolute top-[16px] w-3 h-3 cursor-pointer ${
-            isRtl ? "left-[16px]" : "right-[16px]"
-          }`}
-          onClick={() => setDismissed(true)}
-        />
-        <span className="semibold text-[14px] text-[#1D1D1D]">
-          {translateFunction("You have a payment in progress")}
-        </span>
-        <span className="regular text-[12px] text-[#8D8D8D]">
-          {translateFunction(
-            "Your cart is locked until you finish or cancel the payment",
-          )}
-        </span>
-        {alreadyPaid && (
-          <span className="regular text-[12px] text-[#388CFF]">
-            {translateFunction("This payment is already paid")}
-          </span>
-        )}
-        <div className="flex-row w-full gap-[8px] mt-[8px]">
-          <div
-            className="flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#388CFF] text-white regular text-[12px] cursor-pointer"
-            data-pw="rdb-lock-continue"
-            onClick={() => setShowPayment(true)}
-          >
-            {translateFunction("Continue payment")}
-          </div>
-          <div
-            className="flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#F8F8F8] text-[#f85555] regular text-[12px] cursor-pointer"
-            data-pw="rdb-lock-cancel"
-            onClick={cancel}
-          >
-            {cancelling ? <Spinner /> : translateFunction("Cancel payment")}
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
+  // Drawn in the new design's style (Stage 7d, S7d-11): a tap on the dimmed
+  // page or a drag down dismisses it, as every sheet of the new design.
+  return (
+    <AskSheet
+      open
+      testId="rdb-cart-locked"
+      // Mounted on every page: it must lie over the old pages' own sheets too.
+      z={LOCK_Z}
+      title={translateFunction("You have a payment in progress")}
+      text={translateFunction("Your cart is locked until you finish or cancel the payment")}
+      note={alreadyPaid ? translateFunction("This payment is already paid") : null}
+      main={{
+        label: translateFunction("Continue payment"),
+        onPress: () => setShowPayment(true),
+        testId: "rdb-lock-continue",
+      }}
+      other={{
+        label: translateFunction("Cancel payment"),
+        onPress: cancel,
+        busy: cancelling,
+        danger: true,
+        testId: "rdb-lock-cancel",
+      }}
+      onClose={() => setDismissed(true)}
+    />
   );
 }

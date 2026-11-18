@@ -128,8 +128,8 @@ function usePages(enabled: boolean) {
 /** The cards drawn on the tap: two rows, more than a phone's screen shows under the banner. */
 const FIRST_CARDS = 4;
 
-/** A mock product as a card. */
-function demoCard(
+/** A mock product as a card (the store page, and the buy sheet's card). */
+export function demoCard(
   product: DemoProduct,
   store: DemoStore,
   link: string,

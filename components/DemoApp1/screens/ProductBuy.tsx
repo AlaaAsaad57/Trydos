@@ -4,10 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useIsPresent, type Transition, type Variants } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
-import type { DemoKey } from "../../DemoApp/demoKeys";
-import { ringPhotoOf } from "../../DemoApp/demoProduct";
-import type { DemoProduct, DemoStore } from "../../DemoApp/demoStores";
-import { useDemoNav } from "../Demo1Shell";
+import type { StoreCard } from "../listingData";
+import { useDemoNav } from "../screenNav";
 import { useDemoCase } from "../demoCase";
 import {
   C,
@@ -35,7 +33,7 @@ import {
   SwatchPicker,
   type T,
 } from "./ListingParts";
-import { LikeHeart, useLike } from "./LikeHeart";
+import { LikeHeart } from "./LikeHeart";
 import {
   ARRIVAL_MS,
   BLOCK_GAP,
@@ -121,11 +119,8 @@ const SHEET_ABOVE_END = BAR_END - SHEET_Y;
 const CARD_Y = 112;
 const CARD_ABOVE_SHEET = SHEET_Y - (CARD_Y + PHOTO.h + FOOTER_H);
 
-/** The label on the sheet's card (`– 57`). */
+/** The label on the sheet's card (`– 57`): fixed text, on the real page too (S7d-8). */
 const BEST_LABEL = { kind: "best", days: 3 } as const;
-
-/** The file's prices: this bar and this card show them for every product. */
-const PRICE = { was: 200, now: 160 } as const;
 
 /** Over the sheet's layer (Layer's z is 2147483000 + 30). */
 const BAR_Z = 2147483040;
@@ -139,22 +134,64 @@ const BAG_LINGER_MS = 1200;
 /** The file's sheet shadow, the same on the panel: 0, -3, blur 10, black at 10%. */
 const SHADOW = "0 -3px 10px rgba(0, 0, 0, 0.102)";
 
-/** The file's sizes, in order. The word is the one the bar's chip uses ("Medium"). */
-const SIZES: readonly { code: string; number: number; word: DemoKey }[] = [
-  { code: "XXS", number: 32, word: "XX Small" },
-  { code: "XS", number: 34, word: "X Small" },
-  { code: "S", number: 36, word: "Small" },
-  { code: "M", number: 38, word: "Medium" },
-  { code: "L", number: 40, word: "Large" },
-  { code: "XL", number: 42, word: "X Large" },
-  { code: "XXL", number: 44, word: "XX Large" },
-];
+/** One size of the colour on show. */
+export type BuySize = {
+  /** The size's name: the tile's first line and the chips' `{size}` ("M"). */
+  code: string;
+  /** The tile's second line (the file's "38"). Null: the size has one name only. */
+  number: string | null;
+  /** What the bar's chip calls the size ("Medium"). */
+  word: string;
+  /** The pieces left. 0: sold out. Null: no count to show. */
+  stock: number | null;
+  /** The shopper asked to be told when it is back. */
+  notified: boolean;
+  /** The price of one piece: the old price (grey, null for none) and the price to pay. */
+  price: { was: string | null; now: string };
+};
 
-/** The file's story: S is sold out (`– 67`), M is the size it recommends (`– 57`). */
-const SOLD_OUT = 2;
-const RECOMMENDED = 3;
-/** "Last 2" in `– 57`. */
-const STOCK = 2;
+/**
+ * What the bar and the sheet draw. `/demo` gives the file's story (S sold out,
+ * M recommended, "last 2"); the real page gives the product's own sizes.
+ */
+export type BuyView = {
+  /** The sheet's card: the name, the mark, the colours and their photos. */
+  card: StoreCard;
+  /** The sizes of each colour, in the order of `card.colors`. */
+  sizes: readonly (readonly BuySize[])[];
+  /** The size the sheet recommends, for each colour. */
+  recommended: readonly number[];
+  /** The photo in the bag's ring, for each colour. */
+  rings: readonly string[];
+  /** The bar's price while no size is picked. */
+  price: { was: string | null; now: string };
+  currency: string;
+  /** The numbers under the bar's marks. */
+  counts: { likes: string; comments: string; shares: string };
+};
+
+/** "last N" shows only for this many pieces or fewer (the old sheet's rule). */
+const LAST_FEW = 10;
+
+/** The chip's line about a size, with the size's number and its stock when it has them. */
+function sizeKey(
+  kind: "suggested" | "picked" | "added" | "sold",
+  size: BuySize,
+): Parameters<T>[0] {
+  const few = size.stock !== null && size.stock > 0 && size.stock <= LAST_FEW;
+  if (size.number !== null) {
+    if (kind === "suggested") return "<m>{size} | {number}</m> Recommended size for you <m>last {stock}</m>";
+    if (kind === "picked") return "<m>{size} | {number}</m> Selected <m>last {stock}</m>";
+    if (kind === "added") return "<m>{size} | {number}</m> Added to your bag";
+    return "<m>{size} | {number}</m> Not available now, stock is sold out";
+  }
+  if (kind === "suggested")
+    return few ? "<m>{size}</m> Recommended size for you <m>last {stock}</m>" : "<m>{size}</m> Recommended size for you";
+  if (kind === "picked") return few ? "<m>{size}</m> Selected <m>last {stock}</m>" : "<m>{size}</m> Selected";
+  if (kind === "added") return "<m>{size}</m> Added to your bag";
+  return "<m>{size}</m> Not available now, stock is sold out";
+}
+
 const LINE_11 = { fontSize: 11, lineHeight: `${lineBox(11)}px` } as const;
 const LINE_13 = { fontSize: 13, lineHeight: `${lineBox(13)}px` } as const;
 const LINE_15 = { fontSize: 15, lineHeight: `${lineBox(15)}px` } as const;
@@ -271,7 +308,9 @@ function Chip({
       style={{
         height: 18,
         minWidth: minW,
-        padding: "2px 2px 0 6px",
+        paddingTop: 2,
+        paddingInlineEnd: 2,
+        paddingInlineStart: 6,
         borderRadius: 6,
         background: bg,
         color: ink,
@@ -313,12 +352,12 @@ function BarMark({
       data-pw={testId}
       onClick={onPress}
       className="absolute flex items-start cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
-      style={{ left: iconLeft, top: 795 - BAR_Y, width: 25, height: 45 }}
+      style={{ insetInlineStart: iconLeft, top: 795 - BAR_Y, width: 25, height: 45 }}
     >
       {children}
       <span
         className="absolute font-light whitespace-nowrap"
-        style={{ left: textLeft, top: textTop(837, 11) - 795, color: C.ink, ...LINE_11 }}
+        style={{ insetInlineStart: textLeft, top: textTop(837, 11) - 795, color: C.ink, ...LINE_11 }}
       >
         {number}
       </span>
@@ -333,19 +372,21 @@ function BarMark({
  */
 const markLeft = (x: number) => `calc(${x}px + (100% - 430px) * ${(x - 202) / (380 - 202)})`;
 
-function HeartMark({ t }: { t: T }) {
-  const like = useLike();
+/** The heart: the page's own like (the same as the heart by the name). */
+export type BuyHeart = { liked: boolean; burst: number; toggle: () => void };
+
+function HeartMark({ heart, number, t }: { heart: BuyHeart; number: string; t: T }) {
   return (
     <BarMark
       iconLeft={markLeft(261)}
       textLeft={263 - 261}
       label={t("Like")}
-      number="110k"
+      number={number}
       testId="demo-buy-like"
-      pressed={like.liked}
-      onPress={like.toggle}
+      pressed={heart.liked}
+      onPress={heart.toggle}
     >
-      <LikeHeart liked={like.liked} burst={like.burst} outline="buyHeart" filled="buyHeartFilled" size={25} />
+      <LikeHeart liked={heart.liked} burst={heart.burst} outline="buyHeart" filled="buyHeartFilled" size={25} />
     </BarMark>
   );
 }
@@ -384,8 +425,8 @@ function DarkButton({
       exit={{ clipPath: BUTTON_CLOSED, opacity: 0 }}
       transition={SHEET_TRANSITION}
       style={{
-        left: 234,
-        right: 8,
+        insetInlineStart: 234,
+        insetInlineEnd: 8,
         top: 795 - BAR_Y,
         height: 45,
         borderRadius: "22.5px 22.5px 14px 14px",
@@ -439,8 +480,8 @@ function ButtonSide({
       className="flex items-start shrink-0 font-normal enabled:cursor-pointer enabled:active:opacity-60 [-webkit-tap-highlight-color:transparent]"
       style={{
         paddingTop: textTop(823, 13) - 795,
-        paddingLeft: side === "start" ? 12 + nudge : 0,
-        paddingRight: side === "end" ? 12 : 0,
+        paddingInlineStart: side === "start" ? 12 + nudge : 0,
+        paddingInlineEnd: side === "end" ? 12 : 0,
         color: color ?? C.white,
         ...LINE_13,
         height: 45,
@@ -481,7 +522,11 @@ function Bar({
   pillGap,
   sheetOpen,
   chip,
+  price,
   currency,
+  counts,
+  heart,
+  busy,
   buttonBox,
   onOpen,
   onBuy,
@@ -489,6 +534,9 @@ function Bar({
   onRemove,
   onAddMore,
   onNotify,
+  onComments,
+  onShare,
+  away: stepAway,
   t,
 }: {
   mode: BarMode;
@@ -497,7 +545,12 @@ function Bar({
   pillGap: number;
   sheetOpen: boolean;
   chip: React.ReactNode;
+  price: { was: string | null; now: string };
   currency: string;
+  counts: BuyView["counts"];
+  heart: BuyHeart;
+  /** A request is on its way: the dark button waits. */
+  busy: boolean;
   buttonBox: React.RefObject<HTMLDivElement | null>;
   onOpen: () => void;
   onBuy: () => void;
@@ -505,9 +558,13 @@ function Bar({
   onRemove: () => void;
   onAddMore: () => void;
   onNotify: () => void;
+  onComments?: () => void;
+  onShare?: () => void;
+  /** Another sheet of the page is open over it: the bar goes down out of its way. */
+  away?: boolean;
   t: T;
 }) {
-  const present = useIsPresent();
+  const present = useIsPresent() && !stepAway;
   const tail = mode.kind !== "marks";
   const fullH = CONTENT_H + gap;
   /** How far down the panel waits, out of the window. */
@@ -553,17 +610,17 @@ function Bar({
         <div
           data-pw="demo-buy-price"
           className="absolute flex items-start font-normal whitespace-pre"
-          style={{ left: 25, top: textTop(810, 15) - BAR_Y, color: C.ink, ...LINE_15 }}
+          style={{ insetInlineStart: 25, top: textTop(810, 15) - BAR_Y, color: C.ink, ...LINE_15 }}
         >
           {/* One line, as the file has it: the space before the price is bold. The mark is at x 119. */}
           <span style={{ minWidth: 119 - 25 }}>
-            <span style={{ color: C.grey }}>{PRICE.was}</span>
-            <span className="font-bold">{` ${PRICE.now}`}</span>
+            {price.was !== null && <span style={{ color: C.grey }}>{price.was}</span>}
+            <span className="font-bold">{price.was !== null ? ` ${price.now}` : price.now}</span>
             {` ${currency}`}
           </span>
           <XdIcon name="buyPriceHelp" className="shrink-0" style={{ marginTop: 798.5 - textTop(810, 15) }} />
         </div>
-        <div className="absolute flex" style={{ left: 25, top: 822 - BAR_Y }}>
+        <div className="absolute flex" style={{ insetInlineStart: 25, top: 822 - BAR_Y }}>
           {chip}
         </div>
 
@@ -574,14 +631,14 @@ function Bar({
           data-pw="demo-buy-plus"
           onClick={onOpen}
           className="absolute flex items-start cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
-          style={{ left: 202, top: 795 - BAR_Y, width: 25, height: tail ? 25 : 45 }}
+          style={{ insetInlineStart: 202, top: 795 - BAR_Y, width: 25, height: tail ? 25 : 45 }}
         >
           <XdIcon
             name="buyPlus"
             className="absolute"
             // The plus turns a quarter on its way to the plus with a tail.
             style={{
-              left: 0,
+              insetInlineStart: 0,
               top: 0,
               opacity: tail ? 0 : 1,
               transform: tail ? "rotate(90deg)" : "rotate(0deg)",
@@ -592,12 +649,12 @@ function Bar({
             name="buyPlusTail"
             className="absolute"
             // A wider picture than its button: the page's `img { max-width: 100% }` would squeeze it.
-            style={{ left: 198 - 202, top: 791 - 795, maxWidth: "none", opacity: tail ? 1 : 0, transition: "opacity 0.18s" }}
+            style={{ insetInlineStart: 198 - 202, top: 791 - 795, maxWidth: "none", opacity: tail ? 1 : 0, transition: "opacity 0.18s" }}
           />
           {!tail && (
             <span
               className="absolute font-medium whitespace-nowrap"
-              style={{ left: 205 - 202, top: textTop(837, 11) - 795, color: C.ink, ...LINE_11 }}
+              style={{ insetInlineStart: 205 - 202, top: textTop(837, 11) - 795, color: C.ink, ...LINE_11 }}
             >
               {t("Buy")}
             </span>
@@ -614,11 +671,25 @@ function Bar({
               exit={{ opacity: 0 }}
               transition={FADE}
             >
-              <HeartMark t={t} />
-              <BarMark iconLeft={markLeft(321)} textLeft={326 - 321} label={t("Comments")} number="11k" testId="demo-buy-comments">
+              <HeartMark heart={heart} number={counts.likes} t={t} />
+              <BarMark
+                iconLeft={markLeft(321)}
+                textLeft={326 - 321}
+                label={t("Comments")}
+                number={counts.comments}
+                testId="demo-buy-comments"
+                onPress={onComments}
+              >
                 <XdIcon name="buyComment" />
               </BarMark>
-              <BarMark iconLeft={markLeft(380)} textLeft={390 - 380} label={t("Share")} number="2" testId="demo-buy-share">
+              <BarMark
+                iconLeft={markLeft(380)}
+                textLeft={390 - 380}
+                label={t("Share")}
+                number={counts.shares}
+                testId="demo-buy-share"
+                onPress={onShare}
+              >
                 <XdIcon name="buySend" />
               </BarMark>
             </motion.div>
@@ -626,11 +697,11 @@ function Bar({
             <DarkButton key="button" box={buttonBox} words={mode.kind} dim={mode.kind === "buy" && !mode.ready}>
               {mode.kind === "buy" && (
                 <>
-                  <ButtonSide side="start" disabled={!mode.ready} testId="demo-buy-now" onPress={onBuy}>
+                  <ButtonSide side="start" disabled={!mode.ready || busy} testId="demo-buy-now" onPress={onBuy}>
                     {t("Buy now")}
                   </ButtonSide>
                   <ButtonLine />
-                  <ButtonSide side="end" disabled={!mode.ready} testId="demo-buy-add" onPress={onAdd}>
+                  <ButtonSide side="end" disabled={!mode.ready || busy} testId="demo-buy-add" onPress={onAdd}>
                     {t("Add to bag")}
                   </ButtonSide>
                 </>
@@ -638,11 +709,11 @@ function Bar({
               {mode.kind === "added" && (
                 <>
                   {/* The file starts these words at x 266, 0.3 px right of the middle. */}
-                  <ButtonSide side="start" nudge={0.64} color="#FAA8A8" testId="demo-buy-remove" onPress={onRemove}>
+                  <ButtonSide side="start" nudge={0.64} color="#FAA8A8" disabled={busy} testId="demo-buy-remove" onPress={onRemove}>
                     {t("Remove")}
                   </ButtonSide>
                   <ButtonLine />
-                  <ButtonSide side="end" testId="demo-buy-more" onPress={onAddMore}>
+                  <ButtonSide side="end" disabled={busy} testId="demo-buy-more" onPress={onAddMore}>
                     {t("Add More")}
                   </ButtonSide>
                 </>
@@ -652,6 +723,7 @@ function Bar({
                   type="button"
                   aria-pressed={mode.on}
                   data-pw="demo-buy-notify"
+                  disabled={busy}
                   onClick={onNotify}
                   className="flex items-start justify-center w-full font-normal cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
                   style={{ paddingTop: textTop(823, 13) - 795, gap: 6, color: C.white, ...LINE_13 }}
@@ -660,12 +732,12 @@ function Bar({
                     <XdIcon
                       name="buyBell"
                       className="absolute"
-                      style={{ left: 0, top: 810 - textTop(823, 13), opacity: mode.on ? 0 : 1, transition: "opacity 0.2s" }}
+                      style={{ insetInlineStart: 0, top: 810 - textTop(823, 13), opacity: mode.on ? 0 : 1, transition: "opacity 0.2s" }}
                     />
                     <XdIcon
                       name="buyBellOn"
                       className="absolute"
-                      style={{ left: 0, top: 810 - textTop(823, 13), opacity: mode.on ? 1 : 0, transition: "opacity 0.2s" }}
+                      style={{ insetInlineStart: 0, top: 810 - textTop(823, 13), opacity: mode.on ? 1 : 0, transition: "opacity 0.2s" }}
                     />
                   </span>
                   <motion.span key={String(mode.on)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={FADE}>
@@ -720,15 +792,17 @@ function Bar({
             top: -(PILL.h + pillGap),
             height: PILL.h,
             minWidth: PILL.minW,
-            padding: `${textTop(873, 13) - 852}px 8px 0 ${172 - 135}px`,
+            paddingTop: textTop(873, 13) - 852,
+            paddingInlineEnd: 8,
+            paddingInlineStart: 172 - 135,
             borderRadius: 15,
             background: "#EBEBEB",
             color: C.ink,
             ...LINE_13,
           }}
         >
-          <XdIcon name="buyPlus" className="absolute" style={{ left: 141 - 135, top: 856 - 852 }} />
-          <Rich text={t("<b>Buy</b> now !<b> {price}</b> {currency}")} values={{ price: PRICE.now, currency }} />
+          <XdIcon name="buyPlus" className="absolute" style={{ insetInlineStart: 141 - 135, top: 856 - 852 }} />
+          <Rich text={t("<b>Buy</b> now !<b> {price}</b> {currency}")} values={{ price: price.now, currency }} />
         </motion.button>
       </motion.div>
     </>
@@ -789,7 +863,7 @@ function SizeTile({
   onPick,
   index,
 }: {
-  size: (typeof SIZES)[number];
+  size: BuySize;
   look: TileLook;
   onPick: () => void;
   index: number;
@@ -818,9 +892,11 @@ function SizeTile({
       }}
     >
       <span className="block">{size.code}</span>
-      <span className="block" style={{ marginTop: textTop(654, 11) - (textTop(638, 11) + lineBox(11)) }}>
-        {size.number}
-      </span>
+      {size.number !== null && (
+        <span className="block" style={{ marginTop: textTop(654, 11) - (textTop(638, 11) + lineBox(11)) }}>
+          {size.number}
+        </span>
+      )}
       <Stroke color={style.line} width={0.5} radius={6} />
     </motion.button>
   );
@@ -833,7 +909,7 @@ function Message({ id, mt, nudge = 0, children }: { id: string; mt: number; nudg
       key={id}
       className="flex justify-center shrink-0"
       // `nudge`: the file centres this line by eye, that many px right of the middle.
-      style={{ marginTop: mt, paddingLeft: nudge * 2 }}
+      style={{ marginTop: mt, paddingInlineStart: nudge * 2 }}
       variants={SHEET_ROW}
     >
       {children}
@@ -842,42 +918,52 @@ function Message({ id, mt, nudge = 0, children }: { id: string; mt: number; nudg
 }
 
 function SizeSheetBody({
-  product,
+  view,
   colorIndex,
   pick,
   inBag,
   onPick,
   onColor,
+  onSoon,
   t,
 }: {
-  product: DemoProduct;
+  view: BuyView;
   colorIndex: number;
   pick: number | null;
   inBag: (index: number) => boolean;
   onPick: (index: number) => void;
   onColor: (index: number) => void;
+  /** With it, the tabs past the first are not ready: a tap says "Soon available". */
+  onSoon?: () => void;
   t: T;
 }) {
   const [unit, setUnit] = useState(0);
   const [chart, setChart] = useState(0);
-  const sold = pick === SOLD_OUT;
-  const size = SIZES[pick ?? RECOMMENDED];
+  const sizes = view.sizes[colorIndex] ?? [];
+  const recommended = view.recommended[colorIndex] ?? 0;
+  const sold = pick !== null && sizes[pick]?.stock === 0;
+  const size = sizes[pick ?? recommended] ?? sizes[0];
   const added = pick !== null && inBag(pick);
-  /** The mark lies under the picked size, or under the size the file recommends. */
-  const markAt = pick === null || sold ? RECOMMENDED : pick;
-  const values = { size: size.code, number: size.number, stock: STOCK };
-  const others = product.colors
-    .map((color, index) => ({ color, index }))
-    .filter((c) => c.index !== colorIndex)
-    .slice(0, 2);
+  /** The mark lies under the picked size, or under the size the sheet recommends. */
+  const markAt = pick === null || sold ? recommended : pick;
+  const values = { size: size?.code ?? "", number: size?.number ?? "", stock: size?.stock ?? 0 };
+  /** The file's tiles are 2 px apart. */
+  const count = Math.max(1, sizes.length);
+  const tab = (pickTab: (i: number) => void) => (i: number) => (onSoon && i > 0 ? onSoon() : pickTab(i));
+  // The other colours that have this size, else the other colours with anything left.
+  const inStock = (index: number, code?: string) =>
+    (view.sizes[index] ?? []).some((s) => s.stock !== 0 && (code === undefined || s.code === code));
+  const otherColors = view.card.colors.map((color, index) => ({ color, index })).filter((c) => c.index !== colorIndex);
+  const withSize = otherColors.filter((c) => inStock(c.index, size?.code));
+  const others = (withSize.length > 0 ? withSize : otherColors.filter((c) => inStock(c.index))).slice(0, 2);
   // The file always draws two circles: with one other colour, it shows that colour twice.
   const circles = others.length === 1 ? [others[0], others[0]] : others;
 
   const lookOf = (i: number): TileLook => {
     if (i === pick) return sold ? "sold" : "picked";
     if (inBag(i)) return "picked";
-    if (i === RECOMMENDED && pick === null) return "suggested";
-    if (i === RECOMMENDED && sold) return "line";
+    if (i === recommended && pick === null) return "suggested";
+    if (i === recommended && sold) return "line";
     return "plain";
   };
 
@@ -907,14 +993,14 @@ function SizeSheetBody({
       >
         <div className="flex" style={{ gap: 2 }}>
           {(["CM", "INC"] as const).map((key, i) => (
-            <UnitTab key={key} w={36} on={unit === i} onPick={() => setUnit(i)} testId={`demo-buy-unit-${i}`}>
+            <UnitTab key={key} w={36} on={unit === i} onPick={() => tab(setUnit)(i)} testId={`demo-buy-unit-${i}`}>
               {t(key)}
             </UnitTab>
           ))}
         </div>
         <div className="flex" style={{ gap: 2 }}>
           {(["Standart", "EU", "IN", "US", "UK"] as const).map((key, i) => (
-            <UnitTab key={key} w={i === 0 ? 56 : 36} on={chart === i} onPick={() => setChart(i)} testId={`demo-buy-chart-${i}`}>
+            <UnitTab key={key} w={i === 0 ? 56 : 36} on={chart === i} onPick={() => tab(setChart)(i)} testId={`demo-buy-chart-${i}`}>
               {t(key)}
             </UnitTab>
           ))}
@@ -922,8 +1008,8 @@ function SizeSheetBody({
       </motion.div>
       <div className="relative shrink-0" style={{ marginTop: 615 - 601, marginInline: 20 }}>
         <motion.div variants={SIZE_ROW} className="flex" style={{ gap: 2 }}>
-          {SIZES.map((item, i) => (
-            <SizeTile key={item.code} size={item} index={i} look={lookOf(i)} onPick={() => onPick(i)} />
+          {sizes.map((item, i) => (
+            <SizeTile key={`${item.code}-${i}`} size={item} index={i} look={lookOf(i)} onPick={() => onPick(i)} />
           ))}
         </motion.div>
         {/* (208, 675) under the size, or on its bottom line at y 662 for a sold-out size (`– 67`). */}
@@ -933,11 +1019,11 @@ function SizeSheetBody({
           variants={SIZE_MARK}
           className="absolute block pointer-events-none"
           style={{
-            left: `calc((100% - 12px) / 7 * ${markAt + 0.5} + ${markAt * 2}px - 7px)`,
+            insetInlineStart: `calc((100% - ${(count - 1) * 2}px) / ${count} * ${markAt + 0.5} + ${markAt * 2}px - 7px)`,
             top: (sold ? 662 : 675) - 615,
             width: 14,
             height: 14,
-            transition: "left 0.28s cubic-bezier(0.2, 0, 0, 1), top 0.28s cubic-bezier(0.2, 0, 0, 1)",
+            transition: "inset-inline-start 0.28s cubic-bezier(0.2, 0, 0, 1), top 0.28s cubic-bezier(0.2, 0, 0, 1)",
           }}
         >
           <XdIcon name="buySizeMark" className="absolute" style={{ opacity: added ? 0 : 1, transition: "opacity 0.2s" }} />
@@ -948,9 +1034,10 @@ function SizeSheetBody({
         <>
           <Message id="sold" mt={695 - 669} nudge={0.5}>
             <Chip bg="#FFF8F8" line="#FF0000" minW={225} testId="demo-buy-chip-sold">
-              <Rich text={t("<m>{size} | {number}</m> Not available now, stock is sold out")} values={values} />
+              <Rich text={t(sizeKey("sold", size))} values={values} />
             </Chip>
           </Message>
+          {others.length > 0 && (
           <Message id="other" mt={721 - 713}>
             <button
               type="button"
@@ -960,7 +1047,7 @@ function SizeSheetBody({
             >
               <Chip bg="#F4F4F4" line={C.purple} minW={198}>
                 <span>{t("look at other color Available")}</span>
-                <span className="flex shrink-0 ml-auto" style={{ paddingLeft: 2, gap: 2, paddingRight: 4 }}>
+                <span className="flex shrink-0 ms-auto" style={{ paddingInlineStart: 2, gap: 2, paddingInlineEnd: 4 }}>
                   {circles.map(({ color }, i) => (
                     <span key={i} className="relative block overflow-hidden rounded-full shrink-0" style={{ width: 14, height: 14 }}>
                       <img src={color.swatch} alt="" width={14} height={14} draggable={false} className="block w-full h-full object-cover select-none" />
@@ -971,6 +1058,7 @@ function SizeSheetBody({
               </Chip>
             </button>
           </Message>
+          )}
           <Message id="soon" mt={textTop(760, 11) - 739} nudge={0.5}>
             <p className="font-normal whitespace-nowrap" style={{ color: C.ink, ...LINE_11 }}>
               {t("we can notify you when available soon !")}
@@ -980,19 +1068,19 @@ function SizeSheetBody({
       ) : added ? (
         <Message id="added" mt={695 - 669}>
           <Chip bg={C.purple} line={C.purple} ink={C.white} minW={142} testId="demo-buy-chip-added">
-            <Rich text={t("<m>{size} | {number}</m> Added to your bag")} values={values} />
+            <Rich text={t(sizeKey("added", size))} values={values} />
           </Chip>
         </Message>
       ) : pick !== null ? (
         <Message id="picked" mt={695 - 669}>
           <Chip bg="#F8F8F8" line={C.purple} minW={122} testId="demo-buy-chip-picked">
-            <Rich text={t("<m>{size} | {number}</m> Selected <m>last {stock}</m>")} values={values} />
+            <Rich text={t(sizeKey("picked", size))} values={values} />
           </Chip>
         </Message>
       ) : (
         <Message id="suggested" mt={695 - 669} nudge={0.5}>
           <Chip bg="#F8F8F8" minW={221} testId="demo-buy-chip-suggested">
-            <Rich text={t("<m>{size} | {number}</m> Recommended size for you <m>last {stock}</m>")} values={values} />
+            <Rich text={t(sizeKey("suggested", size))} values={values} />
           </Chip>
         </Message>
       )}
@@ -1056,6 +1144,7 @@ function BagPill({
   open,
   items,
   flying,
+  total,
   slot,
   t,
 }: {
@@ -1064,6 +1153,8 @@ function BagPill({
   items: readonly BagItem[];
   /** An item is on its way. */
   flying: boolean;
+  /** The count on the bag: the shopper's whole bag. None: the items added here (`/demo`). */
+  total?: number;
   /** The bag's right edge and the rings' top, for the flight. Always on the page, even with no bag on show. */
   slot: React.RefObject<HTMLSpanElement | null>;
   t: T;
@@ -1074,7 +1165,7 @@ function BagPill({
   const full = items.length > 0;
   const layout = bagLayout(items.length);
   // The count moves on each landing, not on the tap.
-  const count = items.filter((item) => item.landed).length;
+  const count = total ?? items.filter((item) => item.landed).length;
   const [seen, setSeen] = useState({ count, up: true });
   if (seen.count !== count) setSeen({ count, up: count > seen.count });
   const roll = seen.up ? 7 : -7;
@@ -1417,8 +1508,7 @@ function cardStart(cardTop: number, tall: number, scale: number) {
 }
 
 function BuyCard({
-  product,
-  store,
+  card,
   colorIndex,
   onColor,
   y,
@@ -1426,8 +1516,7 @@ function BuyCard({
   photo,
   t,
 }: {
-  product: DemoProduct;
-  store: DemoStore;
+  card: StoreCard;
   colorIndex: number;
   onColor: (index: number) => void;
   /** Design y of the sheet's top: the card rests above it. */
@@ -1437,7 +1526,7 @@ function BuyCard({
   photo: React.RefObject<HTMLDivElement | null>;
   t: T;
 }) {
-  const color = product.colors[colorIndex];
+  const color = card.colors[colorIndex] ?? card.colors[0];
   const tall = PHOTO.h + FOOTER_H;
   // A short window has no room for the file's card: it gets smaller and stays above the sheet.
   const scale = Math.min(1, (y - CARD_ABOVE_SHEET - CARD_Y) / tall);
@@ -1484,8 +1573,8 @@ function BuyCard({
         <div ref={photo} className="relative" style={{ width: PHOTO.w, height: PHOTO.h }}>
           <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "30px 30px 0 0" }}>
             <img
-              src={color.images[0]}
-              alt={`${store.name} ${[...product.name].map((word) => t(word)).join(" . ")}`}
+              src={color?.images[0]}
+              alt={`${card.mark.name} ${card.name.join(" . ")}`}
               width={PHOTO.w}
               height={PHOTO.h}
               draggable={false}
@@ -1493,7 +1582,7 @@ function BuyCard({
             />
             <PhotoGlow />
           </div>
-          <SwatchPicker colors={product.colors} selected={colorIndex} onSelect={onColor} onOpen={() => {}} t={t} />
+          <SwatchPicker colors={card.colors} selected={colorIndex} onSelect={onColor} onOpen={() => {}} t={t} />
         </div>
         <motion.div
           className="relative w-full"
@@ -1503,8 +1592,8 @@ function BuyCard({
           transition={{ duration: 0.2, delay: 0.14 }}
           style={{ height: FOOTER_H, borderRadius: "0 0 15px 15px", background: "rgba(255, 255, 255, 0.9976)" }}
         >
-          <CardLogo store={store} />
-          <ProductName product={product} t={t} />
+          <CardLogo mark={card.mark} />
+          <ProductName product={card} />
           <LabelTurns
             // The file draws this one label on this card, whatever the store page's card shows.
             badges={[BEST_LABEL]}
@@ -1513,27 +1602,68 @@ function BuyCard({
             testId="demo-buy-card-labels"
             render={(badge) => <PlainBadge badge={badge} t={t} />}
           />
-          <PricePill product={{ ...product, price: PRICE.now }} t={t} />
+          <PricePill product={card} />
         </motion.div>
       </div>
     </motion.article>
   );
 }
 
+/**
+ * What a tap does. Each answers true when it worked. `/demo` answers at once;
+ * the real page sends the old add sheet's requests (components/Cart/buyActions).
+ */
+export type BuyActions = {
+  /** One piece of this size (of the colour on show) into the bag. */
+  add: (size: number) => Promise<boolean> | boolean;
+  /** One piece of this size out of the bag. */
+  remove: (size: number) => Promise<boolean> | boolean;
+  /** Ask to be told when this sold-out size is back. */
+  notify: (size: number) => void;
+  /** A size was picked. */
+  onPick?: (size: number) => void;
+  /** The sheet opened. */
+  onOpened?: () => void;
+  onComments?: () => void;
+  onShare?: () => void;
+  /** With it, the size tabs past the first say "Soon available". */
+  onSoon?: () => void;
+};
+
+/**
+ * What the shopper's bag holds. None: the bag is only the items added on this
+ * screen (`/demo`).
+ */
+export type BuyHeld = {
+  /** The pieces of this size, in the colour on show. */
+  size: (size: number) => number;
+  /** The pieces of this product, in every size and colour. */
+  product: number;
+  /** The pieces in the whole bag: the count on the bag mark. */
+  bag: number;
+};
+
 export default function ProductBuy({
-  product,
-  store,
+  view,
   colorIndex,
   onColor,
   open,
   onOpen,
+  heart,
+  actions,
+  held,
+  away = false,
 }: {
-  product: DemoProduct;
-  store: DemoStore;
+  view: BuyView;
   colorIndex: number;
   onColor: (index: number) => void;
   open: boolean;
   onOpen: (open: boolean) => void;
+  heart: BuyHeart;
+  actions: BuyActions;
+  held?: BuyHeld;
+  /** Another sheet of the page is open (the old comments, share or more sheet): the bar steps away. */
+  away?: boolean;
 }) {
   const { t } = useDemoCase();
   const { navigate } = useDemoNav();
@@ -1546,13 +1676,15 @@ export default function ProductBuy({
     setMounted(true);
   }, []);
 
-  /** What is in the bag, oldest first. */
+  const sizes = view.sizes[colorIndex] ?? [];
+  /** The items added on this screen, oldest first: the rings in the bag. */
   const [bag, setBag] = useState<readonly BagItem[]>([]);
   const nextItem = useRef(0);
   const [pick, setPick] = useState<number | null>(null);
   /** The size the bar's Remove and Add More work on. */
   const [lastAdded, setLastAdded] = useState<number | null>(null);
-  const [notified, setNotified] = useState(false);
+  /** A request is on its way: the dark button waits for it. */
+  const [busy, setBusy] = useState(false);
   /** An item is on its way to the bag. */
   const flying = bag.some((item) => !item.landed);
   /** The bag stays a moment after a landing on the page, where no sheet keeps it on show. */
@@ -1571,15 +1703,22 @@ export default function ProductBuy({
   const buttonBox = useRef<HTMLDivElement>(null);
   const bagSlot = useRef<HTMLSpanElement>(null);
 
-  const total = bag.length;
-  const countOf = (index: number) => bag.filter((item) => item.size === index).length;
+  const countOf = (index: number) => (held ? held.size(index) : bag.filter((item) => item.size === index).length);
+  /** The pieces of this product in the bag. */
+  const total = held ? held.product : bag.length;
+  /** The sizes with pieces in the bag (on `/demo`, oldest first). */
+  const bagSizes = held ? sizes.map((_, i) => i).filter((i) => held.size(i) > 0) : bag.map((item) => item.size);
   const putInBag = (size: number, landed: boolean) => {
     const id = nextItem.current++;
-    setBag((now) => [...now, { id, size, photo: ringPhotoOf(product.colors[colorIndex]), landed }]);
+    setBag((now) => [...now, { id, size, photo: view.rings[colorIndex] ?? "", landed }]);
     return id;
   };
   const land = (id: number) => {
     setBag((now) => now.map((item) => (item.id === id ? { ...item, landed: true } : item)));
+  };
+  /** An item whose request failed leaves the bag. */
+  const drop = (id: number) => {
+    setBag((now) => now.filter((item) => item.id !== id));
   };
   /** The newest item of this size leaves the bag. */
   const takeOut = (size: number) => {
@@ -1588,15 +1727,28 @@ export default function ProductBuy({
       return at < 0 ? now : now.filter((_, i) => i !== at);
     });
   };
+  /** One request at a time. */
+  const run = async (job: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await job();
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const close = () => {
     onOpen(false);
     // Nothing bought: the sheet opens as new. With an item, it opens on that item.
     if (pick !== null && !countOf(pick)) setPick(null);
   };
+  /** The size the bar works on with the sheet closed: the last one added, else one in the bag. */
+  const lastInBag = lastAdded ?? bagSizes[bagSizes.length - 1] ?? null;
   const openSheet = () => {
-    setPick((now) => now ?? lastAdded);
+    setPick((now) => now ?? lastInBag);
     onOpen(true);
+    actions.onOpened?.();
   };
 
   /**
@@ -1606,7 +1758,7 @@ export default function ProductBuy({
    */
   const launch = (id: number) => {
     const edge = bagSlot.current?.getBoundingClientRect();
-    const to = edge && new DOMRect(edge.right - bagLayout(total + 1).newest - RING_D, edge.top, RING_D, RING_D);
+    const to = edge && new DOMRect(edge.right - bagLayout(bag.length + 1).newest - RING_D, edge.top, RING_D, RING_D);
     const photoBox = open ? cardPhoto.current?.getBoundingClientRect() : null;
     const button = buttonBox.current?.getBoundingClientRect();
     const from =
@@ -1620,7 +1772,7 @@ export default function ProductBuy({
     }
     const fit = photoBox ? photoBox.width / PHOTO.w : 1;
     flyToBag({
-      photo: product.colors[colorIndex].images[0],
+      photo: view.card.colors[colorIndex]?.images[0] ?? "",
       from,
       round: photoBox ? [CARD_ROUND[0] * fit, CARD_ROUND[1] * fit, 0, 0] : [DISC / 2, DISC / 2, DISC / 2, DISC / 2],
       to,
@@ -1656,7 +1808,11 @@ export default function ProductBuy({
 
   const addToBag = (index: number) => {
     setLastAdded(index);
-    launch(putInBag(index, false));
+    const id = putInBag(index, false);
+    launch(id);
+    void run(async () => {
+      if (!(await actions.add(index))) drop(id);
+    });
   };
 
   const add = () => {
@@ -1664,36 +1820,42 @@ export default function ProductBuy({
     addToBag(pick);
   };
   /** Remove and Add More work on the size in view, or on the page on the last size added. */
-  const target = open && pick !== null ? pick : lastAdded;
+  const target = open && pick !== null ? pick : lastInBag;
   const remove = () => {
     if (target === null) return;
-    takeOut(target);
-    if (countOf(target) <= 1) {
+    const last = countOf(target) <= 1;
+    void run(async () => {
+      if (!(await actions.remove(target))) return;
+      takeOut(target);
       // The last of this size: the next size with items is the one the bar now speaks of.
-      const left = bag.find((item) => item.size !== target);
-      setLastAdded(left ? left.size : null);
-    }
+      if (last) setLastAdded(bagSizes.find((size) => size !== target) ?? null);
+    });
   };
 
-  // No flight here: the cart opens at once.
+  // No flight here: the cart opens once the item is in the bag.
   const buyNow = () => {
-    if (pick !== null) {
-      putInBag(pick, true);
-      setLastAdded(pick);
-    }
-    onOpen(false);
-    navigate("cart");
+    if (pick === null) return;
+    const size = pick;
+    void run(async () => {
+      if (!(await actions.add(size))) return;
+      putInBag(size, true);
+      setLastAdded(size);
+      onOpen(false);
+      navigate("cart");
+    });
   };
 
-  const sold = open && pick === SOLD_OUT;
+  const sold = open && pick !== null && sizes[pick]?.stock === 0;
   const showAdded = open ? pick !== null && countOf(pick) > 0 : total > 0;
   const mode: BarMode = sold
-    ? { kind: "notify", on: notified }
+    ? { kind: "notify", on: pick !== null && sizes[pick]?.notified === true }
     : showAdded
       ? { kind: "added" }
       : open
         ? { kind: "buy", ready: pick !== null }
         : { kind: "marks" };
+  /** The price on show: the picked size's in the sheet, else the product's. */
+  const price = open && pick !== null ? (sizes[pick]?.price ?? view.price) : view.price;
 
   const pickedCount = pick === null ? 0 : countOf(pick);
   const chip = showAdded && !open ? (
@@ -1707,7 +1869,7 @@ export default function ProductBuy({
       <motion.span key={`${pick}-${pickedCount}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={FADE}>
         <Rich
           text={t(pickedCount === 1 ? "Added <m>{count}</m> item {size} to bag" : "Added <m>{count}</m> items {size} to bag")}
-          values={{ count: pickedCount, size: t(SIZES[pick].word) }}
+          values={{ count: pickedCount, size: sizes[pick]?.word ?? "" }}
         />
       </motion.span>
     </Chip>
@@ -1734,8 +1896,7 @@ export default function ProductBuy({
         testId="demo-buy-sheet"
         over={
           <BuyCard
-            product={product}
-            store={store}
+            card={{ ...view.card, price: price.now }}
             colorIndex={colorIndex}
             onColor={onColor}
             y={sheetY}
@@ -1746,18 +1907,19 @@ export default function ProductBuy({
         }
       >
         <SizeSheetBody
-          product={product}
+          view={view}
           colorIndex={colorIndex}
           pick={pick}
           inBag={(index) => countOf(index) > 0}
           onPick={(index) => {
             setPick(index);
-            setNotified(false);
+            actions.onPick?.(index);
           }}
           onColor={(index) => {
             onColor(index);
             setPick(null);
           }}
+          onSoon={actions.onSoon}
           t={t}
         />
         {/* The part of the sheet under the bar and under Safari's bar: white, as the file draws it. */}
@@ -1773,20 +1935,28 @@ export default function ProductBuy({
               pillGap={floating ? 0 : PILL_GAP}
               sheetOpen={open}
               chip={chip}
-              currency={t(product.currency)}
+              price={price}
+              currency={view.currency}
+              counts={view.counts}
+              heart={heart}
+              busy={busy}
               buttonBox={buttonBox}
               onOpen={openSheet}
               onBuy={buyNow}
               onAdd={add}
               onRemove={remove}
               onAddMore={() => target !== null && addToBag(target)}
-              onNotify={() => setNotified((on) => !on)}
+              onNotify={() => pick !== null && actions.notify(pick)}
+              onComments={actions.onComments}
+              onShare={actions.onShare}
+              away={away}
               t={t}
             />
             <BagPill
               open={present && (open || lingers)}
               items={bag}
               flying={flying}
+              total={held?.bag}
               slot={bagSlot}
               t={t}
             />

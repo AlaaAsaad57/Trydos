@@ -9,6 +9,7 @@ import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 import ActiveColorDetailsSlider from "components/products/ActiveColorDetailsSlider";
 import ExtendedAreaInfo from "components/products/ExtendedAreaInfo";
+import ShareButton from "components/products/ShareButton";
 import { useIsModalRoute } from "components/ModalRoute/ModalRouteContext";
 import { slidePage } from "components/ModalRoute/pageSlide";
 import { useCommentLike } from "components/Server/product/useCommentLike";
@@ -40,6 +41,7 @@ import type { ProductView, QuestionCardData } from "../productData";
 import { usePageDir } from "../rtl";
 import { useCardPages } from "../useCardPages";
 import { LikesView, ProductPage, Rich, type CardLikesProps } from "./ProductPage";
+import AppProductBuy from "./AppProductBuy";
 
 /** The event fields of the product, as the old page sent them. */
 type ProductGA = Record<string, unknown>;
@@ -144,9 +146,11 @@ function VideoOverlay({
  *  - the review and question rows read their next page near their end
  *    (S7c-10).
  *
- * The old footer does not show until D-45 (S7c-1), so this page has no price
- * and no "add to cart". English is in Apple's capital rules (D-4); other
- * languages use the server's dictionary.
+ * The buy bar and its size sheet are the new design (Stage 7d, AppProductBuy),
+ * in the tab bar's place. Its comment mark shows the review count and goes to
+ * the reviews (S7d-9); its share mark opens the old share sheet, as the old
+ * footer did. English is in Apple's capital rules (D-4); other languages use
+ * the server's dictionary.
  */
 export default function AppProduct({
   lang,
@@ -162,6 +166,7 @@ export default function AppProduct({
   light,
   imagesByColor,
   social,
+  buy,
   serverColor,
   serverSize,
   ownerId,
@@ -183,7 +188,9 @@ export default function AppProduct({
   light: Record<string, any>;
   /** The zoom overlay's photos, in the same order as the gallery's. */
   imagesByColor: { keys: string[]; images: any[] }[];
-  social: { likes: number; liked: boolean };
+  social: { likes: number; liked: boolean; reviews: number; shares: number };
+  /** The old add sheet's `ProductData`: the product with its prices and stock. */
+  buy: Record<string, any>;
   serverColor?: string;
   serverSize?: string;
   ownerId: unknown;
@@ -287,6 +294,16 @@ export default function AppProduct({
     brand_id: light.brand?.id,
     category_id: light.category?.id,
   });
+  /** The heart by the name and the buy bar's heart: one like. */
+  const heart = {
+    liked: like.liked,
+    burst,
+    toggle: () => {
+      if (!signedInOrAsk()) return;
+      if (!like.liked) setBurst((n) => n + 1);
+      like.toggle();
+    },
+  };
 
   const cardWords: CardWords = {
     date: formatTime,
@@ -324,7 +341,9 @@ export default function AppProduct({
       setAsked((list) => [toQuestionCard(comment, cardWords), ...list]),
   });
 
-  const [more, setMore] = useState(false);
+  /** The old sheet open over the page: "More" (the more mark) or "shares" (the buy bar's share mark). */
+  const [sheet, setSheet] = useState<"More" | "shares" | null>(null);
+  const sharingTo = useAppStore((s) => s.selectedContactsForShare) as unknown[] | undefined;
   const [videoOpen, setVideoOpen] = useState(false);
   // The sheet and the video hang on <body>, which the server does not draw.
   const [mounted, setMounted] = useState(false);
@@ -369,16 +388,8 @@ export default function AppProduct({
           onBack={onBack}
           backHref={isModal ? undefined : `/${lang}`}
           onBell={() => showToast(t("Soon available"))}
-          onMore={() => setMore(true)}
-          heart={{
-            liked: like.liked,
-            burst,
-            toggle: () => {
-              if (!signedInOrAsk()) return;
-              if (!like.liked) setBurst((n) => n + 1);
-              like.toggle();
-            },
-          }}
+          onMore={() => setSheet("More")}
+          heart={heart}
           lines={{
             delivery: {
               text: t("{day} <m>{date} </m>| <m>{days}</m> work days in your hands in <m>{country}</m>"),
@@ -443,6 +454,25 @@ export default function AppProduct({
         />
         <Toast text={toast} bottom={110} fixed />
       </div>
+      <AppProductBuy
+        lang={lang}
+        slug={String(light.slug ?? "")}
+        product={buy}
+        view={view}
+        picked={picked}
+        onPick={onPick}
+        heart={{ ...heart, likes: like.totalLikes }}
+        counts={{ comments: social.reviews, shares: social.shares }}
+        away={sheet !== null}
+        onComments={() =>
+          document
+            .querySelector('[data-pw="demo-product-reviews-section"]')
+            ?.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+        onShare={() => setSheet("shares")}
+        onSoon={() => showToast(t("Soon available"))}
+        t={t}
+      />
       {/* The zoom overlay. After the page: it finds the gallery's photos when it mounts. */}
       <ActiveColorDetailsSlider
         serverColor={serverColor}
@@ -454,10 +484,38 @@ export default function AppProduct({
           <div
             className="product-details-footer alternate-product-details-footer z-999999999"
             dir={pageDir}
-            style={more ? { minHeight: 0 } : { display: "none" }}
+            style={sheet ? { minHeight: 0 } : { display: "none" }}
           >
-            {more && <OverlayForClose close={() => setMore(false)} />}
-            <ExtendedAreaInfo product_data={light} active={more} option="More" />
+            {sheet && (
+              <OverlayForClose
+                close={() => {
+                  useAppStore.getState().setSelectedContactsForShare([]);
+                  setSheet(null);
+                }}
+              />
+            )}
+            <ExtendedAreaInfo
+              product_data={{ ...light, total_shares: social.shares }}
+              active={sheet !== null}
+              option={sheet ?? "More"}
+            />
+            {/* The old footer's send button, once a contact is picked in the share sheet. */}
+            {sheet === "shares" && (sharingTo?.length ?? 0) > 0 && (
+              <div className="product-options-container" style={{ zIndex: "999999999" }}>
+                <ShareButton
+                  Image={light.image}
+                  brand={light.brand}
+                  category={light.category}
+                  close={() => setSheet(null)}
+                  details={light.details}
+                  id={light.id}
+                  name={light.name}
+                  price={light.offer_price}
+                  slug={light.slug}
+                  boutique_id={light.boutique_id}
+                />
+              </div>
+            )}
           </div>,
           document.body,
         )}

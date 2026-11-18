@@ -94,6 +94,42 @@ export default function ProductPageContent({
   );
 }
 
+/**
+ * The buy bar's product (Stage 7d): the fields of the old add sheet's
+ * `ProductData` the bar reads, from the search record and the prices and
+ * stock (`qtyPriceDetails`). Only these go to the browser.
+ */
+function buyProduct(global: any, qty: any) {
+  const pick = (key: string) => qty?.[key] ?? global?.[key] ?? null;
+  return {
+    id: global?.id ?? qty?.id,
+    slug: global?.slug,
+    name: global?.name,
+    brand: global?.brand,
+    categories: global?.categories,
+    category: global?.categories?.[0],
+    images: global?.images,
+    sync_color_images: global?.sync_color_images,
+    colors: pick("colors"),
+    choice_options: pick("choice_options"),
+    sizes: pick("sizes"),
+    variation: qty?.variations ?? qty?.variation ?? [],
+    price: pick("price"),
+    offer_price: pick("offer_price"),
+    max_allowed_qty: pick("max_allowed_qty"),
+    flash_deal_max_allowed_quantity: pick("flash_deal_max_allowed_quantity"),
+    flash_deal_end_date: pick("flash_deal_end_date"),
+    flash_deal_details: pick("flash_deal_details"),
+    packed_after_ordering: pick("packed_after_ordering"),
+    available_quantity: pick("available_quantity"),
+    is_active: pick("is_active"),
+    is_country_restricted: pick("is_country_restricted"),
+    is_product_notify_for_user: false,
+    // The luck price has no place in the design (A-33).
+    is_luck: false,
+  };
+}
+
 async function ProductBody({
   params,
   searchParams,
@@ -223,12 +259,19 @@ async function ProductBody({
           category: global?.categories?.[0],
           price: qty?.price,
           offer_price: qty?.offer_price,
+          // The old footer's share button writes these in its chat message.
+          details: global?.details,
+          boutique_id: global?.boutique_id,
         }}
         imagesByColor={getColorImageGroups(global)}
         social={{
           likes: social?.total_likes || 0,
           liked: Boolean(social?.is_liked),
+          // The buy bar's comment mark is the review count (S7d-9).
+          reviews: Number(general?.total_buyers) || 0,
+          shares: Number(social?.total_shares) || 0,
         }}
+        buy={buyProduct(global, qty)}
         serverColor={color}
         serverSize={size}
         ownerId={qty?.owner_id}

@@ -3,7 +3,7 @@ import { act, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // The URL the fake router reports, and the locale segment the page is on.
-const url = vi.hoisted(() => ({ pathname: "/sy-en/products/x" }));
+const url = vi.hoisted(() => ({ pathname: "/sy-en/filters/x" }));
 const page = vi.hoisted(() => ({ lang: "sy-en" }));
 const router = vi.hoisted(() => ({
   push: vi.fn(),
@@ -116,12 +116,12 @@ afterEach(() => {
 });
 
 describe("AppShell — the new bottom bar on every page", () => {
-  it("on a product page puts the bar on <body> with no tab lit, and leaves the page as it is", () => {
-    const { container } = openOn("/sy-en/products/x");
+  it("on a listing page puts the bar on <body> with no tab lit, and leaves the page as it is", () => {
+    const { container } = openOn("/sy-en/filters/x");
 
-    expect(bar(), "the bar is not on the product page").not.toBeNull();
+    expect(bar(), "the bar is not on the listing page").not.toBeNull();
     expect(bar()!.parentElement, "the bar is not a direct child of <body>").toBe(document.body);
-    expect(litTabName(), "a product page lit a tab, but it belongs to no tab").toBeNull();
+    expect(litTabName(), "a listing page lit a tab, but it belongs to no tab").toBeNull();
 
     const child = container.querySelector('[data-testid="page-child"]');
     expect(child?.textContent, "the page's own child was changed").toBe("the page");
@@ -132,7 +132,8 @@ describe("AppShell — the new bottom bar on every page", () => {
     expect(barRoom(), "the bar shows but --app-bar-room is not set to the bar's room").toBe(TAB_ROOM);
   });
 
-  it.each(["/sy-en/demo", "/sy-en/loginDemo", "/sy-en/login"])(
+  // A product's page has the buy bar in the tab bar's place (Stage 7d), so the shell draws none.
+  it.each(["/sy-en/demo", "/sy-en/loginDemo", "/sy-en/login", "/sy-en/products/x"])(
     "on %s draws no bar and sets no --app-bar-room",
     (pathname) => {
       openOn(pathname);
@@ -142,7 +143,7 @@ describe("AppShell — the new bottom bar on every page", () => {
   );
 
   it("sets no inline style on <html> but --app-bar-room, and leaves scroll restore to the browser", () => {
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     expect(htmlStyleNames(), "the shell put an inline style other than --app-bar-room on <html>").toEqual([
       "--app-bar-room",
     ]);
@@ -153,19 +154,19 @@ describe("AppShell — the new bottom bar on every page", () => {
   });
 
   it("Profile goes to the settings page", () => {
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     pressTab("settings");
     expect(router.push, "the Profile tab did not open /sy-en/settings").toHaveBeenCalledWith("/sy-en/settings");
   });
 
   it("Home goes to the home page", () => {
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     pressTab("home");
     expect(router.push, "the Home tab did not open /sy-en").toHaveBeenCalledWith("/sy-en");
   });
 
   it("Cart opens the cart through the store", () => {
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     pressTab("cart");
     expect(enableCart, "the Cart tab did not call enableCart(true)").toHaveBeenCalledWith(true);
   });
@@ -193,26 +194,26 @@ describe("AppShell — the new bottom bar on every page", () => {
 
   it("lights Search while the search is open", () => {
     useAppStore.setState({ enable_search: true } as any);
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     expect(litTabName(), "the Search tab is not lit while the search is open").toBe("demo-tab-search");
   });
 
   it("Chat as a guest (phone \"0\") opens the sign-in", async () => {
     useAppStore.setState({ userProfile: { phone: "0" }, userChat: null } as any);
-    window.history.pushState({}, "", "/sy-en/products/x");
-    openOn("/sy-en/products/x");
+    window.history.pushState({}, "", "/sy-en/filters/x");
+    openOn("/sy-en/filters/x");
     await act(async () => pressTab("chat"));
     expect(
       router.push,
       "the Chat tab did not send a guest to the login page with this page as the way back",
-    ).toHaveBeenCalledWith("/sy-en/login?next=%2Fsy-en%2Fproducts%2Fx");
+    ).toHaveBeenCalledWith("/sy-en/login?next=%2Fsy-en%2Ffilters%2Fx");
     expect(setLoginOpen, "the Chat tab set the old login flag instead of going to the login page").not.toHaveBeenCalled();
     expect(setShouldAuthinticated, "the Chat tab asked a guest to confirm a phone").not.toHaveBeenCalled();
   });
 
   it("Chat with a phone on record but no chat account asks to confirm the phone", async () => {
     useAppStore.setState({ userProfile: { phone: "0999000111" }, userChat: null } as any);
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     await act(async () => pressTab("chat"));
     expect(
       setShouldAuthinticated,
@@ -225,7 +226,7 @@ describe("AppShell — the new bottom bar on every page", () => {
     useAppStore.setState({ userProfile: { phone: "0999000111" }, userChat: { id: 7 } } as any);
     home.getNotificationPermissionStatus.mockReturnValue(2);
     const pushState = vi.spyOn(window.history, "pushState").mockImplementation(() => {});
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     await act(async () => pressTab("chat"));
     expect(pushState, "the Chat tab did not move the address to /sy-en/chat").toHaveBeenCalledWith(null, "", "/sy-en/chat");
     expect(router.push, "the Chat tab waited for the server, and a signed-in shopper needs nothing from it").not.toHaveBeenCalled();
@@ -235,7 +236,7 @@ describe("AppShell — the new bottom bar on every page", () => {
   it("Profile of a signed-in shopper opens with no server", () => {
     useAppStore.setState({ userProfile: { phone: "0999000111" } } as any);
     const pushState = vi.spyOn(window.history, "pushState").mockImplementation(() => {});
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     pressTab("settings");
     expect(pushState, "the Profile tab did not move the address to /sy-en/settings").toHaveBeenCalledWith(null, "", "/sy-en/settings");
     expect(router.push, "the Profile tab waited for the server").not.toHaveBeenCalled();
@@ -245,14 +246,14 @@ describe("AppShell — the new bottom bar on every page", () => {
   it("Chat with notifications not asked yet opens the notification question, not the chat", async () => {
     useAppStore.setState({ userProfile: { phone: "0999000111" }, userChat: { id: 7 } } as any);
     home.getNotificationPermissionStatus.mockReturnValue(-1);
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     await act(async () => pressTab("chat"));
     expect(router.push, "the Chat tab skipped the notification question").not.toHaveBeenCalledWith("/sy-en/chat");
   });
 
   it("hides the bar and drops --app-bar-room while the sign-in covers the screen", () => {
     useAppStore.setState({ loginOpen: true } as any);
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     expect(bar(), "the bar was not mounted at all, so its hiding cannot be checked").not.toBeNull();
     expect(barShown(), "the bar shows over the open sign-in").toBe(false);
     expect(barRoom(), "--app-bar-room is set while the bar is hidden").toBe("");
@@ -260,13 +261,13 @@ describe("AppShell — the new bottom bar on every page", () => {
 
   it("keeps the bar over an open chat, with Chat lit", () => {
     useAppStore.setState({ chatVar: true } as any);
-    openOn("/sy-en/products/x");
+    openOn("/sy-en/filters/x");
     expect(barShown(), "the bar hid over the open chat").toBe(true);
     expect(litTabName(), "the Chat tab is not lit while the chat is open").toBe("demo-tab-chat");
   });
 
   it("on sy-ar the bar and the shell root are right-to-left", () => {
-    const { container } = openOn("/sy-ar/products/x");
+    const { container } = openOn("/sy-ar/filters/x");
     expect(bar()?.getAttribute("dir"), "the bar on sy-ar is not right-to-left").toBe("rtl");
     expect(
       container.querySelector('[data-pw="app-shell"]')?.getAttribute("dir"),

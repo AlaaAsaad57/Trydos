@@ -1307,7 +1307,7 @@ function Reviews({
     return () => seen.disconnect();
   }, []);
   return (
-    <section ref={section} aria-label={t("by Buyers")} className="flex flex-col shrink-0">
+    <section ref={section} aria-label={t("by Buyers")} data-pw="demo-product-reviews-section" className="flex flex-col shrink-0">
       <div className="flex items-start" style={{ marginTop: 1365 - 1345, paddingInlineStart: 14 }}>
         <Chip icon="productStory" bg={INK} ink="#FCFCFC" minW={84}>
           {t("by Buyers")}

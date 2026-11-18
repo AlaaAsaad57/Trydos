@@ -1556,6 +1556,42 @@ The designs came from `development` (XD `Home Page – 50` to `– 103`, built a
 - Skeletons while the data loads. Fast navigation stays (the screen mount, no full reload).
 - RTL with logical sides (A-13, A-14). Old analytics events only (D-10). New words in all three translation files.
 
+### Built (2026-11-18)
+
+- **Bag, checkout, purchase done** (commit `288882fa0`): `AppCart`, `AppCheckout`, `AppOrderDone` draw `BagPage`,
+  `CheckoutPage`, `OrderDonePage` with the store's cart. The taps are the old bag's and checkout's actions
+  (`components/Cart/bagActions.ts`).
+- **Buy bar and size sheet** on the real product page: `AppProductBuy` draws `ProductBuy` with the product
+  (`components/DemoApp1/buyData.ts`). The taps are the old add sheet's (`components/Cart/buyActions.ts`):
+  Add to bag, Buy now, Remove, Add More, Notify Me, with their requests and events. The bar takes the tab
+  bar's place on a product's page (`shellStepsAside`).
+  - A real size has one name, so its tile has one line. "last N" shows for 10 pieces or fewer (the old
+    sheet's rule). A product with no sizes shows one "One Size" tile.
+  - The comment mark is the review count (`total_buyers`) and goes to the reviews. The share mark opens the
+    old share sheet.
+  - The size tabs past the first say "Soon available" (no size chart). The luck price is not offered
+    (no place in the design, A-33).
+  - The old price prompt still opens when a new line costs something else (S7d-11).
+  - Not seen in a browser on a real product: Elasticsearch does not answer from the dev machine.
+    `/demo` was checked (sheet, pick, add, the bag's count).
+- **Old prompts redrawn (S7d-11):** the file has no board for them, so `AskSheet`
+  (`components/DemoApp1/screens/AskSheet.tsx`) builds one from the boards it has: the wallet sheet's corners,
+  the sheets' title, the dark "Done" button (`Home Page – 72`) and a word under it (the policies sheet's
+  "Cancel"). It lies at z 60, over the buy bar (40) and the checkout's sheets (50).
+  - The price prompt (`AppProductBuy`), Notify Me in the bag (`BagNotifySheet` in `AppCart`) and the cart
+    lock (`RdbPaymentLockedSheet`) use it. Their logic is the old one: Notify Me moved to
+    `components/Cart/useNotifyWhenAvailable.ts`, which the old modal uses too.
+  - The old `PriceChangedModal` and `NotifyWhenAvailableModal` stay, because the old add sheet on the old
+    pages still opens them.
+  - The cart lock opens over old pages too, so it keeps z 9999999998. On a wide screen it is a sheet of the
+    page column's width.
+  - The bag's unavailable and country-restricted lines already show in the new style (the red line in
+    `BagPage`), and checkout stops on them ("Please Review Your Cart Info").
+  - Not redrawn: the bag's read error still shows the old `CartErrorComponent` (no board, not in S7d-11).
+- **Tests:** `AppShell.test.tsx` used a product page as "a page of no tab". It now uses a listing page
+  (`/sy-en/filters/x`), and the product page is in the list of pages with no shell bar. The full unit suite
+  has no new failures: the 53 red tests left fail the same way on the merge commit `9b0807853`.
+
 ## Stage 8 — regression, sign-off, merge
 
 1. Run every suite: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, `pnpm e2e:health`, then

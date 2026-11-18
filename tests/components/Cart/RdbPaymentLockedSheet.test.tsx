@@ -241,13 +241,14 @@ describe("RdbPaymentLockedSheet", () => {
       ).toBeInTheDocument();
     });
 
-    const closeControl = document.querySelector('[data-pw="rdb-lock-close"]');
-    expect(closeControl, "the sheet must offer a close control").not.toBeNull();
+    // The new design's sheet has no close mark: a tap on the dimmed page closes it.
+    const closeControl = document.querySelector('[data-pw="demo-sheet-backdrop"]');
+    expect(closeControl, "the sheet must dim the page, so a tap there can close it").not.toBeNull();
     fireEvent.click(closeControl!);
 
     expect(
       screen.queryByText("You Have A Payment In Progress"),
-      "the close control must let the shopper stop seeing the sheet",
+      "a tap on the dimmed page must let the shopper stop seeing the sheet",
     ).toBeNull();
     expect(
       useAppStore.getState().rdbLock,
@@ -260,10 +261,10 @@ describe("RdbPaymentLockedSheet", () => {
       store: { rdbLock: { reference: "ref-1", expires_at: null } },
     });
 
-    fireEvent.click(document.querySelector('[data-pw="rdb-lock-close"]')!);
+    fireEvent.click(document.querySelector('[data-pw="demo-sheet-backdrop"]')!);
     expect(
       screen.queryByText("You Have A Payment In Progress"),
-      "the close control must hide the sheet before the second refusal",
+      "a tap on the dimmed page must hide the sheet before the second refusal",
     ).toBeNull();
 
     // The shopper taps + in the cart. The core backend answers 409 again with
@@ -304,7 +305,7 @@ describe("RdbPaymentLockedSheet", () => {
       screen.queryByText("You Have A Payment In Progress"),
       "a tap inside the sheet must not close it",
     ).not.toBeNull();
-    fireEvent.click(document.querySelector('[data-pw="rdb-cart-locked"]')!);
+    fireEvent.click(document.querySelector('[data-pw="demo-sheet-backdrop"]')!);
     expect(
       screen.queryByText("You Have A Payment In Progress"),
       "a tap on the backdrop should hide the sheet",

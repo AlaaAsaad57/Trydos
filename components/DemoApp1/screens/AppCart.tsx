@@ -14,16 +14,12 @@ import {
 import CartErrorComponent from "components/Cart/CartErrorComponent";
 import { useDemoNav } from "../screenNav";
 import { useDemoCase } from "../demoCase";
-import { isRtlLocale } from "../rtl";
 import { useBagData } from "../useBagData";
 import { BagSkeleton } from "../ScreenSkeleton";
 import { BagPage } from "./BagPage";
 
 // Opens only when the core backend refuses a raise on stock: its own chunk.
-const NotifyWhenAvailableModal = dynamic(
-  () => import("components/Cart/NotifyWhenAvailableModal"),
-  { ssr: false },
-);
+const BagNotifySheet = dynamic(() => import("./BagNotifySheet"), { ssr: false });
 
 /**
  * The bag on the real app: `/[lang]/cart` (Stage 7d).
@@ -34,8 +30,8 @@ const NotifyWhenAvailableModal = dynamic(
  *
  *  - The bin takes one away; on the last one it takes the line out.
  *  - The plus adds one, up to the line's cap. When the core backend refuses
- *    on stock, the bag offers "Notify Me" (the old prompt, until S7d-11
- *    redraws it).
+ *    on stock, the bag offers "Notify Me" (the old prompt in the new
+ *    design's style, S7d-11).
  *  - "ADD AGAIN" puts an Out of Bag line back into the bag.
  *  - "Confirm & continue" sends the old checkout events and opens the
  *    checkout.
@@ -106,10 +102,9 @@ export default function AppCart() {
         t={t}
       />
       {notifyFor && (
-        <NotifyWhenAvailableModal
-          product={notifyFor}
+        <BagNotifySheet
+          line={notifyFor}
           translate={(key: string) => translateFunction(key, language)}
-          isRtl={isRtlLocale(locale)}
           onClose={() => setNotifyFor(null)}
         />
       )}
