@@ -1,6 +1,9 @@
 import UPDATED_API_DATA from "migration.staging";
 
 export const CUSTOMER_INFO_URL = "/customer/info";
+// The email code (customer-email-otp-frontend-guide.md): send a code, then check it.
+export const CUSTOMER_EMAIL_SEND_OTP_URL = "/customer/email/send-otp";
+export const CUSTOMER_EMAIL_VERIFY_OTP_URL = "/customer/email/verify-otp";
 export const FIREBASE_SETTINGS_URL =
   "/firebase_device_tokens/my_firebase_settings";
 

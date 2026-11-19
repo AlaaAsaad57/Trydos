@@ -19,6 +19,16 @@ vi.mock("next/navigation", () => ({
 const auth = vi.hoisted(() => ({
   UpdateProfile: vi.fn(async (..._a: unknown[]) => ({ success: true })),
   UpdateProfileImage: vi.fn(async (..._a: unknown[]) => ({ sub_path: "customers/profile/new.jpg" })),
+  SendEmailOtp: vi.fn(async (email: string) => ({
+    ok: true,
+    email,
+    expiresAt: null,
+    resendAfterSeconds: 120,
+  })),
+  VerifyEmailOtp: vi.fn(async (..._a: unknown[]): Promise<any> => ({
+    ok: true,
+    user: { id: 1012, email: "new@example.com", is_email_verified: 1 },
+  })),
 }));
 vi.mock("services/auth", () => ({ default: auth }));
 
@@ -220,13 +230,85 @@ describe("personal info on real data", () => {
     );
   });
 
-  it("opens the code sheet for a new e-mail and never sends the e-mail (S4-8)", async () => {
+  /** The core backend's answer to a new e-mail with no code yet (PR #699). */
+  const wantsCode = async () => {
+    const { EmailVerificationRequiredError } = await import("services/customerEmail");
+    auth.UpdateProfile.mockRejectedValueOnce(new EmailVerificationRequiredError());
+  };
+  const typeCode = async (code: string) => {
+    // The boxes wait while the code request is out.
+    const input = await waitFor(() => {
+      const el = document.querySelector(
+        '[data-pw="demo-email-code-boxes"] [data-pw="input-otp-field"]',
+      ) as HTMLInputElement | null;
+      if (!el || el.disabled) throw new Error("the code boxes are not ready");
+      return el;
+    });
+    await act(async () => fireEvent.change(input, { target: { value: code } }));
+  };
+
+  it("sends a new e-mail, and opens the code sheet when the core backend wants a code", async () => {
+    await wantsCode();
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-email", " New@Example.com");
+    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
+    expect(auth.UpdateProfile, "the new e-mail should be sent, trimmed and in lowercase").toHaveBeenCalledWith(
+      { email: "new@example.com" },
+      expect.anything(),
+    );
+    expect(screen.queryByText("verification Email !"), "the 'verify the new email' answer should open the code sheet").not.toBeNull();
+    await waitFor(() =>
+      expect(auth.SendEmailOtp, "the code sheet should ask the core backend for a code for the new e-mail").toHaveBeenCalledWith(
+        "new@example.com",
+      ),
+    );
+  });
+
+  it("does not open the code sheet when the core backend takes the save", async () => {
     draw(<PersonalInfoScreen />);
     edit();
     type("demo-personal-email", "new@example.com");
     await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
-    expect(screen.queryByText("verification Email !"), "a new e-mail should open the code sheet").not.toBeNull();
-    expect(auth.UpdateProfile, "the e-mail must not be sent while the backend has no e-mail code").not.toHaveBeenCalled();
+    expect(screen.queryByText("verification Email !"), "a save the backend took must not ask for a code").toBeNull();
+    expect(auth.SendEmailOtp, "a save the backend took must not send a code").not.toHaveBeenCalled();
+  });
+
+  it("after a right code, sends the rest of the change again without the e-mail", async () => {
+    await wantsCode();
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-name", "Sara A.");
+    type("demo-personal-email", "new@example.com");
+    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
+    await typeCode("048213");
+    expect(auth.VerifyEmailOtp, "the code should be checked for the new e-mail, as a string").toHaveBeenCalledWith(
+      "new@example.com",
+      "048213",
+    );
+    await waitFor(() =>
+      expect(auth.UpdateProfile, "the refused save should go again after the right code").toHaveBeenCalledTimes(2),
+    );
+    expect(auth.UpdateProfile.mock.calls[1][0], "the second save should carry the name and leave the verified e-mail out").toEqual({
+      name: "Sara A.",
+    });
+  });
+
+  it("shows a wrong code with the tries left, and saves nothing", async () => {
+    await wantsCode();
+    auth.VerifyEmailOtp.mockResolvedValueOnce({ ok: false, problem: "wrong-code", attemptsLeft: 4 });
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-email", "new@example.com");
+    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
+    await typeCode("111111");
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-pw="demo-email-code-boxes"]')?.textContent,
+        "a wrong code should say so, with the tries left",
+      ).toContain("Wrong Code. Tries left: 4"),
+    );
+    expect(auth.UpdateProfile, "a wrong code must not send the save again").toHaveBeenCalledTimes(1);
   });
 });
 

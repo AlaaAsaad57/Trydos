@@ -284,4 +284,6 @@ export const REQUESTS_DATA = {
   GET_SEARCH_HISTORY: { reqTitle: "get search history", code: 225 },
   REMOVE_SEARCH_HISTORY: { reqTitle: "remove search history", code: 226 },
   LOG_SEARCH: { reqTitle: "log search", code: 227 },
+  SEND_EMAIL_OTP: { reqTitle: "send email otp", code: 228 },
+  VERIFY_EMAIL_OTP: { reqTitle: "verify email otp", code: 229 },
 };

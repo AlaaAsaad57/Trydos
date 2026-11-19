@@ -61,6 +61,11 @@ export type ProfileData = {
   /** The phone for the screen: "+963 900 000 001". */
   phone: string;
   email: string;
+  /**
+   * The backend's `is_email_verified` (PR #698). null when the stored
+   * profile has no such field (stored before the backend sent it).
+   */
+  emailVerified: boolean | null;
   gender: ProfileGender | null;
   /** The photo's full URL, or null. */
   photo: string | null;
@@ -197,6 +202,10 @@ export function useProfileData(): ProfileData {
     phone: signedIn ? formatPhoneInternational(phoneRaw) : "",
     // A guest account carries a made-up address on @guest.com.
     email: rawEmail.includes("@guest.com") ? "" : rawEmail,
+    emailVerified:
+      profile?.is_email_verified === undefined || profile?.is_email_verified === null
+        ? null
+        : Number(profile.is_email_verified) === 1,
     gender: GENDER_FROM_BACKEND[String(gender)] ?? null,
     photo: profile?.image ? GetImageUrl(profile.image) || null : null,
     imagePath: text(profile?.image) || null,

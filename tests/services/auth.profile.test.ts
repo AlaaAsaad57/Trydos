@@ -300,14 +300,51 @@ describe("updating the profile", () => {
       "a save the core backend refused must still reject",
     ).rejects.toThrow();
 
-    // The request layer has already told the shopper which field was refused
-    // and why. A general line added on top of it buries the only useful text.
+    // A save that carries an email goes out with `noMessage` (the email code
+    // answer must not reach the screen), so the profile save shows the
+    // refusal itself, in the request layer's words: the named field. A
+    // general line added on top of it buries the only useful text.
+    expect(
+      (fetchDataModule.fetchData as any).mock.calls[0][0].noMessage,
+      "a save with an email must keep the request layer quiet, or the shopper sees the refusal twice",
+    ).toBe(true);
     expect(
       (notifications.showErrorNotification as any).mock.calls.map(
         (call: any[]) => call[0],
       ),
-      "the profile save added a general failure line over the named field the core backend refused",
+      "the profile save did not show the named field the core backend refused, or added a general failure line over it",
+    ).toEqual(["Email: email already exists"]);
+  });
+
+  it("asks for the email code, and shows nothing, when the core backend wants the new email verified", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, name: "old", email: "old@trydos.com" },
+    });
+    // Backend PR #699: a new email that was not verified with a code.
+    market.reply({
+      success: false,
+      httpStatus: 400,
+      message:
+        '{"email":["Verify the new email with a code to change your email."]}',
+    });
+
+    const { EmailVerificationRequiredError } = await import(
+      "services/customerEmail"
+    );
+    await expect(
+      auth.UpdateProfile({ email: "new@trydos.com" }, {}),
+      "the core backend's 'verify the new email' answer did not reach the form as EmailVerificationRequiredError",
+    ).rejects.toBeInstanceOf(EmailVerificationRequiredError);
+    expect(
+      (notifications.showErrorNotification as any).mock.calls.map(
+        (call: any[]) => call[0],
+      ),
+      "the 'verify the new email' answer is a step of the change; it must open the code sheet, not show a message",
     ).toEqual([]);
+    expect(
+      store.useAppStore.getState().userProfile.email,
+      "a refused save must leave the stored email as it was",
+    ).toBe("old@trydos.com");
   });
 
   // `fetchData` is a stand-in in this file, so its own message never shows here.
@@ -788,5 +825,83 @@ describe("updating the profile — refusals and rollbacks", () => {
     await expect(auth.UpdateProfile({ name: "Ada" }, {}), "the market rollback failure was lost").rejects.toThrow(
       "market rollback refused",
     );
+  });
+});
+
+describe("verifying a new email with a code (core backend)", () => {
+  it("sends the code as a string and stores the verified email", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, email: "old@trydos.com", is_email_verified: 0 },
+    });
+    market.reply({
+      success: true,
+      httpStatus: 200,
+      data: {
+        user: { id: 7, email: "new@trydos.com", is_email_verified: 1 },
+      },
+    });
+
+    const result = await auth.VerifyEmailOtp(" New@Trydos.com ", "048213");
+
+    const sent = (fetchDataModule.fetchData as any).mock.calls[0][0];
+    expect(sent.url, "the code check went to the wrong endpoint").toBe(
+      "/customer/email/verify-otp",
+    );
+    expect(sent.server, "the code check must go to the core backend").toBe(
+      "market",
+    );
+    expect(
+      JSON.parse(sent.body),
+      "the code check must send the email trimmed and in lowercase, and the code as a string (a leading 0 kept)",
+    ).toEqual({ email: "new@trydos.com", code: "048213" });
+    expect(
+      "problem" in result ? result.problem : "ok",
+      "a 200 from the core backend's code check was not read as a verified email",
+    ).toBe("ok");
+    const profile = store.useAppStore.getState().userProfile;
+    expect(profile.email, "the verified email did not reach the store").toBe(
+      "new@trydos.com",
+    );
+    expect(
+      profile.is_email_verified,
+      "the store did not mark the email as verified",
+    ).toBe(1);
+    const cookieWrite = net.calls.find(
+      (c: any) => c.url === "/api/auth/update-user",
+    );
+    expect(
+      cookieWrite?.body?.updates?.[0],
+      "the verified email did not reach the User-Data cookie",
+    ).toEqual({
+      name: "User-Data",
+      value: { email: "new@trydos.com", is_email_verified: 1 },
+    });
+  });
+
+  it("keeps the stored email when the code is wrong", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, email: "old@trydos.com", is_email_verified: 1 },
+    });
+    market.reply({
+      success: false,
+      httpStatus: 422,
+      isSuccessful: false,
+      data: { attempts_left: 4 },
+    });
+
+    const result = await auth.VerifyEmailOtp("new@trydos.com", "111111");
+
+    expect(
+      "problem" in result ? result.problem : "ok",
+      "a wrong-code 422 from the core backend was not read as a wrong code",
+    ).toBe("wrong-code");
+    expect(
+      store.useAppStore.getState().userProfile.email,
+      "a wrong code changed the stored email",
+    ).toBe("old@trydos.com");
+    expect(
+      net.calls.some((c: any) => c.url === "/api/auth/update-user"),
+      "a wrong code wrote to the User-Data cookie",
+    ).toBe(false);
   });
 });

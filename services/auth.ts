@@ -24,6 +24,20 @@ import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
 import { GetTicket } from "utils/UploadUtils";
 import { completeClaim, completeQrLogin, QrLoginError } from "services/qrLogin";
+import {
+  EmailVerificationRequiredError,
+  isEmailVerifyRefusal,
+  normalizeEmail,
+  readSendAnswer,
+  readVerifyAnswer,
+  type SendEmailCodeResult,
+  type VerifyEmailCodeResult,
+} from "services/customerEmail";
+import {
+  CUSTOMER_EMAIL_SEND_OTP_URL,
+  CUSTOMER_EMAIL_VERIFY_OTP_URL,
+} from "utils/endpointConfig";
+import { formatFieldErrors } from "utils/fieldErrors";
 
 // Helper to update user metadata in HttpOnly cookies via server route
 async function updateSecureUserData(
@@ -432,6 +446,75 @@ class AuthService {
       throw error;
     }
   }
+  /**
+   * Asks the core backend to email a 6-digit code to `email`. The account's
+   * email does not change here; only `VerifyEmailOtp` changes it.
+   *
+   * `noMessage`: the screen picks its own words by the HTTP status. The
+   * backend's English `message` must not appear as a notification.
+   */
+  async SendEmailOtp(email: string): Promise<SendEmailCodeResult> {
+    const { userProfile } = useAppStore.getState();
+    const requested = normalizeEmail(email);
+    try {
+      const answer = await fetchData({
+        url: CUSTOMER_EMAIL_SEND_OTP_URL,
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({ email: requested }),
+        reqTitle: REQUESTS_DATA.SEND_EMAIL_OTP,
+        noMessage: true,
+      });
+      return readSendAnswer(answer, requested, {
+        email: userProfile?.email,
+        verified: Number(userProfile?.is_email_verified) === 1,
+      });
+    } catch (error) {
+      LogError({ error, scenario: "Error In SendEmailOtp in services/auth" });
+      return { ok: false, problem: "failed" };
+    }
+  }
+
+  /**
+   * Checks the code. A right code saves the email on the account as verified,
+   * and the answer holds the updated customer.
+   *
+   * Only `email` and `is_email_verified` are copied into the store and the
+   * User-Data cookie: they are the two fields this call changes. The rest of
+   * the customer object comes in the backend's raw form (for example the
+   * image path), and the stored copy keeps those in the app's own form (see
+   * `getImageForCookie`), so a full copy would undo that.
+   */
+  async VerifyEmailOtp(
+    email: string,
+    code: string,
+  ): Promise<VerifyEmailCodeResult> {
+    try {
+      const answer = await fetchData({
+        url: CUSTOMER_EMAIL_VERIFY_OTP_URL,
+        method: "POST",
+        server: "market",
+        // `code` stays a string, so a leading 0 is kept.
+        body: JSON.stringify({ email: normalizeEmail(email), code: String(code) }),
+        reqTitle: REQUESTS_DATA.VERIFY_EMAIL_OTP,
+        noMessage: true,
+      });
+      const result = readVerifyAnswer(answer);
+      if (result.ok) {
+        const saved = {
+          email: result.user.email ?? normalizeEmail(email),
+          is_email_verified: Number(result.user.is_email_verified ?? 1),
+        };
+        useAppStore.getState().editUserInfo(saved);
+        updateSecureUserData([{ name: COOKIE_NAMES.USER_DATA, value: saved }]);
+      }
+      return result;
+    } catch (error) {
+      LogError({ error, scenario: "Error In VerifyEmailOtp in services/auth" });
+      return { ok: false, problem: "failed" };
+    }
+  }
+
   async UpdateName(name: string) {
     const { updateName, userChat, userStories, userProfile } =
       useAppStore.getState();
@@ -894,14 +977,31 @@ class AuthService {
       if (userObj?.image != null) {
         marketBody.image = this.ConfigurePhoto(userObj.image, "market");
       }
+      // A save that carries an email can be answered "verify the new email
+      // with a code first" (backend PR #699). That answer is a step of the
+      // flow, not an error, so the request layer must not show it: the caller
+      // opens the email code sheet instead. Any other refusal of such a save
+      // is shown here, in the same words the request layer would use.
+      const sendsEmail = "email" in marketBody;
       let res = await fetchData({
         url: "/customer/update-profile",
         body: JSON.stringify(marketBody),
         reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
         method: "POST",
         server: "market",
+        noMessage: sendsEmail,
       });
       if (!res.success) {
+        if (sendsEmail && isEmailVerifyRefusal(res)) {
+          refusalShown = true;
+          throw new EmailVerificationRequiredError();
+        }
+        if (sendsEmail) {
+          const text = res?.message ?? res?.data?.message ?? "";
+          if (text && !ignoredMessages.includes(text)) {
+            showErrorNotification(formatFieldErrors(text) ?? text, 5000);
+          }
+        }
         refusalShown = shownByRequestLayer(res);
         throw new Error(res.message);
       }
@@ -946,10 +1046,13 @@ class AuthService {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       return res;
     } catch (error) {
-      LogServerError({
-        error: error,
-        scenario: "Error In UpdateProfile in services/auth",
-      });
+      // The email code request is a step of the change, not a fault.
+      if (!(error instanceof EmailVerificationRequiredError)) {
+        LogServerError({
+          error: error,
+          scenario: "Error In UpdateProfile in services/auth",
+        });
+      }
       if (market_done) {
         let res = await fetchData({
           url: "/customer/update-profile",
