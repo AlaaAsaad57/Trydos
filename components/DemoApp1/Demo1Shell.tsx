@@ -23,6 +23,7 @@ import {
   type MotionValue,
   type Variants,
 } from "framer-motion";
+import type { PrefetchOptions } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
 import { bagCount } from "../DemoApp/demoBag";
@@ -154,6 +155,29 @@ const introRun = { picked: false, asked: false };
 
 /** The screen frame's key while the country picker is on show. */
 const INTRO_KEY = "intro";
+
+/**
+ * The login the sign-in request's "Get Started" opens. `from=demo`: the login
+ * opens on its Get Started screen, and its end ("Later", or signed in) comes
+ * back here (loginDemo/page.tsx).
+ */
+export const loginHref = (locale: string) => `/${locale}/loginDemo?from=demo`;
+
+/**
+ * A FULL prefetch: the whole page with its data, not only the shell.
+ *
+ * /loginDemo is a dynamic route (it reads `?from=demo` on the server), and a
+ * plain `router.prefetch` skips the dynamic part. Without it, a tap on "Get
+ * Started" waited for the server to render the page (0.3 to 0.9 s on staging),
+ * and only then loaded the login's scripts (0.1 to 0.35 s more). A full
+ * prefetch fetches both before the tap, so the tap only shows the page.
+ *
+ * `kind: "full"` is the `PrefetchKind.FULL` that Next's `router.prefetch`
+ * reads (next/dist/client/components/prefetch.js). The docs no longer list
+ * it. If a later Next drops it, the call falls back to a plain prefetch: the
+ * tap is slower again, and nothing breaks.
+ */
+const FULL_PREFETCH = { kind: "full" } as unknown as PrefetchOptions;
 
 /**
  * The card a store's page grows from: its box in px, from the page column's
@@ -361,12 +385,31 @@ function Demo1ShellInner({
   const [askSignIn, setAskSignIn] = useState(false);
   const askTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** The sign-in request is due or on show, so its login is kept prefetched. */
+  const loginWanted = useRef(false);
+
+  /**
+   * Fetches the login before "Get Started" is tapped (see FULL_PREFETCH). A
+   * prefetched page is kept 30 s (`staleTimes.dynamic`); when it expires while
+   * the request is still due or open, it is fetched again.
+   */
+  const prefetchLogin = () => {
+    loginWanted.current = true;
+    router.prefetch(loginHref(locale), {
+      ...FULL_PREFETCH,
+      onInvalidate: () => {
+        if (loginWanted.current) prefetchLogin();
+      },
+    });
+  };
 
   /**
    * The sign-in request, SIGN_IN_ASK_MS from now. It never opens over another
-   * sheet, or while the shopper types: it waits for them to finish.
+   * sheet, or while the shopper types: it waits for them to finish. The login
+   * behind it is fetched now, in the SIGN_IN_ASK_MS before it shows.
    */
   const planAsk = () => {
+    prefetchLogin();
     if (askTimer.current) clearTimeout(askTimer.current);
     const due = () => {
       const typing = document.activeElement?.matches(
@@ -386,6 +429,7 @@ function Demo1ShellInner({
     // Back from /loginDemo before the request came up: it is still due.
     if (intro && introRun.picked && !introRun.asked) planAsk();
     return () => {
+      loginWanted.current = false;
       if (askTimer.current) clearTimeout(askTimer.current);
       if (barTimer.current) clearTimeout(barTimer.current);
     };
@@ -639,12 +683,14 @@ function Demo1ShellInner({
         </div>
         <SignInRequestSheet
           open={askSignIn}
-          onClose={() => setAskSignIn(false)}
-          onStart={() => {
+          onClose={() => {
+            loginWanted.current = false;
             setAskSignIn(false);
-            // `from=demo`: the login opens on its Get Started screen, and its
-            // end ("Later", or signed in) comes back here (loginDemo/page.tsx).
-            router.push(`/${locale}/loginDemo?from=demo`);
+          }}
+          onStart={() => {
+            loginWanted.current = false;
+            setAskSignIn(false);
+            router.push(loginHref(locale));
           }}
         />
         <DemoKeyboard locale={locale} t={t} />
