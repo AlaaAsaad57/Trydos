@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoNav } from "../Demo1Shell";
@@ -9,6 +9,7 @@ import {
   SHEET,
   fill,
   gapTo,
+  isFloatingBarSafari,
   paraTop,
   textBottom,
 } from "../demo1Layout";
@@ -32,7 +33,8 @@ import SignInSlides from "./SignInSlides";
  *    holds the quick preview's slides, as its slider (SignInSlides);
  *  - "Get Started", 390 x 60 at (20, 789), radius 20, `#FAFAFA` with a 0.5 px
  *    `#5D5C5D` dashed line (3 on, 3 off), the words 16 Regular `#3C3C3C`;
- *  - "Later, Take A Look At The App", 14 Regular `#4D84FF`, baseline 893.
+ *  - "Later, Take A Look At The App", 14 Regular `#4D84FF`, baseline 893,
+ *    and the white under it (END_GAP; none in iPhone Safari 26).
  *
  * "Get Started" opens the new login design (/loginDemo). "Later", the dimmed
  * page and a drag down close the sheet.
@@ -44,6 +46,19 @@ const SHADOW = "0 -3px 10px rgba(0, 0, 0, 0.1)";
 
 /** The least white under "Later" on a short window, in px. */
 const BOTTOM_MIN = 16;
+
+/**
+ * The file's white under "Later": 35 px from the line's box to the SCREEN's
+ * end, where the file has the home bar. In iPhone Safari 26 the window ends
+ * above Safari's floating bar, and the bar and the room under it already take
+ * about 98 px. The 35 px then stood on top of that (seen on the client's
+ * iPhone): about 130 px of white lay under "Later", and the sheet, which rests
+ * on the window's end, sat that much higher than the file. So there the white
+ * goes, and "Later" rests on the window's end, as the address and delivery
+ * sheets' buttons do (CartAddressSheet END_GAP). Everywhere else the window
+ * ends at the screen's end, and the file's 35 px stay.
+ */
+const END_GAP = 932 - textBottom(893, 14);
 
 /** The handle line's box ends here (it is 2 px tall, centred on y 297). */
 const HANDLE_END = TOP + SHEET.handle.top + SHEET.handle.height / 2;
@@ -61,6 +76,13 @@ export default function SignInRequestSheet({
   onStart: () => void;
 }) {
   const { t } = useDemoNav();
+  // Read once, in the browser: the sheet shows only after a tap, never in the
+  // server's HTML, so the server's answer here never reaches the page.
+  const [gap] = useState(() =>
+    typeof navigator !== "undefined" && isFloatingBarSafari(navigator.userAgent)
+      ? 0
+      : END_GAP,
+  );
   const words = t(
     "To Access All Features, <m>Please Get Started</m>, Where You’ll Find Great Features And The Full Version. <a>More Info</a>",
   );
@@ -156,15 +178,17 @@ export default function SignInRequestSheet({
         </Txt>
       </button>
 
-      {/* The white under "Later", to the artboard's end. On a short window
-          it shrinks with the card, and keeps BOTTOM_MIN. */}
+      {/* The white under "Later", to the artboard's end (END_GAP; none in
+          iPhone Safari 26). On a short window it shrinks with the card, and
+          keeps BOTTOM_MIN. */}
       <div
         aria-hidden="true"
+        data-pw="demo-sign-in-request-end"
         style={{
           flexGrow: 0,
           flexShrink: 1,
-          flexBasis: 932 - textBottom(893, 14),
-          minHeight: BOTTOM_MIN,
+          flexBasis: gap,
+          minHeight: gap > 0 ? BOTTOM_MIN : 0,
         }}
       />
     </Sheet>
