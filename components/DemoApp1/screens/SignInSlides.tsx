@@ -6,7 +6,6 @@ import { PREVIEW_SLIDES } from "NewLoginDesign/previewSlides";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { useDemoNav } from "../Demo1Shell";
 import { C, fill } from "../demo1Layout";
-import { Stroke } from "../ui";
 
 /**
  * The sign-in request's card and its page dots, as one slider: the quick
@@ -42,6 +41,18 @@ const SLIDE_GAP = 20;
 
 /** The card in the file: its top, height and radius. */
 const CARD = { y: 565, height: 186, radius: 20 } as const;
+
+/**
+ * The card's line, in px: the file's 0.5 px `#4A31E7`.
+ *
+ * The line is a CSS border on the card, not a `Stroke` (an SVG line laid
+ * over the card and clipped to its edge). At a browser zoom of 80 %, 0.5 px
+ * is less than one screen pixel, and the clip cut the bottom and right lines
+ * away; at 125 % they were faint. The browser draws a border at least one
+ * screen pixel wide, and a border is part of the box, so no clip removes it.
+ * On a phone (2x, 3x) the two look the same.
+ */
+const LINE = 0.5;
 
 /** The card's least height on a short window, in px: about half the file's 186. */
 export const CARD_MIN = 96;
@@ -154,6 +165,8 @@ export default function SignInSlides({ mt }: { mt: number }) {
                     width: `calc(100% - ${SLIDE_GAP}px)`,
                     height: `calc(100% - ${SLIDE_GAP}px)`,
                     borderRadius: CARD.radius,
+                    // The line is the box's own border, not a `Stroke`: see LINE.
+                    border: `${LINE}px solid ${C.purple}`,
                     background: C.white,
                     paddingInline: 20,
                   }}
@@ -192,7 +205,6 @@ export default function SignInSlides({ mt }: { mt: number }) {
                       {t(slide.descKey as DemoKey)}
                     </p>
                   </div>
-                  <Stroke color={C.purple} radius={CARD.radius} />
                 </div>
               </div>
             ))}
