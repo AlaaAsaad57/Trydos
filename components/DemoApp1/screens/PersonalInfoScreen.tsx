@@ -1,23 +1,17 @@
 "use client";
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
-import XdIcon from "../../DemoApp/XdIcon";
-import { DEMO_KEYBOARD } from "../../DemoApp/demoKeyboard";
+import React, { useState } from "react";
 import { useDemoNav } from "../Demo1Shell";
+import EmailCodeSheet from "./EmailCodeSheet";
 import { useDemoData, type DemoGender } from "../../DemoApp/DemoData";
-import { C, DESIGN_W, gapTo, lineBox, textBottom } from "../demo1Layout";
+import { C, lineBox } from "../demo1Layout";
 import {
   Field,
   FieldInput,
-  fromCentre,
   InfoBanner,
   ScreenHeader,
   ScreenPage,
-  Sheet,
-  Txt,
   WideButton,
 } from "../ui";
 
@@ -122,6 +116,9 @@ export default function PersonalInfoScreen() {
           />
           <EmailCodeSheet
             email={codeFor}
+            t={t}
+            send={demoSend}
+            check={demoCheck}
             onClose={() => setCodeFor(null)}
             onVerified={(address) => {
               setVerified(address);
@@ -202,138 +199,13 @@ export default function PersonalInfoScreen() {
 const CODE_SECONDS = 120;
 
 /**
- * The email code sheet — XD `Home Page – 90`.
- *
- * The page dims (`#1D1D1D` at 90%) and a sheet rises from y 90: "verification
- * Email !" (30 Bold, baseline 318), the line under it (16 Medium, 354), the
- * address with "resend after - 01:58" (a 15 px row from y 366), the purple
- * privacy line with its shield (a 14 px row from 389) and the six code boxes
- * at y 502 — the login's own boxes (RdbPinInputs), so the two flows cannot
- * drift apart. All 40 px in, the boxes 20.
- *
- * No email is sent. Any six digits verify the address.
+ * The demo's steps for the email code sheet: no email is sent, and any six
+ * digits verify the address.
  */
-function EmailCodeSheet({
+const demoSend = async (email: string) => ({
+  ok: true as const,
   email,
-  onClose,
-  onVerified,
-}: {
-  email: string | null;
-  onClose: () => void;
-  onVerified: (email: string) => void;
-}) {
-  const { t } = useDemoNav();
-  const [pin, setPin] = useState("");
-  const [valid, setValid] = useState<"" | "valid">("");
-  const [left, setLeft] = useState(CODE_SECONDS);
-  /**
-   * True once the sheet has finished rising. The code boxes open the keypad
-   * 300 ms after they mount. In the old scaled demo a keypad opened while the sheet was
-   * still low pushed the sheet's top off the screen. /demo has no canvas
-   * to lift, but it keeps the same rule: the boxes are mounted again,
-   * focused, only when the sheet is in place, so the keypad opens on a sheet
-   * that has stopped moving.
-   */
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (!email) return;
-    setPin("");
-    setValid("");
-    setReady(false);
-    setLeft(CODE_SECONDS);
-    const timer = setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
-    return () => clearInterval(timer);
-  }, [email]);
-
-  const clock = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
-
-  return (
-    <Sheet
-      open={email !== null}
-      onClose={onClose}
-      y={90}
-      testId="demo-email-code"
-      onEntered={() => setReady(true)}
-    >
-      <Txt ml={40} mt={gapTo(90 + 13, 318, 30)} size={30} weight="bold">
-        {t("verification Email !")}
-      </Txt>
-      <Txt
-        ml={40}
-        mt={gapTo(textBottom(318, 30), 354, 16)}
-        size={16}
-        weight="medium"
-      >
-        {t("enter verification code sent to your Email")}
-      </Txt>
-      <div
-        className="flex items-center shrink-0"
-        style={{
-          marginLeft: 40,
-          marginTop: 366 - textBottom(354, 16),
-          height: 15,
-          fontSize: 12,
-        }}
-      >
-        <span className="font-medium" style={{ color: C.ink }}>
-          {email}
-        </span>
-        <button
-          type="button"
-          disabled={left > 0}
-          onClick={() => setLeft(CODE_SECONDS)}
-          className="font-normal"
-          style={{ marginLeft: 5, color: C.hint }}
-        >
-          {t("resend after")} -{" "}
-          <span className="font-medium" style={{ color: C.blue }}>
-            {clock}
-          </span>
-        </button>
-        <XdIcon name="otpHelp" style={{ marginLeft: 3.5 }} />
-      </div>
-      <div
-        className="flex items-center shrink-0"
-        style={{ marginLeft: 40, marginTop: 389 - (366 + 15), height: 14 }}
-      >
-        <span
-          className="font-normal"
-          style={{
-            fontSize: 11,
-            lineHeight: `${lineBox(11)}px`,
-            color: C.purple,
-          }}
-        >
-          {t("Your privacy is completely safe")}
-        </span>
-        <XdIcon name="shield" style={{ marginLeft: 6 }} />
-      </div>
-      {/* The login's boxes are a fixed 390 px block (six 60 px boxes). The
-          file centres it, 20 px from each edge, so it stays centred on the
-          sheet: the file's x 20 on a 430 px phone. */}
-      <motion.div
-        className="shrink-0"
-        style={{
-          marginLeft: fromCentre(20, DESIGN_W),
-          marginTop: 502 - (389 + 14),
-        }}
-      >
-        <RdbPinInputs
-          key={ready ? "focused" : "resting"}
-          autoFocus={ready}
-          // The demo's keyboard types the code, not the login's keypad.
-          disableCustomKeypad={DEMO_KEYBOARD}
-          value={pin}
-          onChange={setPin}
-          isValidPin={valid}
-          disabled={valid === "valid"}
-          onComplete={() => {
-            setValid("valid");
-            setTimeout(() => email && onVerified(email), 600);
-          }}
-        />
-      </motion.div>
-    </Sheet>
-  );
-}
+  expiresAt: null,
+  resendAfterSeconds: CODE_SECONDS,
+});
+const demoCheck = async () => ({ ok: true as const, user: {} });

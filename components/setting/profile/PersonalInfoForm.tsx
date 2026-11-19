@@ -14,6 +14,11 @@ import { parseFieldErrors } from "utils/fieldErrors";
 import { allCountries } from "country-telephone-data";
 import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
 import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
+import EmailCodeSheet from "components/DemoApp1/screens/EmailCodeSheet";
+import {
+  EmailVerificationRequiredError,
+  normalizeEmail,
+} from "services/customerEmail";
 
 // Validation helpers
 const isValidEmail = (email: string): boolean => {
@@ -146,13 +151,39 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
     return changed;
   };
 
-  const updateUserProfile = async (payload) => {
+  /**
+   * The email the code sheet is open for, or null. The sheet opens when the
+   * core backend answers the save with "verify the new email with a code"
+   * (backend PR #699). That answer saves nothing, not even the other fields.
+   */
+  const [codeFor, setCodeFor] = useState<string | null>(null);
+  /** The save that was refused for the email code. It is sent again after a right code. */
+  const [waitingSave, setWaitingSave] = useState<any>(null);
+
+  /**
+   * `emailVerified`: the email code sheet has just saved the new email
+   * (verify-otp saves it). So the email is left out of the save: the other
+   * fields are what is left to send.
+   */
+  const updateUserProfile = async (payload, emailVerified = false) => {
+    const changed = buildChangedFields(payload);
+    if (emailVerified) delete changed.email;
     try {
       setLoading(true);
-      await auth.UpdateProfile(buildChangedFields(payload), initialData);
+      if (Object.keys(changed).length > 0) {
+        await auth.UpdateProfile(changed, initialData);
+      }
       setLoading(false);
       window.location.href = `/${local}/settings/profile`;
     } catch (error) {
+      if (error instanceof EmailVerificationRequiredError) {
+        // Not an error for the shopper: the next step of the change. Keep the
+        // form as typed, prove the email with a code, then send it again.
+        setLoading(false);
+        setWaitingSave(payload);
+        setCodeFor(normalizeEmail(String(payload.email ?? "")));
+        return;
+      }
       LogError({
         error: error,
         scenario: "Error In updateUserProfile in PersonalInfoForm",
@@ -312,6 +343,28 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           />
         </AuthOverlay>
       )}
+      {/* The email code sheet — the same sheet as the demo's Personal Info
+          (`Home Page – 90`). It asks for the code when it opens. A right code
+          saves the email (verify-otp), then the refused save goes again
+          without the email. */}
+      <EmailCodeSheet
+        email={codeFor}
+        t={(key) => translateFunction(key, language)}
+        send={(address) => auth.SendEmailOtp(address)}
+        check={(address, code) => auth.VerifyEmailOtp(address, code)}
+        testId="personal-info-email-code"
+        z={9999}
+        onClose={() => {
+          setCodeFor(null);
+          setWaitingSave(null);
+        }}
+        onVerified={() => {
+          const save = waitingSave;
+          setCodeFor(null);
+          setWaitingSave(null);
+          if (save) updateUserProfile(save, true);
+        }}
+      />
       <BackBar
         name={translateFunction("Profile | Personal Info", language)}
         isRtl={isRtl}

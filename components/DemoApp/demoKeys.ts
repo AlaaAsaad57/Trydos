@@ -245,6 +245,25 @@ const INTRO_KEYS = [
   "Slide",
 ] as const;
 
+/**
+ * The email code sheet's answers (EmailCodeSheet.tsx): the words for each
+ * thing the email code endpoints can answer (services/customerEmail.ts,
+ * PROBLEM_KEY). They are sentences, so they keep their case (KEEP_CASE).
+ */
+export const EMAIL_CODE_KEYS = [
+  "Wrong Code",
+  "Tries left",
+  "Resend Code",
+  "Too many wrong codes. Ask for a new code.",
+  "The code expired. Ask for a new code.",
+  "This code no longer works. Ask for a new code.",
+  "This email is used by another account.",
+  "This email is already verified on your account.",
+  "Sign in with your phone number first.",
+  "Too many requests. Please try again in a moment.",
+  "Something went wrong",
+] as const;
+
 export const DEMO_KEYS = [
   "Hide menu",
   "Device and browser info",
@@ -339,6 +358,7 @@ export const DEMO_KEYS = [
   "enter verification code sent to your Email",
   "resend after",
   "Your privacy is completely safe",
+  ...EMAIL_CODE_KEYS,
   "How tall are you?",
   "What is your weight?",
   "What is your Foot size?",
@@ -679,6 +699,8 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   ...DELIVERY_KEYS,
   // `Home Page – 75` and `– 73`, the payment step (demoCase.ts too).
   ...PAYMENT_KEYS,
+  // The email code sheet's answers.
+  ...EMAIL_CODE_KEYS,
 ]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;
