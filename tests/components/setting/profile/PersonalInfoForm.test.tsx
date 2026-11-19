@@ -51,6 +51,19 @@ vi.mock("components/Login/Enhanced/VerifyPhoneFlow", () => ({
   ),
 }));
 
+// The email code sheet (a framer-motion layer on <body>) is replaced by its
+// two outcomes, as buttons, so a case can finish or close it the way the real
+// one would. It shows only while the form gives it an address.
+vi.mock("components/DemoApp1/screens/EmailCodeSheet", () => ({
+  default: ({ email, onVerified, onClose }: any) =>
+    email === null ? null : (
+      <div data-testid="email-code-sheet" data-email={email}>
+        <button onClick={() => onVerified(email)}>code right</button>
+        <button onClick={onClose}>code close</button>
+      </div>
+    ),
+}));
+
 const updateProfile = vi.fn(async (..._args: unknown[]) => ({ success: true }));
 const verifyOtpForUpdatePhone = vi.fn(async (..._args: unknown[]) => "phone-id-token");
 vi.mock("services/auth", () => ({
@@ -62,6 +75,7 @@ vi.mock("services/auth", () => ({
 }));
 
 import PersonalInfoForm from "components/setting/profile/PersonalInfoForm";
+import { EmailVerificationRequiredError } from "services/customerEmail";
 import { buildUser } from "../../../fixtures/user";
 import { renderWithProviders, screen, userEvent } from "../../../render";
 
@@ -229,35 +243,40 @@ describe("a save the backend refused", () => {
   const refuse = (payload: Record<string, string[]>) =>
     updateProfile.mockRejectedValueOnce(new Error(JSON.stringify(payload)));
 
+  // A changed e-mail no longer goes to the profile save (it is proved with a
+  // code first, see "a changed e-mail"), so these cases change the name.
+  const typeName = async (user: ReturnType<typeof userEvent.setup>, value: string) => {
+    const name = screen.getByPlaceholderText("Enter Full Name");
+    await user.clear(name);
+    await user.type(name, value);
+    return name as HTMLInputElement;
+  };
+
   it("keeps what the shopper typed instead of putting the old value back", async () => {
     const user = userEvent.setup();
-    await show({ email: "old@trydos.test" });
-    refuse({ email: ["email already exists"] });
+    await show();
+    refuse({ name: ["name is not allowed"] });
 
-    const email = screen.getByPlaceholderText("Enter Email");
-    await user.clear(email);
-    await user.type(email, "taken@trydos.test");
+    const name = await typeName(user, "Refused Shopper");
     await save(user);
 
     expect(
-      (email as HTMLInputElement).value,
-      "the refused save wiped the e-mail the shopper typed, so they have to type it again to fix it",
-    ).toBe("taken@trydos.test");
+      name.value,
+      "the refused save wiped the name the shopper typed, so they have to type it again to fix it",
+    ).toBe("Refused Shopper");
   });
 
   it("shows the backend's reason under the field the backend named", async () => {
     const user = userEvent.setup();
-    await show({ email: "old@trydos.test" });
-    refuse({ email: ["email already exists"] });
+    await show();
+    refuse({ name: ["name is not allowed"] });
 
-    const email = screen.getByPlaceholderText("Enter Email");
-    await user.clear(email);
-    await user.type(email, "taken@trydos.test");
+    await typeName(user, "Refused Shopper");
     await save(user);
 
     expect(
-      await screen.findByText("email already exists"),
-      "the shopper was not told, at the e-mail field, why the core backend refused it",
+      await screen.findByText("name is not allowed"),
+      "the shopper was not told, at the name field, why the core backend refused it",
     ).toBeInTheDocument();
   });
 
@@ -287,39 +306,35 @@ describe("a save the backend refused", () => {
 
   it("takes the backend's message away once the shopper edits that field", async () => {
     const user = userEvent.setup();
-    await show({ email: "old@trydos.test" });
-    refuse({ email: ["email already exists"] });
+    await show();
+    refuse({ name: ["name is not allowed"] });
 
-    const email = screen.getByPlaceholderText("Enter Email");
-    await user.clear(email);
-    await user.type(email, "taken@trydos.test");
+    const name = await typeName(user, "Refused Shopper");
     await save(user);
-    await screen.findByText("email already exists");
+    await screen.findByText("name is not allowed");
 
-    await user.type(email, "x");
+    await user.type(name, "x");
 
     expect(
-      screen.queryByText("email already exists"),
-      "the backend's message stayed on screen after the shopper changed the e-mail it referred to",
+      screen.queryByText("name is not allowed"),
+      "the backend's message stayed on screen after the shopper changed the name it referred to",
     ).not.toBeInTheDocument();
   });
 
   it("leaves the form alone when the refusal names no field", async () => {
     const user = userEvent.setup();
-    await show({ email: "old@trydos.test" });
+    await show();
     updateProfile.mockRejectedValueOnce(new Error("market refused"));
 
-    const email = screen.getByPlaceholderText("Enter Email");
-    await user.clear(email);
-    await user.type(email, "typed@trydos.test");
+    const name = await typeName(user, "Typed Shopper");
     await save(user);
 
     // Nothing to place under a field — the notification the request layer
     // already showed is what tells the shopper. What they typed still stands.
     expect(
-      (email as HTMLInputElement).value,
+      name.value,
       "a refusal that named no field still wiped what the shopper typed",
-    ).toBe("typed@trydos.test");
+    ).toBe("Typed Shopper");
     expect(
       screen.queryByText("market refused"),
       "a message that names no field was placed under a field anyway",
@@ -434,6 +449,211 @@ describe("finishing a phone change", () => {
     await user.click(screen.getByText("flow close"));
     expect(screen.queryByTestId("auth-overlay"), "closing the re-verify step left it open").not.toBeInTheDocument();
     expect(updateProfile, "closing the re-verify step still saved").not.toHaveBeenCalled();
+  });
+});
+
+describe("a changed e-mail", () => {
+  /*
+    The core backend saves a new e-mail only through its code check
+    (send-otp, then verify-otp), and the right code is what saves it. So the
+    form opens the code sheet itself when the e-mail changed, before any save,
+    and the profile save never carries the new e-mail.
+
+    The form does not wait for the backend to refuse the save first (that
+    refusal, "verify the new email" with 400, is backend PR #699). Before #699
+    is live the backend took the new e-mail with no code at all; that was the
+    bug (2026-11-19). The 400 is still handled, as a second net.
+  */
+  const OLD = "old@trydos.test";
+  const NEW = "new@trydos.test";
+
+  const typeEmail = async (user: ReturnType<typeof userEvent.setup>, value: string) => {
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    if (value) await user.type(email, value);
+  };
+
+  it("opens the code sheet for the new e-mail instead of saving", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    await typeEmail(user, NEW);
+    await save(user);
+
+    expect(
+      screen.queryByTestId("email-code-sheet")?.getAttribute("data-email"),
+      "a new e-mail did not open the code sheet for that address",
+    ).toBe(NEW);
+    expect(
+      updateProfile,
+      "the new e-mail went to the core backend's profile save before its code was checked",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("asks the code for the e-mail as the backend saves it: trimmed and in lowercase", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    await typeEmail(user, "  New@Trydos.TEST ");
+    await save(user);
+
+    expect(
+      screen.queryByTestId("email-code-sheet")?.getAttribute("data-email"),
+      "the code sheet was not opened for the trimmed, lowercase address",
+    ).toBe(NEW);
+  });
+
+  it("after a right code, saves the other changed fields without the e-mail", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    await typeEmail(user, NEW);
+    const name = screen.getByPlaceholderText("Enter Full Name");
+    await user.clear(name);
+    await user.type(name, "Renamed Shopper");
+    await save(user);
+
+    await user.click(screen.getByText("code right"));
+
+    expect(
+      updateProfile.mock.calls[0]?.[0],
+      "after the code saved the e-mail, the profile save did not carry only the new name",
+    ).toEqual({ name: "Renamed Shopper" });
+    expect(
+      screen.queryByTestId("email-code-sheet"),
+      "the code sheet stayed open after a right code",
+    ).not.toBeInTheDocument();
+  });
+
+  it("after a right code, sends no profile save when the e-mail was the only change", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    await typeEmail(user, NEW);
+    await save(user);
+
+    await user.click(screen.getByText("code right"));
+
+    expect(
+      updateProfile,
+      "the code already saved the e-mail, but the form still sent a profile save",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("does not ask a second code when a later save is refused and sent again", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    updateProfile.mockRejectedValueOnce(
+      new Error(JSON.stringify({ name: ["name is not allowed"] })),
+    );
+    await typeEmail(user, NEW);
+    const name = screen.getByPlaceholderText("Enter Full Name");
+    await user.clear(name);
+    await user.type(name, "Refused Shopper");
+    await save(user);
+    await user.click(screen.getByText("code right"));
+    await screen.findByText("name is not allowed");
+
+    await user.clear(name);
+    await user.type(name, "Renamed Shopper");
+    await save(user);
+
+    expect(
+      screen.queryByTestId("email-code-sheet"),
+      "the e-mail was already proved with a code, but the second save asked for a code again",
+    ).not.toBeInTheDocument();
+    expect(
+      updateProfile.mock.calls[1]?.[0],
+      "the second save did not carry only the corrected name",
+    ).toEqual({ name: "Renamed Shopper" });
+  });
+
+  it("closing the code sheet saves nothing", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    await typeEmail(user, NEW);
+    await save(user);
+
+    await user.click(screen.getByText("code close"));
+
+    expect(
+      screen.queryByTestId("email-code-sheet"),
+      "closing the code sheet left it open",
+    ).not.toBeInTheDocument();
+    expect(updateProfile, "closing the code sheet still saved the profile").not.toHaveBeenCalled();
+  });
+
+  it("asks no code for the same e-mail in another case, and saves directly", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    await typeEmail(user, "OLD@trydos.test");
+    await save(user);
+
+    expect(
+      screen.queryByTestId("email-code-sheet"),
+      "the saved e-mail in capitals is the same address, but the form asked for a code",
+    ).not.toBeInTheDocument();
+    expect(
+      updateProfile,
+      "the same e-mail in another case was not saved directly",
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks no code for a cleared e-mail, and saves directly", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    await typeEmail(user, "");
+    await save(user);
+
+    expect(
+      screen.queryByTestId("email-code-sheet"),
+      "a cleared e-mail has no address to send a code to, but the form asked for one",
+    ).not.toBeInTheDocument();
+    expect(
+      updateProfile.mock.calls[0]?.[0],
+      "the cleared e-mail was not saved directly",
+    ).toEqual({ email: "" });
+  });
+
+  it("still opens the code sheet when the core backend asks for the code (the 400)", async () => {
+    const user = userEvent.setup();
+    // The form sees the same address (only the case differs), so it saves
+    // directly; the backend answers "verify the new email" anyway.
+    await show({ email: OLD });
+    updateProfile.mockRejectedValueOnce(new EmailVerificationRequiredError());
+    await typeEmail(user, "Old@trydos.test");
+    await save(user);
+
+    expect(
+      (await screen.findByTestId("email-code-sheet")).getAttribute("data-email"),
+      "the core backend asked for the e-mail code, but the code sheet did not open for that address",
+    ).toBe(OLD);
+
+    // The right code saved the e-mail; sending it again would get the same 400.
+    await user.click(screen.getByText("code right"));
+    expect(
+      updateProfile,
+      "after the code the form sent the e-mail to the profile save again, which the core backend refuses with the same 400",
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it("with a new phone and a new e-mail: the phone first, then the code, then one save with the phone token", async () => {
+    const user = userEvent.setup();
+    await show({ email: OLD });
+    await typeEmail(user, NEW);
+    const phone = screen.getByPlaceholderText("Enter Phone");
+    await user.clear(phone);
+    await user.type(phone, "+10000000001");
+    await save(user);
+
+    await user.click(screen.getByText("flow success"));
+    expect(
+      screen.queryByTestId("email-code-sheet")?.getAttribute("data-email"),
+      "after the new phone was proved, the code sheet did not open for the new e-mail",
+    ).toBe(NEW);
+    expect(updateProfile, "the profile was saved before the new e-mail's code was checked").not.toHaveBeenCalled();
+
+    await user.click(screen.getByText("code right"));
+    expect(
+      updateProfile.mock.calls[0]?.[0],
+      "the save after both checks did not carry the new phone and its token, without the e-mail",
+    ).toEqual({ phone: "+10000000001", id_token: "phone-id-token" });
   });
 });
 

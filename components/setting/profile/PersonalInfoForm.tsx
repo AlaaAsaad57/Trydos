@@ -152,22 +152,66 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
   };
 
   /**
-   * The email the code sheet is open for, or null. The sheet opens when the
-   * core backend answers the save with "verify the new email with a code"
-   * (backend PR #699). That answer saves nothing, not even the other fields.
+   * The email code sheet. The core backend saves a new email only through its
+   * code check: send-otp, then verify-otp, and a right code saves the email.
+   * So the profile save never carries a new email.
+   *
+   * The sheet opens in two cases:
+   *  1. The form sees a new email (`newEmailOf`) and opens the sheet before
+   *     any save. This does not need the backend to refuse the save first.
+   *  2. The core backend answers the save with "verify the new email with a
+   *     code" (400, backend PR #699). That answer saves nothing, not even the
+   *     other fields. This case is a second net for an email the form saw as
+   *     the same.
+   *
+   * `codeFor` is the email the sheet is open for, or null.
    */
   const [codeFor, setCodeFor] = useState<string | null>(null);
-  /** The save that was refused for the email code. It is sent again after a right code. */
+  /** The save that waits for the email code. It is sent after a right code. */
   const [waitingSave, setWaitingSave] = useState<any>(null);
+  /**
+   * The email a right code has already saved on the account, in the backend's
+   * form (trimmed, lowercase). A later save (after another field was refused)
+   * leaves it out and does not ask for a second code.
+   */
+  const [provedEmail, setProvedEmail] = useState<string | null>(null);
 
   /**
-   * `emailVerified`: the email code sheet has just saved the new email
-   * (verify-otp saves it). So the email is left out of the save: the other
-   * fields are what is left to send.
+   * The new email the save would carry, in the backend's form, or null. An
+   * email is new when it is not empty and differs from the saved one after
+   * trimming and lowercasing: the backend saves the same address in another
+   * case, or a cleared email, as before, with no code.
    */
-  const updateUserProfile = async (payload, emailVerified = false) => {
+  const newEmailOf = (payload): string | null => {
+    const typed = normalizeEmail(String(payload.email ?? ""));
+    if (!typed || typed === normalizeEmail(String(baseline.email ?? ""))) return null;
+    return typed;
+  };
+
+  const askEmailCode = (payload, email: string) => {
+    setWaitingSave(payload);
+    setCodeFor(email);
+  };
+
+  /**
+   * `proved`: the email a right code has just saved (verify-otp saves it).
+   * The state `provedEmail` is not set yet in the same click, so the sheet
+   * passes it here.
+   */
+  const updateUserProfile = async (payload, proved: string | null = provedEmail) => {
+    const newEmail = newEmailOf(payload);
+    // A new email is proved with a code before anything is saved.
+    if (newEmail && newEmail !== proved) {
+      askEmailCode(payload, newEmail);
+      return;
+    }
     const changed = buildChangedFields(payload);
-    if (emailVerified) delete changed.email;
+    // A code already saved this email: the other fields are what is left. This
+    // also covers the backend's 400 on an email the form saw as the same, so
+    // the save does not carry it again and get the same 400.
+    if (proved && normalizeEmail(String(payload.email ?? "")) === proved) {
+      delete changed.email;
+    }
     try {
       setLoading(true);
       if (Object.keys(changed).length > 0) {
@@ -180,8 +224,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
         // Not an error for the shopper: the next step of the change. Keep the
         // form as typed, prove the email with a code, then send it again.
         setLoading(false);
-        setWaitingSave(payload);
-        setCodeFor(normalizeEmail(String(payload.email ?? "")));
+        askEmailCode(payload, normalizeEmail(String(payload.email ?? "")));
         return;
       }
       LogError({
@@ -345,8 +388,8 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
       )}
       {/* The email code sheet — the same sheet as the demo's Personal Info
           (`Home Page – 90`). It asks for the code when it opens. A right code
-          saves the email (verify-otp), then the refused save goes again
-          without the email. */}
+          saves the email (verify-otp), then the waiting save goes without
+          the email. */}
       <EmailCodeSheet
         email={codeFor}
         t={(key) => translateFunction(key, language)}
@@ -358,11 +401,14 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           setCodeFor(null);
           setWaitingSave(null);
         }}
-        onVerified={() => {
+        onVerified={(saved) => {
           const save = waitingSave;
+          // The address as the backend saved it; the sheet's own as a fallback.
+          const proved = normalizeEmail(saved || codeFor || "");
+          setProvedEmail(proved);
           setCodeFor(null);
           setWaitingSave(null);
-          if (save) updateUserProfile(save, true);
+          if (save) updateUserProfile(save, proved);
         }}
       />
       <BackBar
