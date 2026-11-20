@@ -23,7 +23,6 @@ import {
   type MotionValue,
   type Variants,
 } from "framer-motion";
-import type { PrefetchOptions } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
 import { bagCount } from "../DemoApp/demoBag";
@@ -55,9 +54,10 @@ import {
   sliderMove,
 } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
-import { anyLayerOpen } from "./ui";
 import CountryPickerScreen from "./screens/CountryPickerScreen";
+import { anyLayerOpen } from "./ui";
 import SignInRequestSheet from "./screens/SignInRequestSheet";
+import NewLoginWidget from "NewLoginDesign/NewLoginWidget";
 
 /**
  * The shell of the fluid demo at /[lang]/demo.
@@ -120,18 +120,28 @@ import SignInRequestSheet from "./screens/SignInRequestSheet";
  * and curve (sliderMove in demo1Layout.ts). Neither screen fades. With
  * "reduce motion" on, the page only fades in and out.
  *
- * The start: the country picker, then the sign-in request
- * -------------------------------------------------------
+ * The start: the login, then the country picker, then the page
+ * --------------------------------------------------------------
  * With `intro` on (the /demo layout turns it on), every fresh load of the
- * demo opens on the country picker (XD `Ramaaz pay signin – 16`), whatever
- * the URL. It is drawn on the server too, so the screen of the URL never
- * shows before it. Once a country is chosen, the picker fades out and the
- * screen of the URL fades in. SIGN_IN_ASK_MS later the sign-in request
- * sheet (`Sign In request`) comes up over it, once.
+ * demo opens in three steps, whatever the URL:
+ *
+ * 1. The login's Get Started screen (its logo animation), the same widget
+ *    as /loginDemo. The shopper taps "Later" or goes through the login.
+ * 2. The country picker (XD `Ramaaz pay signin – 16`).
+ * 3. The screen of the URL: the picker fades out and the screen fades in.
+ *
+ * All three are in this one page, so no step waits for the server. The login
+ * is a fixed layer over the picker, and both are drawn on the server too: the
+ * picker is already in place under the login, so the login's end shows it at
+ * once, and the screen of the URL never shows before them.
+ *
+ * SIGN_IN_ASK_MS after the screen of the URL shows, the sign-in request sheet
+ * (`Sign In request`) comes up over it, once. Its "Get Started" opens the same
+ * login layer again, over the screen; the login's end goes back to it.
  */
 
-/** How long after the app opens from the country picker the sign-in request comes up, in ms. */
-export const SIGN_IN_ASK_MS = 4000;
+/** How long after the screen of the URL shows the sign-in request comes up, in ms. */
+export const SIGN_IN_ASK_MS = 5000;
 
 /**
  * When the sign-in request is due but another sheet is open, or the shopper
@@ -148,36 +158,13 @@ const THROUGH = { out: 0.25, in: 0.35 } as const;
 
 /**
  * The start's state for this load of the page. It lives as long as the page's
- * scripts: a move inside the site (to /loginDemo and back) keeps it, so the
- * picker and the sign-in request come once; a reload opens the site again.
+ * scripts: a move inside the site keeps it, so the login, the picker and the
+ * sign-in request come once; a reload opens the site again.
  */
-const introRun = { picked: false, asked: false };
+const introRun = { signed: false, picked: false, asked: false };
 
 /** The screen frame's key while the country picker is on show. */
 const INTRO_KEY = "intro";
-
-/**
- * The login the sign-in request's "Get Started" opens. `from=demo`: the login
- * opens on its Get Started screen, and its end ("Later", or signed in) comes
- * back here (loginDemo/page.tsx).
- */
-export const loginHref = (locale: string) => `/${locale}/loginDemo?from=demo`;
-
-/**
- * A FULL prefetch: the whole page with its data, not only the shell.
- *
- * /loginDemo is a dynamic route (it reads `?from=demo` on the server), and a
- * plain `router.prefetch` skips the dynamic part. Without it, a tap on "Get
- * Started" waited for the server to render the page (0.3 to 0.9 s on staging),
- * and only then loaded the login's scripts (0.1 to 0.35 s more). A full
- * prefetch fetches both before the tap, so the tap only shows the page.
- *
- * `kind: "full"` is the `PrefetchKind.FULL` that Next's `router.prefetch`
- * reads (next/dist/client/components/prefetch.js). The docs no longer list
- * it. If a later Next drops it, the call falls back to a plain prefetch: the
- * tap is slower again, and nothing breaks.
- */
-const FULL_PREFETCH = { kind: "full" } as unknown as PrefetchOptions;
 
 /**
  * The card a store's page grows from: its box in px, from the page column's
@@ -333,7 +320,7 @@ export default function Demo1Shell({
   children: React.ReactNode;
   /** The demo's words in the page's language, looked up on the server — see demoKeys.ts. */
   dictionary: DemoDictionary;
-  /** Open on the country picker, then ask to sign in (see "The start" above). */
+  /** Open on the login, then the country picker (see "The start" above). */
   intro?: boolean;
 }) {
   return (
@@ -379,37 +366,19 @@ function Demo1ShellInner({
   const reduceMotion = useReducedMotion();
   const [hideMenu, setHideMenu] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState(false);
+  const [signing, setSigning] = useState(intro && !introRun.signed);
   const [picking, setPicking] = useState(intro && !introRun.picked);
   // The tab bar waits while the picker fades out, then comes in with the app.
   const [barHeld, setBarHeld] = useState(false);
+  const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [askSignIn, setAskSignIn] = useState(false);
   const askTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** The sign-in request is due or on show, so its login is kept prefetched. */
-  const loginWanted = useRef(false);
-
-  /**
-   * Fetches the login before "Get Started" is tapped (see FULL_PREFETCH). A
-   * prefetched page is kept 30 s (`staleTimes.dynamic`); when it expires while
-   * the request is still due or open, it is fetched again.
-   */
-  const prefetchLogin = () => {
-    loginWanted.current = true;
-    router.prefetch(loginHref(locale), {
-      ...FULL_PREFETCH,
-      onInvalidate: () => {
-        if (loginWanted.current) prefetchLogin();
-      },
-    });
-  };
 
   /**
    * The sign-in request, SIGN_IN_ASK_MS from now. It never opens over another
-   * sheet, or while the shopper types: it waits for them to finish. The login
-   * behind it is fetched now, in the SIGN_IN_ASK_MS before it shows.
+   * sheet, or while the shopper types: it waits for them to finish.
    */
   const planAsk = () => {
-    prefetchLogin();
     if (askTimer.current) clearTimeout(askTimer.current);
     const due = () => {
       const typing = document.activeElement?.matches(
@@ -426,15 +395,45 @@ function Demo1ShellInner({
   };
 
   useEffect(() => {
-    // Back from /loginDemo before the request came up: it is still due.
+    // The shell came back after the pick, before the request came up: it is still due.
     if (intro && introRun.picked && !introRun.asked) planAsk();
     return () => {
-      loginWanted.current = false;
       if (askTimer.current) clearTimeout(askTimer.current);
       if (barTimer.current) clearTimeout(barTimer.current);
     };
     // Once, on mount: the request is planned again only by a new pick.
   }, []);
+
+  /**
+   * The login's page scaler (scaling/AppScaler.tsx) sets <body> transparent
+   * while it is open and clears <body>'s colour when it closes. It also leaves
+   * its own `--xd-unit` on <html>. The old login was another route, so the
+   * demo's screens mounted again after it and painted their colour again. A
+   * layer does not remount them, so the shell puts the page back as it was:
+   * <body> gets the screen's colour again from <html> (usePageColor in ui.tsx
+   * sets both the same, and Safari 26 reads <body> for the room under its
+   * bars), and `--xd-unit` goes back to its value from rdb-auth.css.
+   */
+  const loginWasOpen = useRef(signing);
+  useEffect(() => {
+    if (signing) {
+      loginWasOpen.current = true;
+      return;
+    }
+    if (!loginWasOpen.current) return;
+    loginWasOpen.current = false;
+    const root = document.documentElement;
+    root.style.removeProperty("--xd-unit");
+    const color = root.style.getPropertyValue("background-color");
+    if (color)
+      document.body.style.setProperty("background-color", color, "important");
+  }, [signing]);
+
+  /** "Later", or the login's end: back to the picker under it, or to the screen. */
+  const endLogin = () => {
+    introRun.signed = true;
+    setSigning(false);
+  };
 
   /** The country is chosen: the picker fades out, the app fades in, and the sign-in request waits. */
   const endIntro = () => {
@@ -454,7 +453,7 @@ function Demo1ShellInner({
   // page has no tab bar: XD `Home Page – 49` draws none, and the bar slides
   // away as the product opens.
   const barScreen = shown !== null && (isTabRoot(shown) || isStoreScreen(shown));
-  const showBar = barScreen && !picking && !barHeld;
+  const showBar = barScreen && !picking && !barHeld && !signing;
 
   // The shell keeps each screen's scroll itself, so the browser must not
   // put one back on its own when the URL changes.
@@ -625,7 +624,15 @@ function Demo1ShellInner({
           // `clip` and not `hidden`: it cuts the screen sliding in at the
           // column's edges without making the column a scroll box, so the
           // document still scrolls and the sticky headers still stick.
-          style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
+          style={{
+            maxWidth: PAGE_MAX,
+            minHeight: "100dvh",
+            overflowX: "clip",
+            // Under the login at the start, the picker is cut to the window,
+            // so the document has nothing to scroll behind the login's fixed
+            // layer. A screen under a later login keeps its height and scroll.
+            ...(signing && picking && { height: "100dvh", overflowY: "clip" }),
+          }}
         >
           <AnimatePresence initial={false} custom={leave}>
             <ScreenFrame key={frameKey} id={frameKey} leave={leave}>
@@ -655,45 +662,50 @@ function Demo1ShellInner({
           t={t}
         />
 
-        {/* The demo's own switches, as on the old scaled demo: the right edge, mid-height. */}
-        <div
-          data-pw="demo-controls"
-          className="fixed right-2 top-1/2 -translate-y-1/2 z-[999999999999] flex flex-col items-end gap-2 font-quicksand select-none"
-        >
-          <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={hideMenu}
-              onChange={(e) => setHideMenu(e.target.checked)}
-              className="accent-[#402CDD] cursor-pointer"
-            />
-            <span>{t("Hide menu")}</span>
-          </label>
-          {!hideMenu && (
-            <button
-              type="button"
-              aria-label={t("Device and browser info")}
-              onClick={() => setDeviceInfo(true)}
-              className="w-7 h-7 text-xs font-bold rounded-full bg-white/90 shadow border border-gray-200 text-[#402CDD] cursor-pointer"
-            >
-              i
-            </button>
-          )}
-          {!hideMenu && <DebugButtons t={t} />}
-        </div>
+        {/* The demo's own switches, as on the old scaled demo: the right edge,
+            mid-height. The login has its own, so these wait for its end. */}
+        {!signing && (
+          <div
+            data-pw="demo-controls"
+            className="fixed right-2 top-1/2 -translate-y-1/2 z-[999999999999] flex flex-col items-end gap-2 font-quicksand select-none"
+          >
+            <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hideMenu}
+                onChange={(e) => setHideMenu(e.target.checked)}
+                className="accent-[#402CDD] cursor-pointer"
+              />
+              <span>{t("Hide menu")}</span>
+            </label>
+            {!hideMenu && (
+              <button
+                type="button"
+                aria-label={t("Device and browser info")}
+                onClick={() => setDeviceInfo(true)}
+                className="w-7 h-7 text-xs font-bold rounded-full bg-white/90 shadow border border-gray-200 text-[#402CDD] cursor-pointer"
+              >
+                i
+              </button>
+            )}
+            {!hideMenu && <DebugButtons t={t} />}
+          </div>
+        )}
         <SignInRequestSheet
           open={askSignIn}
-          onClose={() => {
-            loginWanted.current = false;
-            setAskSignIn(false);
-          }}
+          onClose={() => setAskSignIn(false)}
           onStart={() => {
-            loginWanted.current = false;
             setAskSignIn(false);
-            router.push(loginHref(locale));
+            // The same login layer as at the start: no route change, no wait.
+            setSigning(true);
           }}
         />
-        <DemoKeyboard locale={locale} t={t} />
+        {/* The login brings its own keypad: the demo's keyboard waits for its end. */}
+        {!signing && <DemoKeyboard locale={locale} t={t} />}
+        {/* Step 1 of the start: the login's Get Started screen, over the picker. */}
+        {signing && (
+          <NewLoginWidget initialStep="get-started" onFinish={endLogin} />
+        )}
         <DemoDeviceInfoModal
           open={deviceInfo}
           onClose={() => setDeviceInfo(false)}
