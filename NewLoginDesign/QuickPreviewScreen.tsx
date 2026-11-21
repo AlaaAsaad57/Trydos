@@ -136,7 +136,130 @@ const FLIP_LABELS: FlipLabel[] = [
  * the canvas is exactly DESIGN_H (932). A phone gives ~838, so the pill landed
  * on the bottom edge and the whole ring fell outside `overflow-hidden`.
  */
-const COLLAPSED_TAIL = 103;
+export const COLLAPSED_TAIL = 103;
+
+/**
+ * How the column moves: up from below the page to its peek, then up to the
+ * top when the first eight seconds end. The login's country picker
+ * (NewCountryPickerScreen) moves its column the same way.
+ */
+export const columnRise = (expanded: boolean) => ({
+    duration: expanded ? 1.1 : 0.8,
+    ease: [0.25, 1, 0.5, 1] as const,
+});
+
+/** Where the column starts, under the page, before it is measured. */
+export const COLUMN_START_Y = 1000;
+
+/** How often the pill turns to the next slogan, in ms. */
+const FLIP_MS = 1400;
+
+/**
+ * The slogan pill that turns over every FLIP_MS. The Quick Preview and the
+ * login's country picker both show it, at the top of their column.
+ *
+ * The whole pill turns over, and the text goes with it. Before this the pill
+ * stood still and only the words inside it faded up and down, which is a
+ * cross-fade, not a flip.
+ *
+ * The pill is only as wide as its own line. The design draws the slogan as a
+ * positioned text with 12px of pill on each side of it, so every slogan gets
+ * its own width and the words sit in the middle. The old fixed 206 was the
+ * width of one slogan, and the 12px left padding with no right padding pushed
+ * every other slogan off centre.
+ *
+ * The words are #1D1D1D and only the full stops are purple — that is what the
+ * design's ranged styles say.
+ *
+ * The wrapper carries the height, not the pill alone. With `mode="wait"` there
+ * is a moment between the two pills where nothing is in the box; without a
+ * height here the column would lose 32px for that moment, and the measure
+ * effect of the screen would move the badge underneath on every flip.
+ *
+ * The timer starts in an effect, so it runs only in the browser, after the
+ * page is hydrated.
+ */
+export function SloganPill({
+    translate,
+    pillRef,
+}: {
+    translate: (key: string) => string;
+    /** The wrapper box: the screen reads its top to place the column's peek. */
+    pillRef?: React.Ref<HTMLDivElement>;
+}) {
+    const [flipTextIndex, setFlipTextIndex] = useState<number>(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setFlipTextIndex((prev) => (prev + 1) % FLIP_LABELS.length);
+        }, FLIP_MS);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div
+            ref={pillRef}
+            className="w-full flex justify-center items-center z-20 flex-shrink-0"
+            style={{ perspective: 600, height: XD.quickPreview.pill.height }}
+        >
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={flipTextIndex}
+                    initial={{ rotateX: -90, opacity: 0 }}
+                    animate={{ rotateX: 0, opacity: 1 }}
+                    exit={{ rotateX: 90, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="flex items-center justify-center whitespace-nowrap"
+                    style={{
+                        transformOrigin: 'center',
+                        backfaceVisibility: 'hidden',
+                        width: 'fit-content',
+                        height: XD.quickPreview.pill.height,
+                        lineHeight: `${XD.quickPreview.pill.height}px`,
+                        borderRadius: XD.quickPreview.pill.radius,
+                        backgroundColor: '#F8F7FF',
+                        paddingLeft: XD.quickPreview.pill.paddingX,
+                        paddingRight: XD.quickPreview.pill.paddingX,
+                    }}
+                >
+                    <span className="text-xd-14 font-normal text-[#1D1D1D] text-center">
+                        {FLIP_LABELS[flipTextIndex](translate)}
+                    </span>
+                </motion.div>
+            </AnimatePresence>
+        </div>
+    );
+}
+
+/**
+ * The start animation: the wordmark in the middle of the page for the first
+ * eight seconds, while the column waits below. It plays whatever its slot
+ * says; the design starts it on Cinematic Assembly with the glyphs held
+ * still, so the ring draws and the eyes drop around a word that is already
+ * there. When `show` turns false it fades and shrinks away.
+ */
+export function PreviewWordmark({ show, slot }: { show: boolean; slot: LogoSlotConfig }) {
+    return (
+        <AnimatePresence>
+            {show && (
+                <motion.div
+                    key="center-wordmark-logo"
+                    initial={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.5, ease: 'easeInOut' } }}
+                    className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
+                >
+                    <SequencedLogo
+                        slot={slot}
+                        variant="header"
+                        dotColor="purple"
+                        width={176}
+                        height={88}
+                    />
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+}
 
 /**
  * The column, laid out against the XD anchors.
@@ -211,7 +334,6 @@ export default function QuickPreviewScreen({
     const [isHydrated, setIsHydrated] = useState<boolean>(false);
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const [slideIndex, setSlideIndex] = useState<number>(0);
-    const [flipTextIndex, setFlipTextIndex] = useState<number>(0);
 
     const canvasRef = useRef<HTMLElement>(null);
     const columnRef = useRef<HTMLDivElement>(null);
@@ -328,15 +450,6 @@ export default function QuickPreviewScreen({
         // seconds on any unrelated state change.
     }, [isHydrated, autoExpandDelayMs]);
 
-    // Fast slogan flipping interval (1.4s)
-    useEffect(() => {
-        if (!isHydrated) return;
-        const interval = setInterval(() => {
-            setFlipTextIndex((prev) => (prev + 1) % FLIP_LABELS.length);
-        }, 1400);
-        return () => clearInterval(interval);
-    }, [isHydrated]);
-
     const handleNext = () => {
         if (slideIndex < PREVIEW_SLIDES.length - 1) {
             emblaApi?.scrollNext();
@@ -360,29 +473,7 @@ export default function QuickPreviewScreen({
             {/* ======================================================== */}
             {/* CENTRAL WORDMARK LOGO (Shown during initial 8s state)     */}
             {/* ======================================================== */}
-            <AnimatePresence>
-                {!isExpanded && (
-                    <motion.div
-                        key="center-wordmark-logo"
-                        initial={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.5, ease: 'easeInOut' } }}
-                        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
-                    >
-                        {/* The mark that sits above the slider for the first
-                            eight seconds. It plays whatever its slot says; the
-                            design starts it on Cinematic Assembly with the
-                            glyphs held still, so the ring draws and the eyes
-                            drop around a word that is already there. */}
-                        <SequencedLogo
-                            slot={wordmarkSlot}
-                            variant="header"
-                            dotColor="purple"
-                            width={176}
-                            height={88}
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <PreviewWordmark show={!isExpanded} slot={wordmarkSlot} />
 
             {/* ======================================================== */}
             {/* UNIFIED PREVIEW COLUMN: Physical Transform from Bottom   */}
@@ -390,72 +481,20 @@ export default function QuickPreviewScreen({
             <motion.div
                 key="qp-unified-column"
                 ref={columnRef}
-                initial={{ y: 1000, scale: 1 }}
+                initial={{ y: COLUMN_START_Y, scale: 1 }}
                 animate={{
-                    y: !isHydrated ? 1000 : isExpanded ? 0 : fit.collapsedY,
+                    y: !isHydrated ? COLUMN_START_Y : isExpanded ? 0 : fit.collapsedY,
                     scale: isExpanded ? fit.fitScale : 1,
                 }}
-                transition={{ duration: isExpanded ? 1.1 : 0.8, ease: [0.25, 1, 0.5, 1] }}
+                transition={columnRise(isExpanded)}
                 style={{ transformOrigin: 'top center' }}
                 className="w-full flex flex-col items-center relative z-20"
             >
                 {/* The pill box starts at 56 in the design file. */}
                 <FlexibleSpace size={abovePill} />
 
-                {/*
-                  * 1. Slogan Pill Badge (Top of column)
-                  *
-                  * The whole pill turns over, and the text goes with it. Before
-                  * this the pill stood still and only the words inside it faded
-                  * up and down, which is a cross-fade, not a flip.
-                  *
-                  * The pill is only as wide as its own line. The design draws
-                  * the slogan as a positioned text with 12px of pill on each
-                  * side of it, so every slogan gets its own width and the
-                  * words sit in the middle. The old fixed 206 was the width of
-                  * one slogan, and the 12px left padding with no right padding
-                  * pushed every other slogan off centre.
-                  *
-                  * The words are #1D1D1D and only the full stops are purple —
-                  * that is what the design's ranged styles say.
-                  *
-                  * The wrapper carries the height, not the pill alone. With
-                  * `mode="wait"` there is a moment between the two pills where
-                  * nothing is in the box; without a height here the column would
-                  * lose 32px for that moment, and the measure effect above would
-                  * move the badge underneath on every flip.
-                  */}
-                <div
-                    ref={pillRef}
-                    className="w-full flex justify-center items-center z-20 flex-shrink-0"
-                    style={{ perspective: 600, height: XD.quickPreview.pill.height }}
-                >
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={flipTextIndex}
-                            initial={{ rotateX: -90, opacity: 0 }}
-                            animate={{ rotateX: 0, opacity: 1 }}
-                            exit={{ rotateX: 90, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                            className="flex items-center justify-center whitespace-nowrap"
-                            style={{
-                                transformOrigin: 'center',
-                                backfaceVisibility: 'hidden',
-                                width: 'fit-content',
-                                height: XD.quickPreview.pill.height,
-                                lineHeight: `${XD.quickPreview.pill.height}px`,
-                                borderRadius: XD.quickPreview.pill.radius,
-                                backgroundColor: '#F8F7FF',
-                                paddingLeft: XD.quickPreview.pill.paddingX,
-                                paddingRight: XD.quickPreview.pill.paddingX,
-                            }}
-                        >
-                            <span className="text-xd-14 font-normal text-[#1D1D1D] text-center">
-                                {FLIP_LABELS[flipTextIndex](translate)}
-                            </span>
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
+                {/* 1. Slogan Pill Badge (Top of column) — see SloganPill. */}
+                <SloganPill translate={translate} pillRef={pillRef} />
 
                 {/* Pill ends at 86, the mark starts at 98. */}
                 <FlexibleSpace size={GAP.pillToLogo} />

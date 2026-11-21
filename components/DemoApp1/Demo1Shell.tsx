@@ -43,6 +43,7 @@ import {
 import Demo1BottomNav, { useTabBarShrink } from "./Demo1BottomNav";
 import Demo1ScreenView from "./Demo1ScreenView";
 import {
+  C,
   EDGE_ANCHOR,
   PAGE_MAX,
   SCREEN_TRANSITION,
@@ -52,8 +53,8 @@ import {
   sliderMove,
 } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
-import CountryPickerScreen from "./screens/CountryPickerScreen";
-import { anyLayerOpen } from "./ui";
+import CountryPickerBody from "./screens/CountryPickerBody";
+import { anyLayerOpen, usePageColor } from "./ui";
 import SignInRequestSheet from "./screens/SignInRequestSheet";
 import NewLoginWidget, { type AuthStep } from "NewLoginDesign/NewLoginWidget";
 
@@ -118,20 +119,28 @@ import NewLoginWidget, { type AuthStep } from "NewLoginDesign/NewLoginWidget";
  * and curve (sliderMove in demo1Layout.ts). Neither screen fades. With
  * "reduce motion" on, the page only fades in and out.
  *
- * The start: the login, then the country picker, then the page
+ * The start: the country picker, then the login, then the page
  * --------------------------------------------------------------
  * With `intro` on (the /demo layout turns it on), every fresh load of the
- * demo opens in three steps, whatever the URL:
+ * demo opens in these steps, whatever the URL. All of them are the login
+ * widget (the same as /loginDemo), as a fixed layer over the page:
  *
- * 1. The login's Get Started screen (its logo animation), the same widget
- *    as /loginDemo. The shopper taps "Later" or goes through the login.
- * 2. The country picker (XD `Ramaaz pay signin – 16`).
- * 3. The screen of the URL: the picker fades out and the screen fades in.
+ * 1. The start animation of the Quick Preview: the wordmark in the middle,
+ *    and the column waiting at the bottom edge.
+ * 2. The country picker (XD `Ramaaz pay signin – 16`), in the Quick Preview's
+ *    place: its column rises the same way, with the same flipping pill and
+ *    the same badge logo. The map and the rows are CountryPickerBody.
+ * 3. A country is picked: Get Started slides in, as after the Quick Preview.
+ *    The shopper taps "Later" or goes through the login.
+ * 4. The screen of the URL: the login's white fades out and the screen fades
+ *    in.
  *
- * All three are in this one page, so no step waits for the server. The login
- * is a fixed layer over the picker, and both are drawn on the server too: the
- * picker is already in place under the login, so the login's end shows it at
- * once, and the screen of the URL never shows before them.
+ * (When the country is known, the Quick Preview will take the picker's place
+ * again.)
+ *
+ * All of it is in this one page, so no step waits for the server. The login
+ * is drawn on the server too, and the screen of the URL waits under it as a
+ * white page (IntroBlank), so it never shows before the login's end.
  *
  * SIGN_IN_ASK_MS after the screen of the URL shows, the sign-in request sheet
  * (`Sign In request`) comes up over it, once. Its "Get Started" opens the same
@@ -148,20 +157,20 @@ export const SIGN_IN_ASK_MS = 5000;
 const SIGN_IN_RETRY_MS = 1000;
 
 /**
- * The picker into the app: the picker fades out, then the app fades in, in
- * seconds. One after the other, through the white of both pages: a cross-fade
- * laid the picker's words over Home's for a quarter of a second.
+ * The start into the app: the start's white page fades out, then the app
+ * fades in, in seconds. One after the other: a cross-fade laid the old page's
+ * words over Home's for a quarter of a second.
  */
 const THROUGH = { out: 0.25, in: 0.35 } as const;
 
 /**
  * The start's state for this load of the page. It lives as long as the page's
- * scripts: a move inside the site keeps it, so the login, the picker and the
- * sign-in request come once; a reload opens the site again.
+ * scripts: a move inside the site keeps it, so the start (the picker and the
+ * login) and the sign-in request come once; a reload opens the site again.
  */
-const introRun = { signed: false, picked: false, asked: false };
+const introRun = { done: false, asked: false };
 
-/** The screen frame's key while the country picker is on show. */
+/** The screen frame's key while the start's login is on show. */
 const INTRO_KEY = "intro";
 
 /**
@@ -218,7 +227,7 @@ type Leave = {
   shrink?: Origin;
   swipe?: boolean;
   fade?: boolean;
-  /** The old screen fades out, then the new one fades in (THROUGH): the picker into the app. */
+  /** The old screen fades out, then the new one fades in (THROUGH): the start into the app. */
   through?: boolean;
 };
 
@@ -318,7 +327,7 @@ export default function Demo1Shell({
   children: React.ReactNode;
   /** The demo's words in the page's language, looked up on the server — see demoKeys.ts. */
   dictionary: DemoDictionary;
-  /** Open on the login, then the country picker (see "The start" above). */
+  /** Open on the country picker, then the login (see "The start" above). */
   intro?: boolean;
 }) {
   return (
@@ -363,10 +372,11 @@ function Demo1ShellInner({
   const column = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
   const [signing, setSigning] = useState<AuthStep | null>(
-    intro && !introRun.signed ? "quick-preview" : null,
+    intro && !introRun.done ? "country-picker" : null,
   );
-  const [picking, setPicking] = useState(intro && !introRun.picked);
-  // The tab bar waits while the picker fades out, then comes in with the app.
+  /** True while the start's login is open: the screen of the URL waits under it. */
+  const [picking, setPicking] = useState(intro && !introRun.done);
+  // The tab bar waits while the start's white fades out, then comes in with the app.
   const [barHeld, setBarHeld] = useState(false);
   const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [askSignIn, setAskSignIn] = useState(false);
@@ -394,7 +404,7 @@ function Demo1ShellInner({
 
   useEffect(() => {
     // The shell came back after the pick, before the request came up: it is still due.
-    if (intro && introRun.picked && !introRun.asked) planAsk();
+    if (intro && introRun.done && !introRun.asked) planAsk();
     return () => {
       if (askTimer.current) clearTimeout(askTimer.current);
       if (barTimer.current) clearTimeout(barTimer.current);
@@ -427,15 +437,15 @@ function Demo1ShellInner({
       document.body.style.setProperty("background-color", color, "important");
   }, [signing]);
 
-  /** "Later", or the login's end: back to the picker under it, or to the screen. */
+  /** "Later", or the login's end: at the start the app comes in, later the screen under it stays. */
   const endLogin = () => {
-    introRun.signed = true;
     setSigning(null);
+    if (picking) endIntro();
   };
 
-  /** The country is chosen: the picker fades out, the app fades in, and the sign-in request waits. */
+  /** The start's login is over: its white fades out, the app fades in, and the sign-in request waits. */
   const endIntro = () => {
-    introRun.picked = true;
+    introRun.done = true;
     setLeave({ dir: 1, scrollY: window.scrollY, through: true });
     setPicking(false);
     setBarHeld(true);
@@ -626,7 +636,7 @@ function Demo1ShellInner({
             maxWidth: PAGE_MAX,
             minHeight: "100dvh",
             overflowX: "clip",
-            // Under the login at the start, the picker is cut to the window,
+            // Under the login at the start, the white page is cut to the window,
             // so the document has nothing to scroll behind the login's fixed
             // layer. A screen under a later login keeps its height and scroll.
             ...(signing && picking && { height: "100dvh", overflowY: "clip" }),
@@ -635,7 +645,7 @@ function Demo1ShellInner({
           <AnimatePresence initial={false} custom={leave}>
             <ScreenFrame key={frameKey} id={frameKey} leave={leave}>
               {picking ? (
-                <CountryPickerScreen onDone={endIntro} />
+                <IntroBlank />
               ) : shown ? (
                 <Demo1ScreenView screen={shown} />
               ) : (
@@ -671,17 +681,27 @@ function Demo1ShellInner({
         />
         {/* The login brings its own keypad: the demo's keyboard waits for its end. */}
         {!signing && <DemoKeyboard locale={locale} t={t} />}
-        {/* Step 1 of the start: the login's Quick Preview screen, over the picker. */}
+        {/* The start (from the country picker) and the sign-in request's login. */}
         {signing && (
           <NewLoginWidget
             initialStep={signing}
             onFinish={endLogin}
             showControls={false}
+            countryPicker={(onPicked) => <CountryPickerBody onDone={onPicked} />}
           />
         )}
       </DemoChatProvider>
     </NavCtx.Provider>
   );
+}
+
+/**
+ * The page under the start's login: white, the colour of the login's own
+ * screens, so its end fades from white into the app (THROUGH).
+ */
+function IntroBlank() {
+  usePageColor(C.white);
+  return <div style={{ minHeight: "100dvh", background: C.white }} />;
 }
 
 /**

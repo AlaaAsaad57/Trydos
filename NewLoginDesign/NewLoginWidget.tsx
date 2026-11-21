@@ -14,6 +14,7 @@ import type { LogoConfig, LogoSlotId } from './logoScreenConfig';
 
 // New Screens in NewLoginDesign
 import QuickPreviewScreen, { QUICK_PREVIEW_MAX_DEFICIT } from './QuickPreviewScreen';
+import NewCountryPickerScreen from './NewCountryPickerScreen';
 import NewGetStartedScreen from './NewGetStartedScreen';
 import NewTermsScreen from './NewTermsScreen';
 import NewEnterPhoneScreen from './NewEnterPhoneScreen';
@@ -27,6 +28,7 @@ import QrBottomSheet from './QrBottomSheet';
 
 export type AuthStep =
     | 'quick-preview'
+    | 'country-picker'
     | 'get-started'
     | 'terms'
     | 'enter-phone'
@@ -70,6 +72,9 @@ const STEP_LOGO_COLOR: Partial<Record<AuthStep, { dot: string; ring: string }>> 
  */
 const STEP_LOGO_SLOT: Record<AuthStep, LogoSlotId> = {
     'quick-preview': 'quick-preview-badge',
+    // The picker is the Quick Preview's place in the flow, and its badge has
+    // the same two jobs (see `opensWithColumn` below).
+    'country-picker': 'quick-preview-badge',
     'get-started': 'get-started',
     terms: 'terms',
     'enter-phone': 'enter-phone',
@@ -91,6 +96,12 @@ const STEP_LOGO_SLOT: Record<AuthStep, LogoSlotId> = {
  * single picker tiring to use.
  */
 const STORAGE_KEY = 'trydos.logoDemoConfig';
+
+/**
+ * The two first steps whose whole column rises from the bottom edge after the
+ * start animation: the Quick Preview, and the country picker in its place.
+ */
+const opensWithColumn = (step: AuthStep) => step === 'quick-preview' || step === 'country-picker';
 
 /**
  * Read the saved picks, filling in anything the file does not carry.
@@ -133,6 +144,12 @@ interface NewLoginWidgetProps {
     exitTo?: string;
     /** Show the floating demo control bar (Flow Steps, Anim, Gap, i). */
     showControls?: boolean;
+    /**
+     * The country picker's map and rows, for the `country-picker` step. The
+     * host draws them, and calls `onPicked` once a country is chosen; the
+     * flow then goes on to Get Started. The demo at /demo sets it.
+     */
+    countryPicker?: (onPicked: () => void) => React.ReactNode;
 }
 
 export default function NewLoginWidget({
@@ -140,6 +157,7 @@ export default function NewLoginWidget({
     onFinish,
     exitTo,
     showControls = true,
+    countryPicker,
 }: NewLoginWidgetProps) {
     const { lang } = useParams();
     const router = useRouter();
@@ -206,17 +224,21 @@ export default function NewLoginWidget({
     const goTo = (nextStep: AuthStep, dir: number = 1) => {
         setDirection(dir);
         setStep(nextStep);
-        // Walking back to the Quick Preview restarts its 8 second timer, so the
-        // badge has to go back to its first job as well.
-        if (nextStep === 'quick-preview') setPreviewExpanded(false);
+        // Walking back to the Quick Preview (or the picker in its place)
+        // restarts its 8 second timer, so the badge has to go back to its
+        // first job as well.
+        if (opensWithColumn(nextStep)) setPreviewExpanded(false);
     };
+
+    /** The step before Get Started: the picker when the flow began on it. */
+    const firstStep: AuthStep = initialStep === 'country-picker' ? 'country-picker' : 'quick-preview';
 
     const handleBack = () => {
         if (step === 'enter-pin') goTo('select-method', -1);
         else if (step === 'select-method') goTo('enter-phone', -1);
         else if (step === 'enter-phone') goTo(authType === 'signUp' ? 'terms' : 'get-started', -1);
         else if (step === 'terms') goTo('get-started', -1);
-        else if (step === 'get-started') goTo('quick-preview', -1);
+        else if (step === 'get-started') goTo(firstStep, -1);
         else if (step === 'qr-login') goTo('get-started', -1);
         else if (step === 'already-registered' || step === 'not-registered') goTo('enter-phone', -1);
         else if (step === 'input-name') goTo('enter-pin', -1);
@@ -235,7 +257,7 @@ export default function NewLoginWidget({
 
     const logoColor = STEP_LOGO_COLOR[step] ?? LOGO_PURPLE;
     const logoSlotId: LogoSlotId =
-        step === 'quick-preview' && previewExpanded
+        opensWithColumn(step) && previewExpanded
             ? 'quick-preview-badge-expanded'
             : STEP_LOGO_SLOT[step];
     const activeSlot = logoConfig[logoSlotId];
@@ -434,7 +456,7 @@ export default function NewLoginWidget({
 
             <Page
                 variant="scaled"
-                maxDeficit={step === 'quick-preview' ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
+                maxDeficit={opensWithColumn(step) ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
                 outerBg={
                     step === 'input-name'
                         ? 'passcode'
@@ -503,6 +525,16 @@ export default function NewLoginWidget({
                                     lang={langCode}
                                     belowButtonMin={belowButtonMin}
                                     abovePill={abovePill}
+                                />
+                            )}
+
+                            {/* 1b. Country Picker, in the Quick Preview's place */}
+                            {step === 'country-picker' && countryPicker && (
+                                <NewCountryPickerScreen
+                                    body={countryPicker(() => goTo('get-started', 1))}
+                                    onExpand={() => setPreviewExpanded(true)}
+                                    wordmarkSlot={logoConfig['quick-preview-wordmark']}
+                                    lang={langCode}
                                 />
                             )}
 
@@ -659,16 +691,17 @@ export default function NewLoginWidget({
                       * slider. It moves twice in the whole flow and is still
                       * for the rest of it — see AUTH_LOGO_STOP in AuthLogoSlot.
                       *
-                      * `live` is the Quick Preview only. That screen lifts its
-                      * whole column off the bottom edge and the mark rides up
-                      * with it, so the mark has to be locked to the slot frame
-                      * by frame there. Everywhere else the slot is still, and
-                      * the mark springs to it.
+                      * `live` is the Quick Preview and the picker in its place.
+                      * Those screens lift their whole column off the bottom edge
+                      * and the mark rides up with it (and the picker scrolls on
+                      * a short page), so the mark has to be locked to the slot
+                      * frame by frame there. Everywhere else the slot is still,
+                      * and the mark springs to it.
                       */}
                     <AuthLogoLayer
                         stageRef={stageRef}
                         step={step}
-                        live={step === 'quick-preview'}
+                        live={opensWithColumn(step)}
                         dotColor={logoColor.dot}
                         ringColor={logoColor.ring}
                         slot={activeSlot}

@@ -2,37 +2,32 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { animate, useReducedMotion } from "framer-motion";
-import XdIcon from "../../DemoApp/XdIcon";
 import { demoAsset } from "../../DemoApp/demoAssetVersion";
 import type { DemoCountry } from "../../DemoApp/DemoData";
 import { COUNTRIES } from "../../DemoApp/demoPlaces";
 import { useDemoNav } from "../Demo1Shell";
-import { C, SAFE_TOP, STATUS_BAR } from "../demo1Layout";
-import { Rich } from "./ListingParts";
-import { usePageColor } from "../ui";
+import { C } from "../demo1Layout";
 import CountryRow from "./CountryRow";
 
 /**
- * The country picker that opens the demo: XD `Ramaaz pay signin – 16` (no
- * country yet) and `– 15` (Turkiye chosen).
+ * The country picker's map and rows: XD `Ramaaz pay signin – 16` (no
+ * country yet) and `– 15` (Turkiye chosen), from the map down.
  *
- * From the top (design y, the status bar is the window's own):
- *  - the pill ". Your new shopping buddy ." at y 56: 206 x 30, radius 12,
- *    `#F8F7FF`, the words 14 Regular from x 124, "shopping buddy" Medium, the
- *    two dots `#4A31E7`;
- *  - the logo with the purple eyes, 150 x 150 at (140, 98);
+ * The picker is a step of the login at the start of /demo
+ * (NewLoginDesign/NewCountryPickerScreen.tsx). That screen draws the top: the
+ * flipping slogan pill at y 56 and the badge logo, 150 x 150 at (140, 98),
+ * both the Quick Preview's. This part is drawn under the logo:
  *  - the map of the four countries, 406.5 x 286.5 at (11.75, 287.75). Each
  *    country is `#F4F4F4` with a 0.5 px `#D3D3D3` line; the chosen one is
  *    `#8D8D8D` with a `#4A31E7` line (`– 15`);
  *  - the four rows from y 594, 4 apart (CountryRow, as the address form's
- *    country sheet).
+ *    country sheet);
+ *  - the room under the last row, to the artboard's end.
  *
  * A tap on a row, or on a country of the map, chooses it. The grey fills the
  * country on the map from the tap (FILL), then the page shows the choice
- * (`– 15`) until HOLD_MS, and hands it to the shell, which opens the app.
- *
- * The page is in the document, as every screen of /demo, so it scrolls on a
- * short phone and Safari 26 draws it under its glass bar.
+ * (`– 15`) until HOLD_MS, and calls `onDone`: the login goes on to Get
+ * Started.
  */
 
 /**
@@ -45,10 +40,10 @@ const FILL = { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const };
 const FILL_EDGE = 0.02;
 
 /**
- * How long after the tap the app opens, in ms: the fill, then a moment on
- * the finished choice (`– 15`).
+ * How long after the tap the picker hands over, in ms: the fill, then a
+ * moment on the finished choice (`– 15`).
  */
-export const HOLD_MS = 1000;
+const HOLD_MS = 1000;
 
 /** Where the fill starts, as a share of the country's box (0 to 1 on each side). */
 type FillFrom = { x: number; y: number };
@@ -59,6 +54,13 @@ const MIDDLE: FillFrom = { x: 0.5, y: 0.5 };
 /** The map's box in the file, in design px: its viewBox, and where it sits. */
 const MAP = { x: 11.75, y: 287.75, w: 406.5, h: 286.5 } as const;
 
+/** Where the badge logo ends in the file: its top (98) and its height (150). */
+const LOGO_END = 98 + 150;
+
+/** Where the last row ends in the file, and the artboard's height. */
+const LAST_ROW_END = 846;
+const ARTBOARD_H = 932;
+
 /** The countries in the file's order on the map: Turkiye last, so it lies on top. */
 const MAP_ORDER: DemoCountry[] = ["sy", "lb", "iq", "tr"];
 
@@ -67,14 +69,13 @@ const MAP_FILE = demoAsset("/assets/demo/xd/countryMap.svg");
 /** A country on the map that is not chosen: `#F4F4F4`, as the file fills it. */
 const EMPTY = "#F4F4F4";
 
-export default function CountryPickerScreen({
+export default function CountryPickerBody({
   onDone,
 }: {
   /** Called once, HOLD_MS after a country is chosen. */
   onDone: (country: DemoCountry) => void;
 }) {
   const { t } = useDemoNav();
-  usePageColor(C.white);
   const [picked, setPicked] = useState<DemoCountry | null>(null);
   const [from, setFrom] = useState<FillFrom>(MIDDLE);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -86,7 +87,7 @@ export default function CountryPickerScreen({
   );
 
   const pick = (id: DemoCountry, at: FillFrom = MIDDLE) => {
-    // The first choice wins: the app is already on its way.
+    // The first choice wins: the next step is already on its way.
     if (picked) return;
     setFrom(at);
     setPicked(id);
@@ -96,55 +97,14 @@ export default function CountryPickerScreen({
   return (
     <div
       data-pw="demo-country-picker"
-      className="flex flex-col w-full"
-      style={{
-        minHeight: "100dvh",
-        background: C.white,
-        paddingTop: SAFE_TOP,
-        // The last row ends at y 846; the artboard at 932.
-        paddingBottom: 932 - 846,
-      }}
+      className="flex flex-col w-full shrink-0"
+      style={{ paddingBottom: ARTBOARD_H - LAST_ROW_END }}
     >
-      {/* The pill: the words' line box (18) is centred in its 30 px. The
-          words start at x 124, 12 px in, as in the file. The browser draws
-          them about 2 px wider than XD, so the pill keeps the file's 206
-          (minWidth) and leaves 8 px on the right. A longer line (another
-          language) makes the pill wider. */}
-      <span
-        data-pw="demo-country-picker-tagline"
-        className="flex items-center self-center shrink-0 whitespace-nowrap"
-        style={{
-          marginTop: 56 - STATUS_BAR,
-          height: 30,
-          minWidth: 206,
-          paddingLeft: 124 - 112,
-          paddingRight: 8,
-          borderRadius: 12,
-          background: "#F8F7FF",
-          color: C.ink,
-          fontSize: 14,
-          lineHeight: "18px",
-        }}
-      >
-        {/* One inline box: a flex box would drop the spaces between the parts. */}
-        <span>
-          <span style={{ color: C.purple }}>.</span>{" "}
-          <Rich text={t("Your new <m>shopping buddy</m>")} />{" "}
-          <span style={{ color: C.purple }}>.</span>
-        </span>
-      </span>
-
-      <XdIcon
-        name="countryLogo"
-        className="self-center shrink-0"
-        style={{ marginTop: 98 - (56 + 30) }}
-      />
-
       <CountryMap
         picked={picked}
         from={from}
         onPick={pick}
-        mt={MAP.y - (98 + 150)}
+        mt={MAP.y - LOGO_END}
       />
 
       <div
