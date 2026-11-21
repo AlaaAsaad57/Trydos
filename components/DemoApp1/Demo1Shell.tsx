@@ -23,11 +23,9 @@ import {
   type MotionValue,
   type Variants,
 } from "framer-motion";
-import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
 import { bagCount } from "../DemoApp/demoBag";
 import { DemoChatProvider } from "../DemoApp/demoChatState";
-import { DebugButtons } from "../DemoApp/demoDebug";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import {
   direction,
@@ -57,7 +55,7 @@ import DemoKeyboard from "./keyboard/DemoKeyboard";
 import CountryPickerScreen from "./screens/CountryPickerScreen";
 import { anyLayerOpen } from "./ui";
 import SignInRequestSheet from "./screens/SignInRequestSheet";
-import NewLoginWidget from "NewLoginDesign/NewLoginWidget";
+import NewLoginWidget, { type AuthStep } from "NewLoginDesign/NewLoginWidget";
 
 /**
  * The shell of the fluid demo at /[lang]/demo.
@@ -364,9 +362,9 @@ function Demo1ShellInner({
   );
   const column = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
-  const [hideMenu, setHideMenu] = useState(false);
-  const [deviceInfo, setDeviceInfo] = useState(false);
-  const [signing, setSigning] = useState(intro && !introRun.signed);
+  const [signing, setSigning] = useState<AuthStep | null>(
+    intro && !introRun.signed ? "quick-preview" : null,
+  );
   const [picking, setPicking] = useState(intro && !introRun.picked);
   // The tab bar waits while the picker fades out, then comes in with the app.
   const [barHeld, setBarHeld] = useState(false);
@@ -414,7 +412,7 @@ function Demo1ShellInner({
    * sets both the same, and Safari 26 reads <body> for the room under its
    * bars), and `--xd-unit` goes back to its value from rdb-auth.css.
    */
-  const loginWasOpen = useRef(signing);
+  const loginWasOpen = useRef(Boolean(signing));
   useEffect(() => {
     if (signing) {
       loginWasOpen.current = true;
@@ -432,7 +430,7 @@ function Demo1ShellInner({
   /** "Later", or the login's end: back to the picker under it, or to the screen. */
   const endLogin = () => {
     introRun.signed = true;
-    setSigning(false);
+    setSigning(null);
   };
 
   /** The country is chosen: the picker fades out, the app fades in, and the sign-in request waits. */
@@ -662,54 +660,25 @@ function Demo1ShellInner({
           t={t}
         />
 
-        {/* The demo's own switches, as on the old scaled demo: the right edge,
-            mid-height. The login has its own, so these wait for its end. */}
-        {!signing && (
-          <div
-            data-pw="demo-controls"
-            className="fixed right-2 top-1/2 -translate-y-1/2 z-[999999999999] flex flex-col items-end gap-2 font-quicksand select-none"
-          >
-            <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={hideMenu}
-                onChange={(e) => setHideMenu(e.target.checked)}
-                className="accent-[#402CDD] cursor-pointer"
-              />
-              <span>{t("Hide menu")}</span>
-            </label>
-            {!hideMenu && (
-              <button
-                type="button"
-                aria-label={t("Device and browser info")}
-                onClick={() => setDeviceInfo(true)}
-                className="w-7 h-7 text-xs font-bold rounded-full bg-white/90 shadow border border-gray-200 text-[#402CDD] cursor-pointer"
-              >
-                i
-              </button>
-            )}
-            {!hideMenu && <DebugButtons t={t} />}
-          </div>
-        )}
         <SignInRequestSheet
           open={askSignIn}
           onClose={() => setAskSignIn(false)}
           onStart={() => {
             setAskSignIn(false);
             // The same login layer as at the start: no route change, no wait.
-            setSigning(true);
+            setSigning("get-started");
           }}
         />
         {/* The login brings its own keypad: the demo's keyboard waits for its end. */}
         {!signing && <DemoKeyboard locale={locale} t={t} />}
-        {/* Step 1 of the start: the login's Get Started screen, over the picker. */}
+        {/* Step 1 of the start: the login's Quick Preview screen, over the picker. */}
         {signing && (
-          <NewLoginWidget initialStep="get-started" onFinish={endLogin} />
+          <NewLoginWidget
+            initialStep={signing}
+            onFinish={endLogin}
+            showControls={false}
+          />
         )}
-        <DemoDeviceInfoModal
-          open={deviceInfo}
-          onClose={() => setDeviceInfo(false)}
-        />
       </DemoChatProvider>
     </NavCtx.Provider>
   );

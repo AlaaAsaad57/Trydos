@@ -131,12 +131,15 @@ interface NewLoginWidgetProps {
      * request sets it, so the shopper comes back to the demo.
      */
     exitTo?: string;
+    /** Show the floating demo control bar (Flow Steps, Anim, Gap, i). */
+    showControls?: boolean;
 }
 
 export default function NewLoginWidget({
     initialStep = 'quick-preview',
     onFinish,
     exitTo,
+    showControls = true,
 }: NewLoginWidgetProps) {
     const { lang } = useParams();
     const router = useRouter();
@@ -267,6 +270,7 @@ export default function NewLoginWidget({
                   * It sits over the widget and belongs to the demo route, not
                   * to the design. Nothing here changes a screen's own layout.
                   */}
+                {showControls && (
                 <div className="fixed top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* 0. Hide the menu. Only this checkbox stays, so it can be turned back on. */}
@@ -411,6 +415,7 @@ export default function NewLoginWidget({
                         </div>
                     )}
                 </div>
+                )}
 
             {/*
               * The picker. It belongs to the demo route, like the bar above,
