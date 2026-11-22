@@ -257,3 +257,67 @@ describe('QuickPreviewScreen — the slider gives up the height the page does no
         }
     });
 });
+
+/*
+ * The round logo that peeks at the bottom during the start animation.
+ *
+ * The bug (2026-11-22, the client's iPhone screenshot): in iPhone Safari 26
+ * the window ends about 16 px above Safari's floating bar, and Safari cuts the
+ * page flat at that line and paints white under it. So the ring was cut on a
+ * line in the air, with white under it, and did not look like it came up from
+ * the bottom. In Chrome on Android the window ends at the screen's edge, so
+ * the same cut is the edge and looks right.
+ *
+ * The fix: in iPhone Safari 26 only, a white fade lies over the canvas's
+ * bottom while the column waits, so the ring melts into the white.
+ */
+const SAFARI_26 =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1';
+const CHROME_ANDROID =
+    'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
+
+describe('QuickPreviewScreen — the round logo at the bottom in iPhone Safari 26', () => {
+    beforeEach(() => {
+        observed = [];
+        vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+        vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+        vi.useRealTimers();
+    });
+
+    const fadeIn = (canvas: HTMLElement) =>
+        canvas.querySelector<HTMLElement>('[data-pw="quick-preview-bottom-fade"]');
+
+    it('lays a white fade over the bottom in iPhone Safari 26, so the ring is not cut on a line', () => {
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);
+        const { canvas } = renderOnCanvas(745);
+        expect(
+            fadeIn(canvas),
+            'iPhone Safari 26 has no fade over the bottom, so the ring is cut flat above Safari\'s bar',
+        ).not.toBeNull();
+    });
+
+    it('has no fade in Chrome on Android, where the window ends at the screen\'s edge', () => {
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(CHROME_ANDROID);
+        const { canvas } = renderOnCanvas(745);
+        expect(fadeIn(canvas), 'Chrome on Android got the Safari fade over the bottom').toBeNull();
+    });
+
+    it('fades the fade out when the column rises after the start animation', () => {
+        vi.useFakeTimers();
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);
+        const { canvas } = renderOnCanvas(745);
+        expect(fadeIn(canvas)?.style.opacity, 'the fade is not fully shown while the column waits').toBe('1');
+        act(() => {
+            vi.advanceTimersByTime(8000);
+        });
+        expect(
+            fadeIn(canvas)?.style.opacity,
+            'the fade stayed over the bottom after the column rose, so it covers the picker and the button',
+        ).toBe('0');
+    });
+});
