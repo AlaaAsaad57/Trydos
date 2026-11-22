@@ -1353,6 +1353,101 @@ describe("401 recovery", () => {
     ).toBe("real-order");
   });
 
+  // While the session-expired prompt is open, the market cookie already belongs
+  // to the brand-new guest made by /api/auth/expire. A market call that starts
+  // now gets no 401: it gets the new guest's answer (an empty order list), and
+  // that answer stays on screen after the shopper signs back in.
+  it.each(["expired", "expired-login", "seller"])(
+    "a market call started while the session-expired flow is open (%s) waits for the shopper, not for the new guest",
+    async (marker) => {
+      const { store } = await setup({ shouldAuthinticated: marker, reAuthResult: "pending" });
+      const net = makeMockFetch([
+        jsonReply({ data: { orders: [{ order_group_id: "real-order" }] } }, 200),
+      ]);
+      vi.stubGlobal("fetch", net.fetch);
+      const { fetchData } = await loadFetchData();
+
+      let settled = false;
+      const promise = fetchData({
+        ...baseParams,
+        server: "market",
+        url: "/customer/order/list?offset=1&limit=10",
+      }).finally(() => {
+        settled = true;
+      });
+      // Longer than the 500 ms re-auth poll.
+      await new Promise((r) => setTimeout(r, 900));
+
+      expect(
+        settled,
+        "the core order list was sent with the new guest's token while the session-expired prompt was open",
+      ).toBe(false);
+
+      store.useAppStore.setState({ reAuthResult: "success", shouldAuthinticated: false });
+      const result: any = await promise;
+
+      expect(
+        result.data?.orders?.[0]?.order_group_id,
+        "after the shopper signed back in, the held core order list did not carry the shopper's order",
+      ).toBe("real-order");
+    },
+  );
+
+  it("the sign-in's own market call is not held while the session-expired prompt is open", async () => {
+    await setup({ shouldAuthinticated: "expired-login", reAuthResult: "pending" });
+    const net = makeMockFetch([jsonReply({ data: { verificationId: "v-1" } }, 200)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result: any = await fetchData({
+      ...baseParams,
+      server: "market",
+      url: "/auth/phone/send_otp",
+      method: "POST",
+      body: JSON.stringify({ is_via_whatsapp: 1 }),
+    });
+
+    expect(
+      result.data?.verificationId,
+      "the core send-OTP call was held by the session-expired prompt, so the shopper could never get a code",
+    ).toBe("v-1");
+  });
+
+  it("a market call held by the session-expired prompt goes out when the shopper continues as guest", async () => {
+    const { store } = await setup({ shouldAuthinticated: "expired", reAuthResult: "pending" });
+    const net = makeMockFetch([jsonReply({ data: { orders: [] } }, 200)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const promise = fetchData({
+      ...baseParams,
+      server: "market",
+      url: "/customer/order/list?offset=1&limit=10",
+    });
+    await new Promise((r) => setTimeout(r, 100));
+    store.useAppStore.setState({ reAuthResult: "cancelled", shouldAuthinticated: false });
+    const result: any = await promise;
+
+    expect(
+      result.success,
+      "after the shopper chose to continue as guest, the held core order list never completed",
+    ).toBe(true);
+  });
+
+  it("a chat call is not held by the session-expired prompt", async () => {
+    await setup({ shouldAuthinticated: "expired", reAuthResult: "pending" });
+    const net = makeMockFetch([jsonReply({ data: [] }, 200)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result: any = await fetchData({ ...baseParams, server: "chat" });
+
+    expect(
+      result.success,
+      "a chat call was held by the market session-expired prompt",
+    ).toBe(true);
+  });
+
   it("market 401 seller shows expired widget and waits for re-auth", async () => {
     const { auth, store } = await setup();
     (auth.default.RefreshSession as any).mockResolvedValue({ eligible: false });

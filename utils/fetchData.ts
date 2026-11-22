@@ -240,6 +240,28 @@ const waitForReAuthSuccess = (): Promise<boolean> =>
     }, 300000); // 5 minutes timeout
   });
 
+// Markers that mean "a verified shopper's market session died": the
+// session-expired prompt, and the phone-verify widget opened from it.
+const SESSION_EXPIRED_MARKERS = ["expired", "expired-login", "seller"];
+
+// While that flow is open, /api/auth/expire has already swapped the market
+// cookie to a brand-new guest user. A market call sent now gets no 401: it
+// runs as that guest, and its answer (an empty order list, an empty cart)
+// stays on screen after the shopper signs back in. So hold the call until the
+// flow ends. On sign-in it leaves with the shopper's token. On "Continue as
+// Guest" (or the 5-minute limit) it leaves as before, and the page reloads
+// anyway. The sign-in's own calls (`/auth/...`) must always go out.
+const waitWhileSessionExpiredFlowOpen = async (
+  server: ServerType,
+  url: string,
+): Promise<void> => {
+  if (server !== "market" && server !== "market-dashboard") return;
+  if (String(url).includes("/auth/")) return;
+  const { shouldAuthinticated } = useAppStore.getState();
+  if (!SESSION_EXPIRED_MARKERS.includes(shouldAuthinticated as any)) return;
+  await waitForReAuthSuccess();
+};
+
 const handleUnauthorized = async (
   requestServer: ServerType,
   options,
@@ -581,6 +603,7 @@ export const fetchData = async <T = any>(
 
   const doFetchWithRetry = async (): Promise<T> => {
     await waitUntilRegisteringComplete();
+    await waitWhileSessionExpiredFlowOpen(server, url);
     if (url === "/auth/register-guest") {
       const { useAppStore } = await import("store");
       let { setIsRegisteringReady, LoggingOut } = useAppStore.getState();
