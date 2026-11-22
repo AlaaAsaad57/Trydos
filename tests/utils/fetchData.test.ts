@@ -1294,6 +1294,65 @@ describe("401 recovery", () => {
     expect(result.success).toBe(true);
   });
 
+  // The expire step makes a brand-new guest user and, for a verified shopper,
+  // opens the "session expired" prompt. A market 401 that arrives while that
+  // step runs must not be sent again as the new guest: the core backend would
+  // answer for the new user (an empty order list), and nothing loads it again
+  // after the shopper signs back in. Seen on staging 2026-11-22, user 20037.
+  it("market 401 during an expire waits for the shopper to sign back in, not for the new guest", async () => {
+    const { store } = await setup();
+    const net = makeMockFetch([
+      // The call leaves with the dead token; its 401 comes back 200 ms later.
+      jsonReply({ data: null }, 401, 200),
+      jsonReply({ data: { orders: [{ order_group_id: "real-order" }] } }, 200),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    let settled = false;
+    const promise = fetchData({
+      ...baseParams,
+      server: "market",
+      url: "/customer/order/list?offset=1&limit=10",
+    }).finally(() => {
+      settled = true;
+    });
+
+    // Another call's 401 has started the expire step while this one is
+    // still on its way.
+    await new Promise((r) => setTimeout(r, 50));
+    store.useAppStore.setState({ isRegisteringReady: false });
+
+    // This call's 401 arrives during the expire step.
+    await new Promise((r) => setTimeout(r, 300));
+
+    // The expire step ends: guest made, prompt for the verified shopper open.
+    store.useAppStore.setState({
+      shouldAuthinticated: "expired",
+      reAuthResult: "pending",
+      isRegisteringReady: true,
+    });
+    // Longer than the 300 ms registration poll, so the old code has retried.
+    await new Promise((r) => setTimeout(r, 900));
+
+    expect(
+      settled,
+      "the core order list was sent again with the new guest's token while the session-expired prompt was still open",
+    ).toBe(false);
+
+    store.useAppStore.setState({ reAuthResult: "success" });
+    const result: any = await promise;
+
+    expect(
+      result.success,
+      "after the shopper signed back in, the core order list call did not succeed",
+    ).toBe(true);
+    expect(
+      result.data?.orders?.[0]?.order_group_id,
+      "after the shopper signed back in, the order list did not carry the shopper's order",
+    ).toBe("real-order");
+  });
+
   it("market 401 seller shows expired widget and waits for re-auth", async () => {
     const { auth, store } = await setup();
     (auth.default.RefreshSession as any).mockResolvedValue({ eligible: false });

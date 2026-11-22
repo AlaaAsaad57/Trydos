@@ -290,6 +290,19 @@ const handleUnauthorized = async (
           // instead of starting another one
           if (!isRegisteringReady) {
             await waitUntilRegisteringComplete();
+            // The expire step makes a brand-new guest user. For a verified
+            // shopper it also opens the session-expired prompt. Sending this
+            // call again now would run it as that new user (an empty order
+            // list, an empty cart) and keep that answer on screen after the
+            // shopper signs back in. So wait for the prompt, like the check
+            // above does.
+            const after = useAppStore.getState();
+            if (
+              (server === "market" || server === "market-dashboard") &&
+              (after.shouldAuthinticated || after.reAuthResult === "pending")
+            ) {
+              return await waitForReAuthSuccess();
+            }
             return true;
           }
 
