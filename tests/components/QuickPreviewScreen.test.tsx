@@ -89,7 +89,12 @@ function renderOnCanvas(canvasHeight: number) {
     const card = canvas!.querySelector<HTMLElement>('.cursor-grab')?.parentElement ?? null;
     expect(card, 'the quick preview screen did not render its slider card').not.toBeNull();
     // The spacer under the button is the last thing in the column.
-    const belowButton = column.lastElementChild as HTMLElement;
+    // The space under the button is the last box of the part under the badge.
+    // That part is its own box now (it slides in after the country picker),
+    // so the column's own last child is that box, not the space.
+    const body = canvas!.querySelector<HTMLElement>('[data-pw="quick-preview-body"]');
+    expect(body, 'the quick preview screen did not render its part under the badge').not.toBeNull();
+    const belowButton = body!.lastElementChild as HTMLElement;
     return { canvas: canvas!, column, card: card!, belowButton };
 }
 

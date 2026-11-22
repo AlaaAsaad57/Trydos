@@ -8,7 +8,7 @@ import { translateFunction } from 'utils/functions';
 import SequencedLogo from './useLogoSequence';
 import XdDashedBorder from 'components/Login/Enhanced/ui/XdDashedBorder';
 import AuthLogoSlot from './AuthLogoSlot';
-import { XD } from './authLayout';
+import { AUTH_SLIDE, XD } from './authLayout';
 import { DESIGN_H } from 'scaling/scale.config';
 import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
 import { PREVIEW_SLIDES } from './previewSlides';
@@ -37,6 +37,18 @@ interface QuickPreviewScreenProps {
      * the card gives up, so the button keeps its own gap.
      */
     abovePill?: number;
+    /**
+     * The country picker's map and rows (the demo's CountryPickerBody).
+     *
+     * While it is set, the column shows it under the badge, in place of the
+     * title, the slider and the button: the login's `country-picker` step.
+     * When it goes away, that part slides out to the left and the Quick
+     * Preview's own part slides in from the right, with the widget's own
+     * slide (AUTH_SLIDE). The pill and the badge are not in that part, so
+     * they stay where they are: the same pill keeps flipping, and the shared
+     * mark has no new place to go to.
+     */
+    picker?: React.ReactNode;
 }
 
 /**
@@ -136,27 +148,27 @@ const FLIP_LABELS: FlipLabel[] = [
  * the canvas is exactly DESIGN_H (932). A phone gives ~838, so the pill landed
  * on the bottom edge and the whole ring fell outside `overflow-hidden`.
  */
-export const COLLAPSED_TAIL = 103;
+const COLLAPSED_TAIL = 103;
 
 /**
  * How the column moves: up from below the page to its peek, then up to the
- * top when the first eight seconds end. The login's country picker
- * (NewCountryPickerScreen) moves its column the same way.
+ * top when the first eight seconds end.
  */
-export const columnRise = (expanded: boolean) => ({
+const columnRise = (expanded: boolean) => ({
     duration: expanded ? 1.1 : 0.8,
     ease: [0.25, 1, 0.5, 1] as const,
 });
 
 /** Where the column starts, under the page, before it is measured. */
-export const COLUMN_START_Y = 1000;
+const COLUMN_START_Y = 1000;
 
 /** How often the pill turns to the next slogan, in ms. */
 const FLIP_MS = 1400;
 
 /**
- * The slogan pill that turns over every FLIP_MS. The Quick Preview and the
- * login's country picker both show it, at the top of their column.
+ * The slogan pill that turns over every FLIP_MS, at the top of the column.
+ * The country picker shows the same one (see `picker`): it is one element
+ * that stays mounted, so it keeps flipping when the picker hands over.
  *
  * The whole pill turns over, and the text goes with it. Before this the pill
  * stood still and only the words inside it faded up and down, which is a
@@ -179,7 +191,7 @@ const FLIP_MS = 1400;
  * The timer starts in an effect, so it runs only in the browser, after the
  * page is hydrated.
  */
-export function SloganPill({
+function SloganPill({
     translate,
     pillRef,
 }: {
@@ -238,7 +250,7 @@ export function SloganPill({
  * still, so the ring draws and the eyes drop around a word that is already
  * there. When `show` turns false it fades and shrinks away.
  */
-export function PreviewWordmark({ show, slot }: { show: boolean; slot: LogoSlotConfig }) {
+function PreviewWordmark({ show, slot }: { show: boolean; slot: LogoSlotConfig }) {
     return (
         <AnimatePresence>
             {show && (
@@ -329,9 +341,18 @@ export default function QuickPreviewScreen({
     wordmarkSlot = DEFAULT_LOGO_CONFIG['quick-preview-wordmark'],
     belowButtonMin = BELOW_BUTTON_MIN,
     abovePill = GAP.abovePill,
+    picker,
 }: QuickPreviewScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
-    const [isHydrated, setIsHydrated] = useState<boolean>(false);
+    const showPicker = picker != null;
+    /**
+     * The measure below reads this, not the prop: the picker's column is
+     * taller than the page on purpose, so it must never set the guard scale.
+     * A scale measured on the picker shrank the pill and the badge for a
+     * moment while the Quick Preview slid in.
+     */
+    const pickerShownRef = useRef(showPicker);
+    pickerShownRef.current = showPicker;
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const [slideIndex, setSlideIndex] = useState<number>(0);
 
@@ -396,7 +417,7 @@ export default function QuickPreviewScreen({
                 // pill.offsetTop is the top spacer. Reading it beats
                 // recomputing it from the constants.
                 collapsedY: Math.max(0, canvasH - COLLAPSED_TAIL - pill.offsetTop),
-                fitScale: columnH > canvasH ? canvasH / columnH : 1,
+                fitScale: !pickerShownRef.current && columnH > canvasH ? canvasH / columnH : 1,
                 cardHeight: XD.quickPreview.card.height - cardGives,
                 belowButton,
             });
@@ -411,11 +432,18 @@ export default function QuickPreviewScreen({
         return () => observer.disconnect();
     }, [belowButtonMin, abovePill]);
 
-    // Trigger hydration on mount. Declared after the measure effect so the
-    // slide-up starts from a measured offset, not the off-screen default.
+    /**
+     * The picker is taller than a short page, so it may have been scrolled
+     * to reach a row. When it hands over, the column glides back to the top
+     * while the two parts slide, so the pill and the badge end in their place.
+     */
+    const pickerWasShown = useRef(showPicker);
     useEffect(() => {
-        setIsHydrated(true);
-    }, []);
+        if (pickerWasShown.current && !showPicker) {
+            canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        pickerWasShown.current = showPicker;
+    }, [showPicker]);
 
     // Embla Carousel hook with touch & mouse swipe support
     const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -437,9 +465,11 @@ export default function QuickPreviewScreen({
         };
     }, [emblaApi, onSelect]);
 
-    // Strictly timed 8-second preview (non-bypassable), starts after hydration
+    // Strictly timed 8-second preview (non-bypassable). It starts on mount:
+    // effects run only in the browser, after hydration. (A separate "is
+    // hydrated" state was set here before. On /demo, in the dev build, that
+    // update was lost once and the column never rose.)
     useEffect(() => {
-        if (!isHydrated) return;
         const timer = setTimeout(() => {
             setIsExpanded(true);
             onExpand?.();
@@ -448,7 +478,7 @@ export default function QuickPreviewScreen({
         // `onExpand` is deliberately not a dependency. It is a fresh closure on
         // every render of the widget, so watching it would restart the eight
         // seconds on any unrelated state change.
-    }, [isHydrated, autoExpandDelayMs]);
+    }, [autoExpandDelayMs]);
 
     const handleNext = () => {
         if (slideIndex < PREVIEW_SLIDES.length - 1) {
@@ -468,7 +498,11 @@ export default function QuickPreviewScreen({
         <main
             ref={canvasRef}
             data-pw="quick-preview-screen"
-            className="w-full bg-white flex flex-col items-center font-quicksand h-full relative overflow-hidden select-none"
+            // The picker scrolls on a short page once the column is up. The
+            // Quick Preview never does: its card gives up the missing height.
+            className={`w-full bg-white flex flex-col items-center font-quicksand h-full relative select-none ${
+                showPicker && isExpanded ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'
+            }`}
         >
             {/* ======================================================== */}
             {/* CENTRAL WORDMARK LOGO (Shown during initial 8s state)     */}
@@ -483,8 +517,12 @@ export default function QuickPreviewScreen({
                 ref={columnRef}
                 initial={{ y: COLUMN_START_Y, scale: 1 }}
                 animate={{
-                    y: !isHydrated ? COLUMN_START_Y : isExpanded ? 0 : fit.collapsedY,
-                    scale: isExpanded ? fit.fitScale : 1,
+                    // fit.collapsedY starts at COLUMN_START_Y, as on the
+                    // server; the first measure after mount brings it up.
+                    y: isExpanded ? 0 : fit.collapsedY,
+                    // The guard scale is the Quick Preview's: the picker is
+                    // taller than the page on purpose, and scrolls instead.
+                    scale: isExpanded && !showPicker ? fit.fitScale : 1,
                 }}
                 transition={columnRise(isExpanded)}
                 style={{ transformOrigin: 'top center' }}
@@ -507,174 +545,202 @@ export default function QuickPreviewScreen({
                     dots look around and blink, and the word never moves. */}
                 <AuthLogoSlot />
 
-                {/* The mark ends at 248, the title starts at 268. */}
-                <FlexibleSpace size={GAP.logoToTitle} />
+                {/*
+                  * Under the badge: the picker, or the Quick Preview's own part.
+                  * `popLayout` takes the leaving part out of the column while it
+                  * slides, so the two are side by side, not one above the other.
+                  */}
+                <AnimatePresence initial={false} mode="popLayout">
+                    {showPicker ? (
+                        <motion.div
+                            key="picker"
+                            data-pw="login-country-picker"
+                            exit={{ x: '-100%', opacity: 0 }}
+                            transition={AUTH_SLIDE}
+                            className="w-full flex flex-col items-center"
+                        >
+                            {picker}
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="preview"
+                            data-pw="quick-preview-body"
+                            initial={{ x: '100%', opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={AUTH_SLIDE}
+                            className="w-full flex flex-col items-center"
+                        >
+                            {/* The mark ends at 248, the title starts at 268. */}
+                            <FlexibleSpace size={GAP.logoToTitle} />
 
-                {/* 3. Header Title: . Quick Preview . */}
-                <div className="w-full flex justify-center items-center flex-shrink-0">
-                    <h1 className="text-xd-30 font-bold text-[#1D1D1D]">
-                        {translate('. quick preview .')}
-                    </h1>
-                </div>
+                            {/* 3. Header Title: . Quick Preview . */}
+                            <div className="w-full flex justify-center items-center flex-shrink-0">
+                                <h1 className="text-xd-30 font-bold text-[#1D1D1D]">
+                                    {translate('. quick preview .')}
+                                </h1>
+                            </div>
 
-                {/* The title box ends at 305.5, the card starts at 326. */}
-                <FlexibleSpace size={GAP.titleToCard} />
+                            {/* The title box ends at 305.5, the card starts at 326. */}
+                            <FlexibleSpace size={GAP.titleToCard} />
 
-                {/* 4. Main Interactive Preview Card Container (390px x 473px) */}
-                {/* The drop shadow on this card is switched off in the design
-                    file (visible: false), so there is none here either.
-                    The height is 473 less the page deficit — see `cardHeight`.
+                            {/* 4. Main Interactive Preview Card Container (390px x 473px) */}
+                            {/* The drop shadow on this card is switched off in the design
+                                file (visible: false), so there is none here either.
+                                The height is 473 less the page deficit — see `cardHeight`.
 
-                    The border belongs to the SLIDE, not to this box. Each
-                    preview is its own bordered card, so a swipe carries one
-                    card out and brings the next one in with its own edge. When
-                    a single border sat on this container the box stayed put and
-                    only the contents moved inside it, which is not what the
-                    design draws.
+                                The border belongs to the SLIDE, not to this box. Each
+                                preview is its own bordered card, so a swipe carries one
+                                card out and brings the next one in with its own edge. When
+                                a single border sat on this container the box stayed put and
+                                only the contents moved inside it, which is not what the
+                                design draws.
 
-                    This box therefore holds no border and no padding. Each card
-                    is the full 390, so at rest the screen looks exactly as it
-                    did when the single border sat here: same edge, same place,
-                    same size. The change only shows once the shopper drags.
+                                This box therefore holds no border and no padding. Each card
+                                is the full 390, so at rest the screen looks exactly as it
+                                did when the single border sat here: same edge, same place,
+                                same size. The change only shows once the shopper drags.
 
-                    SLIDE_GAP is the space between two cards. It is made by
-                    letting the window run SLIDE_GAP/2 wider than this box on
-                    each side, with every card centred in its own slot, rather
-                    than by shrinking the cards. Two things fall out of that,
-                    both wanted:
+                                SLIDE_GAP is the space between two cards. It is made by
+                                letting the window run SLIDE_GAP/2 wider than this box on
+                                each side, with every card centred in its own slot, rather
+                                than by shrinking the cards. Two things fall out of that,
+                                both wanted:
 
-                      - the card keeps the design's 390, so nothing moves at
-                        rest;
-                      - the clip edge sits SLIDE_GAP/2 outside the card edge.
-                        The border is a 0.5px stroke drawn flush inside that
-                        edge, and a clip landing on it cut the stroke on a real
-                        phone (the right side went missing at scale 0.958).
-                        Held half a gap away, the whole stroke is always inside
-                        the clip, at any scale.
+                                  - the card keeps the design's 390, so nothing moves at
+                                    rest;
+                                  - the clip edge sits SLIDE_GAP/2 outside the card edge.
+                                    The border is a 0.5px stroke drawn flush inside that
+                                    edge, and a clip landing on it cut the stroke on a real
+                                    phone (the right side went missing at scale 0.958).
+                                    Held half a gap away, the whole stroke is always inside
+                                    the clip, at any scale.
 
-                    The window runs SLIDE_GAP taller as well, for the second
-                    reason only. The window used to be exactly as tall as the
-                    card, so the top and bottom strokes sat on the clip edge
-                    and the top line came out cut on the page. The extra
-                    height is pulled back with a negative block margin, so the
-                    card box still measures its design height in the column,
-                    and each card carries its own height (cardHeight) instead
-                    of stretching to the taller window. Nothing moves at rest
-                    on this axis either: there is no vertical drag, so the
-                    slack is never seen. */}
-                <div
-                    className="w-xd-390 rounded-xd-20 bg-white flex flex-col items-center justify-center relative flex-shrink-0"
-                    style={{ height: fit.cardHeight }}
-                >
-                    {/* Embla Carousel Swiper Area (Mouse & Touch Swipe) */}
-                    <div
-                        className="overflow-hidden relative cursor-grab active:cursor-grabbing"
-                        ref={emblaRef}
-                        style={{
-                            width: XD.box.width + SLIDE_GAP,
-                            marginInline: -SLIDE_GAP / 2,
-                            height: fit.cardHeight + SLIDE_GAP,
-                            marginBlock: -SLIDE_GAP / 2,
-                        }}
-                    >
-                        <div className="flex h-full touch-pan-y">
-                            {PREVIEW_SLIDES.map((slide) => (
+                                The window runs SLIDE_GAP taller as well, for the second
+                                reason only. The window used to be exactly as tall as the
+                                card, so the top and bottom strokes sat on the clip edge
+                                and the top line came out cut on the page. The extra
+                                height is pulled back with a negative block margin, so the
+                                card box still measures its design height in the column,
+                                and each card carries its own height (cardHeight) instead
+                                of stretching to the taller window. Nothing moves at rest
+                                on this axis either: there is no vertical drag, so the
+                                slack is never seen. */}
+                            <div
+                                className="w-xd-390 rounded-xd-20 bg-white flex flex-col items-center justify-center relative flex-shrink-0"
+                                style={{ height: fit.cardHeight }}
+                            >
+                                {/* Embla Carousel Swiper Area (Mouse & Touch Swipe) */}
                                 <div
-                                    key={slide.id}
-                                    className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center select-none"
+                                    className="overflow-hidden relative cursor-grab active:cursor-grabbing"
+                                    ref={emblaRef}
+                                    style={{
+                                        width: XD.box.width + SLIDE_GAP,
+                                        marginInline: -SLIDE_GAP / 2,
+                                        height: fit.cardHeight + SLIDE_GAP,
+                                        marginBlock: -SLIDE_GAP / 2,
+                                    }}
                                 >
-                                    <div
-                                        className="relative flex flex-col items-center justify-center text-center px-xd-20"
-                                        style={{ width: XD.box.width, height: fit.cardHeight }}
+                                    <div className="flex h-full touch-pan-y">
+                                        {PREVIEW_SLIDES.map((slide) => (
+                                            <div
+                                                key={slide.id}
+                                                className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center select-none"
+                                            >
+                                                <div
+                                                    className="relative flex flex-col items-center justify-center text-center px-xd-20"
+                                                    style={{ width: XD.box.width, height: fit.cardHeight }}
+                                                >
+                                                    <XdDashedBorder
+                                                        width={XD.box.width}
+                                                        height={fit.cardHeight}
+                                                        radius={XD.box.radius}
+                                                        color="#4A31E7"
+                                                        solid
+                                                    />
+                                                    <div className="w-xd-100 h-xd-100 rounded-full bg-[#F4F0FE] flex items-center justify-center mb-xd-20 shadow-inner border border-[#ECE9FE]">
+                                                        {slide.icon(50)}
+                                                    </div>
+                                                    <h3 className="text-xd-20 font-bold text-[#1D1D1D] mb-xd-8">
+                                                        {translate(slide.titleKey)}
+                                                    </h3>
+                                                    <p className="text-xd-14 text-[#5D5C5D] font-normal leading-[1.6] max-w-xd-320">
+                                                        {translate(slide.descKey)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* The card ends at 799, the dots sit at 809. */}
+                            <FlexibleSpace size={GAP.cardToDots} />
+
+                            {/* 5. Pagination Dots (3 Dots matching Mock) */}
+                            <div
+                                className="flex items-center flex-shrink-0"
+                                style={{ gap: XD.quickPreview.dots.gap }}
+                            >
+                                {PREVIEW_SLIDES.map((slide) => (
+                                    <button
+                                        key={slide.id}
+                                        onClick={() => scrollToSlide(slide.id)}
+                                        aria-label={`Slide ${slide.id + 1}`}
+                                        className="transition-all duration-300 cursor-pointer rounded-full"
+                                        style={
+                                            slideIndex === slide.id
+                                                ? {
+                                                      width: XD.quickPreview.dots.activeWidth,
+                                                      height: XD.quickPreview.dots.size,
+                                                      backgroundColor: '#1D1D1D',
+                                                  }
+                                                : {
+                                                      width: XD.quickPreview.dots.size,
+                                                      height: XD.quickPreview.dots.size,
+                                                      border: '1px solid #404040',
+                                                      backgroundColor: 'transparent',
+                                                  }
+                                        }
+                                    />
+                                ))}
+                            </div>
+
+                            {/* The dots end at 817, the button starts at 837. */}
+                            <FlexibleSpace size={GAP.dotsToButton} />
+
+                            {/* 6. Action Button: Next (Dashed purple) vs Get Started (Solid purple) */}
+                            <div className="w-full flex justify-center flex-shrink-0">
+                                {!isLastSlide ? (
+                                    <button
+                                        onClick={handleNext}
+                                        data-pw="quick-preview-next"
+                                        className="relative w-xd-390 h-xd-60 rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 font-normal cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#F8F7FF] flex items-center justify-center"
                                     >
                                         <XdDashedBorder
                                             width={XD.box.width}
-                                            height={fit.cardHeight}
+                                            height={XD.box.height}
                                             radius={XD.box.radius}
                                             color="#4A31E7"
-                                            solid
                                         />
-                                        <div className="w-xd-100 h-xd-100 rounded-full bg-[#F4F0FE] flex items-center justify-center mb-xd-20 shadow-inner border border-[#ECE9FE]">
-                                            {slide.icon(50)}
-                                        </div>
-                                        <h3 className="text-xd-20 font-bold text-[#1D1D1D] mb-xd-8">
-                                            {translate(slide.titleKey)}
-                                        </h3>
-                                        <p className="text-xd-14 text-[#5D5C5D] font-normal leading-[1.6] max-w-xd-320">
-                                            {translate(slide.descKey)}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                                        {translate('Next')}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleNext}
+                                        data-pw="quick-preview-get-started"
+                                        className="w-xd-390 h-xd-60 rounded-xd-20 bg-[#4A31E7] text-white text-xd-16 font-normal cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#3d28c4] flex items-center justify-center"
+                                    >
+                                        {translate('Get Started')}
+                                    </button>
+                                )}
+                            </div>
 
-                {/* The card ends at 799, the dots sit at 809. */}
-                <FlexibleSpace size={GAP.cardToDots} />
-
-                {/* 5. Pagination Dots (3 Dots matching Mock) */}
-                <div
-                    className="flex items-center flex-shrink-0"
-                    style={{ gap: XD.quickPreview.dots.gap }}
-                >
-                    {PREVIEW_SLIDES.map((slide) => (
-                        <button
-                            key={slide.id}
-                            onClick={() => scrollToSlide(slide.id)}
-                            aria-label={`Slide ${slide.id + 1}`}
-                            className="transition-all duration-300 cursor-pointer rounded-full"
-                            style={
-                                slideIndex === slide.id
-                                    ? {
-                                          width: XD.quickPreview.dots.activeWidth,
-                                          height: XD.quickPreview.dots.size,
-                                          backgroundColor: '#1D1D1D',
-                                      }
-                                    : {
-                                          width: XD.quickPreview.dots.size,
-                                          height: XD.quickPreview.dots.size,
-                                          border: '1px solid #404040',
-                                          backgroundColor: 'transparent',
-                                      }
-                            }
-                        />
-                    ))}
-                </div>
-
-                {/* The dots end at 817, the button starts at 837. */}
-                <FlexibleSpace size={GAP.dotsToButton} />
-
-                {/* 6. Action Button: Next (Dashed purple) vs Get Started (Solid purple) */}
-                <div className="w-full flex justify-center flex-shrink-0">
-                    {!isLastSlide ? (
-                        <button
-                            onClick={handleNext}
-                            data-pw="quick-preview-next"
-                            className="relative w-xd-390 h-xd-60 rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 font-normal cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#F8F7FF] flex items-center justify-center"
-                        >
-                            <XdDashedBorder
-                                width={XD.box.width}
-                                height={XD.box.height}
-                                radius={XD.box.radius}
-                                color="#4A31E7"
-                            />
-                            {translate('Next')}
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handleNext}
-                            data-pw="quick-preview-get-started"
-                            className="w-xd-390 h-xd-60 rounded-xd-20 bg-[#4A31E7] text-white text-xd-16 font-normal cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#3d28c4] flex items-center justify-center"
-                        >
-                            {translate('Get Started')}
-                        </button>
+                            {/* The button ends at 897, the artboard at 932. On a short
+                                page this is the first gap to give — see BELOW_BUTTON_MIN. */}
+                            <FlexibleSpace size={fit.belowButton} />
+                        </motion.div>
                     )}
-                </div>
-
-                {/* The button ends at 897, the artboard at 932. On a short
-                    page this is the first gap to give — see BELOW_BUTTON_MIN. */}
-                <FlexibleSpace size={fit.belowButton} />
+                </AnimatePresence>
             </motion.div>
         </main>
     );

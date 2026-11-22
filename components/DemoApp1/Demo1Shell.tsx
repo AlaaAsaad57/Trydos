@@ -119,24 +119,26 @@ import NewLoginWidget, { type AuthStep } from "NewLoginDesign/NewLoginWidget";
  * and curve (sliderMove in demo1Layout.ts). Neither screen fades. With
  * "reduce motion" on, the page only fades in and out.
  *
- * The start: the country picker, then the login, then the page
- * --------------------------------------------------------------
+ * The start: the country picker, the Quick Preview, the login, the page
+ * -----------------------------------------------------------------------
  * With `intro` on (the /demo layout turns it on), every fresh load of the
  * demo opens in these steps, whatever the URL. All of them are the login
  * widget (the same as /loginDemo), as a fixed layer over the page:
  *
  * 1. The start animation of the Quick Preview: the wordmark in the middle,
  *    and the column waiting at the bottom edge.
- * 2. The country picker (XD `Ramaaz pay signin – 16`), in the Quick Preview's
- *    place: its column rises the same way, with the same flipping pill and
- *    the same badge logo. The map and the rows are CountryPickerBody.
- * 3. A country is picked: Get Started slides in, as after the Quick Preview.
+ * 2. The column rises with the country picker (XD `Ramaaz pay signin – 16`)
+ *    under the Quick Preview's flipping pill and badge logo. The map and the
+ *    rows are CountryPickerBody.
+ * 3. A country is picked: the pill and the logo stay where they are, and the
+ *    part under them slides from the picker to the Quick Preview's slider.
+ * 4. The Quick Preview's "Get Started": the Get Started screen slides in.
  *    The shopper taps "Later" or goes through the login.
- * 4. The screen of the URL: the login's white fades out and the screen fades
+ * 5. The screen of the URL: the login's white fades out and the screen fades
  *    in.
  *
- * (When the country is known, the Quick Preview will take the picker's place
- * again.)
+ * (When the country is known, the start will go straight to the Quick
+ * Preview, without the picker.)
  *
  * All of it is in this one page, so no step waits for the server. The login
  * is drawn on the server too, and the screen of the URL waits under it as a

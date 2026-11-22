@@ -13,10 +13,11 @@ import CountryRow from "./CountryRow";
  * The country picker's map and rows: XD `Ramaaz pay signin – 16` (no
  * country yet) and `– 15` (Turkiye chosen), from the map down.
  *
- * The picker is a step of the login at the start of /demo
- * (NewLoginDesign/NewCountryPickerScreen.tsx). That screen draws the top: the
- * flipping slogan pill at y 56 and the badge logo, 150 x 150 at (140, 98),
- * both the Quick Preview's. This part is drawn under the logo:
+ * The picker is the login's first step at the start of /demo. The Quick
+ * Preview's column draws the top (QuickPreviewScreen, its `picker` prop): the
+ * flipping slogan pill and the badge logo, in the same place as on the Quick
+ * Preview. This part is drawn under the logo, and keeps the file's distances
+ * from the logo's bottom edge (y 248 in the file):
  *  - the map of the four countries, 406.5 x 286.5 at (11.75, 287.75). Each
  *    country is `#F4F4F4` with a 0.5 px `#D3D3D3` line; the chosen one is
  *    `#8D8D8D` with a `#4A31E7` line (`– 15`);
@@ -26,8 +27,8 @@ import CountryRow from "./CountryRow";
  *
  * A tap on a row, or on a country of the map, chooses it. The grey fills the
  * country on the map from the tap (FILL), then the page shows the choice
- * (`– 15`) until HOLD_MS, and calls `onDone`: the login goes on to Get
- * Started.
+ * (`– 15`) until HOLD_MS, and calls `onDone`: this part slides out and the
+ * Quick Preview's slides in, under the same pill and logo.
  */
 
 /**

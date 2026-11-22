@@ -217,3 +217,11 @@ export const XD_LINE3_ICON_GAP = {
  * outcome artboards (`Registration - 25`, `- 26`): 148.6 - 40 - 102.
  */
 export const XD_PHONE_ICON_GAP = 6.6;
+
+/**
+ * The slide between two login screens: the new one comes in from the right
+ * while the old one goes out to the left, both fading. NewLoginWidget slides
+ * whole screens with it, and the Quick Preview slides the part under its
+ * badge with it when the country picker hands over.
+ */
+export const AUTH_SLIDE = { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const };
