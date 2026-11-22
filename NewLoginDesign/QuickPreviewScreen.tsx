@@ -13,7 +13,6 @@ import { DESIGN_H } from 'scaling/scale.config';
 import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
 import { PREVIEW_SLIDES } from './previewSlides';
 import type { LogoSlotConfig } from './logoScreenConfig';
-import { isFloatingBarSafari } from 'components/DemoApp1/demo1Layout';
 
 interface QuickPreviewScreenProps {
     onComplete: () => void;
@@ -150,24 +149,6 @@ const FLIP_LABELS: FlipLabel[] = [
  * on the bottom edge and the whole ring fell outside `overflow-hidden`.
  */
 const COLLAPSED_TAIL = 103;
-
-/**
- * The white fade over the canvas's bottom while the column waits, in px.
- * iPhone Safari 26 only.
- *
- * Why. In iPhone Safari 26 the window ends about 16 px above Safari's
- * floating bar. Safari cuts the page flat at that line and paints white under
- * it (see SAFARI_BAND in demo1Layout.ts). So the ring was cut on a line in the
- * air, with white and then Safari's bar under it (the client's screenshot,
- * 2026-11-22). In Chrome on Android the window ends at the screen's edge, so
- * the same cut is the edge, and the ring looks like it comes up from below.
- *
- * Nothing can be drawn under Safari's bar, so the cut cannot go there. The
- * fade melts the ring into the white instead. The peek goes up by the same
- * height (see `collapsedY`), so the eyes stay above the fade, and only the
- * ring's two ends fade out.
- */
-const SAFARI_BOTTOM_FADE = 24;
 
 /**
  * How the column moves: up from below the page to its peek, then up to the
@@ -375,15 +356,6 @@ export default function QuickPreviewScreen({
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const [slideIndex, setSlideIndex] = useState<number>(0);
 
-    /**
-     * iPhone Safari 26 (see SAFARI_BOTTOM_FADE). Set after mount: the server
-     * has no user agent to read, and the first HTML must match it.
-     */
-    const [floatingBar, setFloatingBar] = useState(false);
-    useEffect(() => {
-        setFloatingBar(isFloatingBarSafari(navigator.userAgent));
-    }, []);
-
     const canvasRef = useRef<HTMLElement>(null);
     const columnRef = useRef<HTMLDivElement>(null);
     const pillRef = useRef<HTMLDivElement>(null);
@@ -441,13 +413,10 @@ export default function QuickPreviewScreen({
             const belowButton = Math.max(belowButtonMin, GAP.belowButton - deficit);
             // A bigger top gap is height too, and it comes out of the card.
             const cardGives = deficit - (GAP.belowButton - belowButton) + (abovePill - GAP.abovePill);
-            // In iPhone Safari 26 the peek goes up by the fade over the bottom,
-            // so the eyes stay clear of it.
-            const tail = COLLAPSED_TAIL + (floatingBar ? SAFARI_BOTTOM_FADE : 0);
             setFit({
                 // pill.offsetTop is the top spacer. Reading it beats
                 // recomputing it from the constants.
-                collapsedY: Math.max(0, canvasH - tail - pill.offsetTop),
+                collapsedY: Math.max(0, canvasH - COLLAPSED_TAIL - pill.offsetTop),
                 fitScale: !pickerShownRef.current && columnH > canvasH ? canvasH / columnH : 1,
                 cardHeight: XD.quickPreview.card.height - cardGives,
                 belowButton,
@@ -461,7 +430,7 @@ export default function QuickPreviewScreen({
         observer.observe(canvas);
         observer.observe(column);
         return () => observer.disconnect();
-    }, [belowButtonMin, abovePill, floatingBar]);
+    }, [belowButtonMin, abovePill]);
 
     /**
      * The picker is taller than a short page, so it may have been scrolled
@@ -773,24 +742,6 @@ export default function QuickPreviewScreen({
                     )}
                 </AnimatePresence>
             </motion.div>
-
-            {/* iPhone Safari 26 only: the white fade over the bottom while the
-                column waits, so the ring melts into the white under it and is
-                not cut on a line (see SAFARI_BOTTOM_FADE). It fades out as the
-                column rises. It comes after the column, so the column stays
-                the canvas's second child. */}
-            {floatingBar && (
-                <div
-                    data-pw="quick-preview-bottom-fade"
-                    aria-hidden="true"
-                    className="absolute inset-x-0 bottom-0 z-30 pointer-events-none transition-opacity duration-300 ease-out"
-                    style={{
-                        height: SAFARI_BOTTOM_FADE,
-                        background: 'linear-gradient(to top, #FFFFFF, rgba(255, 255, 255, 0))',
-                        opacity: isExpanded ? 0 : 1,
-                    }}
-                />
-            )}
         </main>
     );
 }

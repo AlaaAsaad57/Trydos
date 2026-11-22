@@ -261,22 +261,25 @@ describe('QuickPreviewScreen — the slider gives up the height the page does no
 /*
  * The round logo that peeks at the bottom during the start animation.
  *
- * The bug (2026-11-22, the client's iPhone screenshot): in iPhone Safari 26
- * the window ends about 16 px above Safari's floating bar, and Safari cuts the
- * page flat at that line and paints white under it. So the ring was cut on a
- * line in the air, with white under it, and did not look like it came up from
- * the bottom. In Chrome on Android the window ends at the screen's edge, so
- * the same cut is the edge and looks right.
+ * The design (`Ramaaz pay signin - 14`) shows the pill and, under it, only the
+ * ring's top and the two eyes: the pill's top is 103 px above the bottom, the
+ * eyes end at 925, and the artboard at 932. The letters stay below the edge.
  *
- * The fix: in iPhone Safari 26 only, a white fade lies over the canvas's
- * bottom while the column waits, so the ring melts into the white.
+ * The bug (2026-11-22, the client's iPhone screenshot): a change for iPhone
+ * Safari 26 lifted the peek 24 px. Then the top of "try" showed under the eyes,
+ * cut flat at the window's end. The peek must be the design's in every
+ * browser.
  */
 const SAFARI_26 =
     'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1';
 const CHROME_ANDROID =
     'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
+/** The design's distance from the pill's top to the bottom edge. */
+const PEEK_TAIL = 103;
+/** The space over the pill, set on the pill box in place of a real layout. */
+const PILL_TOP = 0;
 
-describe('QuickPreviewScreen — the round logo at the bottom in iPhone Safari 26', () => {
+describe('QuickPreviewScreen — the round logo peeks at the bottom as the design draws it', () => {
     beforeEach(() => {
         observed = [];
         vi.stubGlobal('ResizeObserver', FakeResizeObserver);
@@ -286,38 +289,38 @@ describe('QuickPreviewScreen — the round logo at the bottom in iPhone Safari 2
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
-        vi.useRealTimers();
     });
 
-    const fadeIn = (canvas: HTMLElement) =>
-        canvas.querySelector<HTMLElement>('[data-pw="quick-preview-bottom-fade"]');
+    /** The column's y while it waits, read from its transform. */
+    const peekY = (column: HTMLElement) => {
+        const match = column.style.transform.match(/translateY\((-?[\d.]+)px\)/);
+        return match ? Number(match[1]) : null;
+    };
 
-    it('lays a white fade over the bottom in iPhone Safari 26, so the ring is not cut on a line', () => {
-        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);
-        const { canvas } = renderOnCanvas(745);
-        expect(
-            fadeIn(canvas),
-            'iPhone Safari 26 has no fade over the bottom, so the ring is cut flat above Safari\'s bar',
-        ).not.toBeNull();
-    });
-
-    it('has no fade in Chrome on Android, where the window ends at the screen\'s edge', () => {
-        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(CHROME_ANDROID);
-        const { canvas } = renderOnCanvas(745);
-        expect(fadeIn(canvas), 'Chrome on Android got the Safari fade over the bottom').toBeNull();
-    });
-
-    it('fades the fade out when the column rises after the start animation', () => {
-        vi.useFakeTimers();
-        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);
-        const { canvas } = renderOnCanvas(745);
-        expect(fadeIn(canvas)?.style.opacity, 'the fade is not fully shown while the column waits').toBe('1');
-        act(() => {
-            vi.advanceTimersByTime(8000);
+    for (const [browser, ua] of [
+        ['iPhone Safari 26', SAFARI_26],
+        ['Chrome on Android', CHROME_ANDROID],
+    ] as const) {
+        it(`puts the pill 103 px above the bottom in ${browser}, so only the ring's top and the eyes show`, async () => {
+            vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(ua);
+            const { column } = renderOnCanvas(745);
+            // Framer writes the end of the move on the next frames.
+            await act(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 1200));
+            });
+            expect(
+                peekY(column),
+                `in ${browser} the pill is not 103 px above the bottom, so the peek shows more or less than the design's ring top and eyes`,
+            ).toBe(745 - PEEK_TAIL - PILL_TOP);
         });
+    }
+
+    it('lays nothing over the bottom in iPhone Safari 26', () => {
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);
+        const { canvas } = renderOnCanvas(745);
         expect(
-            fadeIn(canvas)?.style.opacity,
-            'the fade stayed over the bottom after the column rose, so it covers the picker and the button',
-        ).toBe('0');
+            canvas.querySelector('[data-pw="quick-preview-bottom-fade"]'),
+            'iPhone Safari 26 still gets the white fade over the bottom',
+        ).toBeNull();
     });
 });
