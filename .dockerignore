@@ -1,0 +1,42 @@
+# Files Docker must not send into the build.
+# See docs/server-deploy.md.
+
+# Secrets. The env file reaches the build only as a BuildKit secret.
+.env*
+!.env.example
+
+# Installed packages and build output. The image makes its own.
+node_modules
+.next
+
+# Git data and local tool folders.
+.git
+.vercel
+.claude
+.cursor
+.superpowers
+.vscode
+
+# Test and report output.
+coverage
+playwright-report
+test-results
+e2e-results.json
+test-results.json
+
+# Large media and exports that the app does not import.
+*.mp4
+posthog-export
+graphify-out
+
+# Logs.
+*.log
+
+# Docker files themselves.
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Keep `tests/` in the build: tsconfig includes every .ts file, and
+# playwright.config.ts imports from tests/e2e. Without it, the type check
+# in `next build` fails.
