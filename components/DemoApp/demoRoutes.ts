@@ -21,6 +21,7 @@
  * catches up behind it. See Demo1Shell for why.
  */
 
+import { orderById } from "./demoOrders";
 import { productById, storeBySlug } from "./demoStores";
 
 export const DEMO_SCREENS = [
@@ -43,6 +44,7 @@ export const DEMO_SCREENS = [
   "settings/profile/address",
   "settings/profile/address/new",
   "settings/wallet",
+  "settings/orders",
 ] as const;
 
 /** A screen with a fixed key. */
@@ -54,7 +56,14 @@ export type DemoStoreScreen = `store/${string}`;
 /** A product's page: `store/<slug>/<product id>`, for a store and a product in demoStores.ts. */
 export type DemoProductScreen = `store/${string}/${string}`;
 
-export type DemoScreen = DemoStaticScreen | DemoStoreScreen | DemoProductScreen;
+/** An order's details page: `settings/orders/<id>`, for an order in demoOrders.ts. */
+export type DemoOrderScreen = `settings/orders/${string}`;
+
+export type DemoScreen =
+  | DemoStaticScreen
+  | DemoStoreScreen
+  | DemoProductScreen
+  | DemoOrderScreen;
 
 /** The tab bar, left to right. `settings` is the profile tab. */
 export const DEMO_TABS = [
@@ -72,7 +81,23 @@ const OVERLAYS: DemoScreen[] = ["search", "cart", "chat"];
 const isScreen = (key: string): key is DemoScreen =>
   (DEMO_SCREENS as readonly string[]).includes(key) ||
   isStoreScreen(key) ||
-  isProductScreen(key);
+  isProductScreen(key) ||
+  isOrderScreen(key);
+
+/** True for an order's details page: `settings/orders/<id>`. */
+export function isOrderScreen(key: string): key is DemoOrderScreen {
+  const [head, section, id, ...rest] = key.split("/");
+  return (
+    head === "settings" &&
+    section === "orders" &&
+    !!id &&
+    !rest.length &&
+    !!orderById(id)
+  );
+}
+
+/** The order id of an order details screen. */
+export const orderIdOf = (key: DemoOrderScreen) => key.split("/")[2];
 
 /** True for a store's page: `store/<slug>`, with a slug that demoStores.ts knows. */
 export function isStoreScreen(key: string): key is DemoStoreScreen {

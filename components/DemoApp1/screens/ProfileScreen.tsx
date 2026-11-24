@@ -322,7 +322,9 @@ export default function ProfileScreen() {
             onClick={
               card.icon === "wallet"
                 ? () => navigate("settings/wallet")
-                : undefined
+                : card.icon === "orders"
+                  ? () => navigate("settings/orders")
+                  : undefined
             }
             whileTap={{ scale: 0.98 }}
             className="flex flex-col cursor-pointer text-left"

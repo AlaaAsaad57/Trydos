@@ -4,6 +4,63 @@
  * translation keeps them (see Rich in ProductScreen). In English the page
  * writes them in Apple's title or sentence style (components/DemoApp1/demoCase.ts).
  */
+const ORDER_KEYS = [
+  "Orders Details",
+  "All",
+  "In Progress",
+  "Delivered",
+  "Returned",
+  "Cancelled",
+  "Item",
+  "Preparing…",
+  "Order Details & Status",
+  "Preparing",
+  "Shipped",
+  "Item Status",
+  "Packing",
+  "Shipping Operations",
+  "Remaining 1 Day",
+  "Waiting Pickup 30",
+  "EST Today In 6 Hours",
+  "EST Tomorrow 14:00",
+  "On Way",
+  "Picked",
+  "Pickup Point",
+  "Pick Up Your Shipment Yourself",
+  "Total Packages You Will Pickup",
+  "Packages",
+  "Package Shipment Company & ID",
+  "Waiting Shipment Number…",
+  "Expected Delivery Date",
+  "Work Days",
+  "Will Send To You Notification When The Shipment Ready To Collect",
+  "You Can Pickup Now",
+  "Delivery Pickup Address",
+  "Show In Map",
+  "Recipient",
+  "Recipient Contact",
+  "+ Add",
+  "Authorized Recipient",
+  "The Shipment",
+  "Pickup Now",
+  "Pickup Order",
+  "Recipient Package Phone Number",
+  "Recipient Package Full Name ( Exact ID )",
+  "Package Pickup Address",
+  "Copy",
+  "Rate & Get Money",
+  "Your Accurate Rating Of The Products You Receive Helps Us Improve Quality And Helps Other Customers Purchase.",
+  "Point",
+  "Add Comment…",
+  "Picked By",
+  "Denim Blue",
+  "Medium 38",
+  "Composed Of",
+  "1 Piece",
+  "1 item",
+  "usd",
+] as const;
+
 const PRODUCT_PAGE_KEYS = [
   "Price alert",
   "Stock alert",
@@ -653,6 +710,8 @@ export const DEMO_KEYS = [
   ...DELIVERY_KEYS,
   // The checkout's payment step (`Home Page – 75`, `– 73`).
   ...PAYMENT_KEYS,
+  // Orders list, details, pickup sheet & timeline (`Home Page – 53`, `– 60`..`– 66`).
+  ...ORDER_KEYS,
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
@@ -701,6 +760,8 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   ...PAYMENT_KEYS,
   // The email code sheet's answers.
   ...EMAIL_CODE_KEYS,
+  // Orders list, details, pickup sheet & timeline (`Home Page – 53`, `– 60`..`– 66`).
+  ...ORDER_KEYS,
 ]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;

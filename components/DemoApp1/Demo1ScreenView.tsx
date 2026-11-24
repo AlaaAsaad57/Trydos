@@ -2,8 +2,10 @@
 
 import React from "react";
 import {
+  isOrderScreen,
   isProductScreen,
   isStoreScreen,
+  orderIdOf,
   productIdOf,
   storeSlugOf,
   type DemoScreen,
@@ -23,6 +25,8 @@ import BodyScreen from "./screens/BodyScreen";
 import AddressListScreen from "./screens/AddressListScreen";
 import AddressFormScreen from "./screens/AddressFormScreen";
 import WalletScreen from "./screens/WalletScreen";
+import OrdersScreen from "./screens/OrdersScreen";
+import OrderDetailScreen from "./screens/OrderDetailScreen";
 import ChatListScreen from "./screens/ChatListScreen";
 import ConversationScreen from "./screens/ConversationScreen";
 import ContactScreen from "./screens/ContactScreen";
@@ -36,6 +40,8 @@ export default function Demo1ScreenView({ screen }: { screen: DemoScreen }) {
     return <ListingScreen slug={storeSlugOf(screen)} />;
   if (isProductScreen(screen))
     return <ProductScreen slug={storeSlugOf(screen)} id={productIdOf(screen)} />;
+  if (isOrderScreen(screen))
+    return <OrderDetailScreen id={orderIdOf(screen)} />;
   switch (screen) {
     case "home":
       return <HomeScreen />;
@@ -75,5 +81,7 @@ export default function Demo1ScreenView({ screen }: { screen: DemoScreen }) {
       return <AddressFormScreen />;
     case "settings/wallet":
       return <WalletScreen />;
+    case "settings/orders":
+      return <OrdersScreen />;
   }
 }
