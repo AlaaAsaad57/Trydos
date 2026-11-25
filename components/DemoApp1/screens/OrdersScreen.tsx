@@ -83,8 +83,9 @@ export function OrderHeader({
           name="orderTitleIcon"
           className="shrink-0"
           style={{
-            marginLeft: 5.5,
-            marginRight: -(5.5 + 15.85),
+            marginLeft: 5.32,
+            marginRight: -(5.32 + 15.85),
+            marginBottom: -1,
           }}
         />
       </h1>
@@ -150,7 +151,7 @@ export default function OrdersScreen() {
       header={
         <OrderHeader
           crumbRight="Orders"
-          nudge={0}
+          nudge={0.16}
           onBack={back}
           t={t}
         />
@@ -333,7 +334,7 @@ function OrderListCard({
               {`${t("Today")} | ${order.dateLabel}`}
             </Txt>
             {inProgress ? (
-              <Txt size={11} weight="medium" color={C.ink} style={{ marginTop: -1 }}>
+              <Txt size={11} weight="medium" color={C.ink}>
                 {t("In Progress")}
               </Txt>
             ) : (
@@ -400,7 +401,7 @@ function OrderListCard({
                   size={11}
                   weight="medium"
                   color={C.ink}
-                  mt={textTop(284, 11) - 266 - 1}
+                  mt={textTop(284, 11) - 266}
                 >
                   <span className="font-bold">{order.itemCount}</span>{" "}
                   <span className="font-normal">{t("Item")}</span>{" "}

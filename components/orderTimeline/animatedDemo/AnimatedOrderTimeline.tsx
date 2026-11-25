@@ -652,6 +652,7 @@ export default function AnimatedOrderTimeline({
         active={pill1Active}
         outlined={pill1Outlined}
         label={pill1Text}
+        nudge={pill1Active ? -0.25 : 0}
         onClick={() =>
           onSelectStage?.(stage === "preparing" ? "split" : "preparing")
         }
@@ -662,6 +663,15 @@ export default function AnimatedOrderTimeline({
         active={pill2Active}
         stroke={pill2Stroke}
         label={pill2Text}
+        nudge={
+          stage === "preparing"
+            ? 0.5
+            : stage === "split" || stage === "showcase"
+              ? 0.41
+              : stage === "delivered"
+                ? -0.5
+                : -0.19
+        }
         onClick={() =>
           onSelectStage?.(stage === "shipped" ? "pickup" : "shipped")
         }
@@ -671,6 +681,7 @@ export default function AnimatedOrderTimeline({
         left={304}
         active={pill3Active}
         label={t("Delivered")}
+        nudge={pill3Active ? 0.41 : 0}
         onClick={() => onSelectStage?.("delivered")}
         testId="demo-order-stage-delivered"
       />
@@ -678,7 +689,12 @@ export default function AnimatedOrderTimeline({
       {/* Three timestamp / ETA sub-labels centered under each pill */}
       <div
         className="absolute flex justify-center pointer-events-none"
-        style={{ left: pct(12), width: pct(90), top: textTop(640, 8) - 554 - 1 }}
+        style={{
+          left: pct(12),
+          width: pct(90),
+          top: 86 - 8,
+          paddingLeft: stage === "preparing" ? 0.28 : 1.22,
+        }}
       >
         <Txt size={8} color={C.ink}>
           {stage === "preparing" ? (
@@ -696,7 +712,17 @@ export default function AnimatedOrderTimeline({
 
       <div
         className="absolute flex justify-center pointer-events-none"
-        style={{ left: pct(162), width: pct(90), top: textTop(640, 8) - 554 - 1 }}
+        style={{
+          left: pct(162),
+          width: pct(90),
+          top: 86 - 8,
+          paddingLeft:
+            stage === "preparing"
+              ? 2.46
+              : stage === "pickup" || stage === "delivered"
+                ? 0.74
+                : 0.28,
+        }}
       >
         <Txt size={8} color={C.ink}>
           {stage === "preparing"
@@ -709,7 +735,12 @@ export default function AnimatedOrderTimeline({
 
       <div
         className="absolute flex justify-center pointer-events-none"
-        style={{ left: pct(304), width: pct(90), top: textTop(640, 8) - 554 - 1 }}
+        style={{
+          left: pct(304),
+          width: pct(90),
+          top: 86 - 8,
+          paddingLeft: stage === "delivered" ? 0.6 : 4,
+        }}
       >
         <Txt size={8} color={C.ink}>
           {stage === "delivered"
@@ -729,6 +760,7 @@ function StagePill({
   outlined = false,
   stroke,
   label,
+  nudge = 0,
   onClick,
   testId,
 }: {
@@ -737,10 +769,11 @@ function StagePill({
   outlined?: boolean;
   stroke?: string;
   label: string;
+  nudge?: number;
   onClick: () => void;
   testId: string;
 }) {
-  const bg = active ? C.purple : outlined ? C.card : C.field;
+  const bg = active ? C.purple : "#F4F4F4";
   const fg = active ? C.card : C.ink;
   const strokeColor = stroke ?? (outlined ? C.purple : undefined);
 
@@ -757,10 +790,12 @@ function StagePill({
         height: 18,
         borderRadius: 6,
         background: bg,
+        paddingLeft: nudge > 0 ? nudge * 2 : undefined,
+        paddingRight: nudge < 0 ? -nudge * 2 : undefined,
       }}
     >
       <span
-        className="font-quicksand font-normal whitespace-nowrap transition-colors duration-300"
+        className={`font-quicksand ${active ? "font-medium" : "font-normal"} whitespace-nowrap transition-colors duration-300`}
         style={{
           fontSize: 11,
           lineHeight: `${lineBox(11)}px`,

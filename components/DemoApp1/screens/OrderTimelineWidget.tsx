@@ -16,7 +16,8 @@ const pct = (x: number) => `${(x / CARD_W) * 100}%`;
 
 const GREEN_BAR = "#31E770";
 const CYAN_BAR = "#38E0FF";
-const DOT_HINT = "#B2B2B2";
+const DOT_HINT = "#C3C3C3";
+const PILL_INACTIVE_BG = "#F4F4F4";
 
 /** Mini 10 x 14 product thumbnail sitting above the timeline track. */
 function MiniThumb({
@@ -337,6 +338,16 @@ export default function OrderTimelineWidget({
         {/* Three XD milestone dots: r 7 at cx 57, 207, 349, cy 37 */}
         <circle cx="57" cy="37" r="7" fill={dot0Fill} />
         <circle cx="207" cy="37" r="7" fill={dot1Fill} />
+        {(stage === "shipped" || stage === "pickup" || isDelivered) && (
+          <circle
+            cx="207"
+            cy="37"
+            r="6.75"
+            fill="none"
+            stroke={C.ink}
+            strokeWidth="0.5"
+          />
+        )}
         <circle cx="349" cy="37" r="7" fill={dot2Fill} />
       </svg>
 
@@ -406,6 +417,7 @@ export default function OrderTimelineWidget({
         active={pill1Active}
         outlined={pill1Outlined}
         label={pill1Text}
+        nudge={pill1Active ? -0.25 : 0}
         onClick={() =>
           onSelectStage?.(stage === "preparing" ? "split" : "preparing")
         }
@@ -416,6 +428,15 @@ export default function OrderTimelineWidget({
         active={pill2Active}
         stroke={pill2Stroke}
         label={pill2Text}
+        nudge={
+          stage === "preparing"
+            ? 0.5
+            : stage === "split" || stage === "showcase"
+              ? 0.41
+              : stage === "delivered"
+                ? -0.5
+                : -0.19
+        }
         onClick={() =>
           onSelectStage?.(stage === "shipped" ? "pickup" : "shipped")
         }
@@ -425,14 +446,20 @@ export default function OrderTimelineWidget({
         left={304}
         active={pill3Active}
         label={t("Delivered")}
+        nudge={pill3Active ? 0.41 : 0}
         onClick={() => onSelectStage?.("delivered")}
         testId="demo-order-stage-delivered"
       />
 
-      {/* Three timestamp / ETA sub-labels centered under each pill */}
+      {/* Three timestamp / ETA sub-labels under each pill (baseline +86 -> top 78) */}
       <div
         className="absolute flex justify-center pointer-events-none"
-        style={{ left: pct(12), width: pct(90), top: textTop(640, 8) - 554 - 1 }}
+        style={{
+          left: pct(12),
+          width: pct(90),
+          top: 86 - 8,
+          paddingLeft: stage === "preparing" ? 0.28 : 1.22,
+        }}
       >
         <Txt size={8} color={C.ink}>
           {stage === "preparing" ? (
@@ -450,7 +477,17 @@ export default function OrderTimelineWidget({
 
       <div
         className="absolute flex justify-center pointer-events-none"
-        style={{ left: pct(162), width: pct(90), top: textTop(640, 8) - 554 - 1 }}
+        style={{
+          left: pct(162),
+          width: pct(90),
+          top: 86 - 8,
+          paddingLeft:
+            stage === "preparing"
+              ? 2.46
+              : stage === "pickup" || stage === "delivered"
+                ? 0.74
+                : 0.28,
+        }}
       >
         <Txt size={8} color={C.ink}>
           {stage === "preparing"
@@ -463,7 +500,12 @@ export default function OrderTimelineWidget({
 
       <div
         className="absolute flex justify-center pointer-events-none"
-        style={{ left: pct(304), width: pct(90), top: textTop(640, 8) - 554 - 1 }}
+        style={{
+          left: pct(304),
+          width: pct(90),
+          top: 86 - 8,
+          paddingLeft: isDelivered ? 0.6 : 4,
+        }}
       >
         <Txt size={8} color={C.ink}>
           {stage === "delivered"
@@ -481,6 +523,7 @@ function StagePill({
   outlined = false,
   stroke,
   label,
+  nudge = 0,
   onClick,
   testId,
 }: {
@@ -489,10 +532,11 @@ function StagePill({
   outlined?: boolean;
   stroke?: string;
   label: string;
+  nudge?: number;
   onClick: () => void;
   testId: string;
 }) {
-  const bg = active ? C.purple : outlined ? C.card : C.field;
+  const bg = active ? C.purple : PILL_INACTIVE_BG;
   const fg = active ? C.card : C.ink;
   const strokeColor = stroke ?? (outlined ? C.purple : undefined);
 
@@ -509,10 +553,12 @@ function StagePill({
         height: 18,
         borderRadius: 6,
         background: bg,
+        paddingLeft: nudge > 0 ? nudge * 2 : undefined,
+        paddingRight: nudge < 0 ? -nudge * 2 : undefined,
       }}
     >
       <span
-        className="font-quicksand font-normal whitespace-nowrap"
+        className={`font-quicksand ${active ? "font-medium" : "font-normal"} whitespace-nowrap`}
         style={{
           fontSize: 11,
           lineHeight: `${lineBox(11)}px`,

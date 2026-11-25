@@ -25,6 +25,7 @@ import {
   textTop,
 } from "../demo1Layout";
 import { Box, ScreenPage, Stroke, Txt } from "../ui";
+import { Rule } from "./CartParts";
 import { StoreMark } from "./ListingParts";
 import { OrderHeader } from "./OrdersScreen";
 import OrderTimelineWidget from "./OrderTimelineWidget";
@@ -112,7 +113,7 @@ export default function OrderDetailScreen({ id }: { id: string }) {
       header={
         <OrderHeader
           crumbRight="Orders Details"
-          nudge={0}
+          nudge={0.58}
           onBack={back}
           onMore={() => setMenuOpen((v) => !v)}
           t={t}
@@ -134,6 +135,7 @@ export default function OrderDetailScreen({ id }: { id: string }) {
                 bottom: `calc(${932 - (CTA.y + CTA.height)}px + ${SAFE_BOTTOM})`,
                 borderRadius: CTA.radius,
                 background: C.purple,
+                paddingLeft: 2,
               }}
             >
               <Txt
@@ -249,7 +251,9 @@ export default function OrderDetailScreen({ id }: { id: string }) {
           label={t("Order Date")}
           testId="demo-order-detail-date"
         >
-          {`${t("Today")} | ${order.dateLabel}`}
+          {t("Today")}
+          <span className="font-bold">{" "}</span>
+          {`| ${order.dateLabel}`}
         </SummaryTile>
 
         <SummaryTile
@@ -300,8 +304,8 @@ export default function OrderDetailScreen({ id }: { id: string }) {
             style={{
               margin: 0,
               paddingLeft: 12,
-              paddingRight: 28,
-              paddingTop: paraTop(278, 11, 16) - textBottom(258, 13) + 1,
+              paddingRight: 24,
+              paddingTop: paraTop(278, 11, 16) - textBottom(258, 13),
               fontSize: 11,
               lineHeight: "16px",
               color: C.ink,
@@ -323,14 +327,20 @@ export default function OrderDetailScreen({ id }: { id: string }) {
               height: 42,
               borderRadius: 12,
               background: "#402CDD",
-              gap: 7.5,
+              paddingLeft: 2,
             }}
           >
-            <XdIcon name="orderRateStarsBtn" />
+            <XdIcon
+              name="orderRateStarsBtn"
+              style={{ marginRight: 7.51, marginTop: -0.94 }}
+            />
             <Txt size={13} weight="medium" color={C.card}>
               {t("Rate & Get Money")}
             </Txt>
-            <XdIcon name="orderRateStarsBtn" />
+            <XdIcon
+              name="orderRateStarsBtn"
+              style={{ marginLeft: 8.56, marginTop: -0.94 }}
+            />
           </motion.button>
         </Box>
       )}
@@ -394,17 +404,8 @@ export default function OrderDetailScreen({ id }: { id: string }) {
           )}
         </div>
 
-        {/* Hairline 1: y +54 (258) */}
-        <div
-          className="shrink-0"
-          style={{
-            marginTop: 258 - (232 + 18),
-            marginLeft: 12,
-            marginRight: 12,
-            height: 0.5,
-            background: C.line,
-          }}
-        />
+        {/* Hairline 1: y +54 (258), drawn as an XD 0.5 px SVG line centred on its y */}
+        <Rule color={C.line} mt={258 - (232 + 18)} />
 
         {/* Line items */}
         {order.items.map((item, idx) => {
@@ -413,19 +414,10 @@ export default function OrderDetailScreen({ id }: { id: string }) {
           return (
             <React.Fragment key={item.id}>
               {idx > 0 && (
-                <div
-                  className="shrink-0"
-                  style={{
-                    marginTop: isDelivered ? 32 - 20 : 12,
-                    marginLeft: 12,
-                    marginRight: 12,
-                    height: 0.5,
-                    background: C.line,
-                  }}
-                />
+                <Rule color={C.line} mt={isDelivered ? 32 - 20 : 12} />
               )}
 
-              {/* Item main row: 80 x 120 photo + details (11.5 under the 0.5 px hairline = exact 12 px pitch) */}
+              {/* Item main row: 80 x 120 photo + details (11.5 under the 1 px Rule box = exact 12 px pitch) */}
               <div
                 className="flex items-start shrink-0"
                 style={{
@@ -488,7 +480,18 @@ export default function OrderDetailScreen({ id }: { id: string }) {
                       {t("usd")}
                     </Txt>
 
-                    <div className="flex items-center shrink-0" style={{ gap: 4 }}>
+                    <div
+                      className="flex items-center shrink-0"
+                      style={{
+                        gap: st.icon === "orderWorkSmall" ? 3.68 : 4.35,
+                        marginRight:
+                          st.icon === "orderWorkSmall"
+                            ? -0.29
+                            : st.icon
+                              ? 0.11
+                              : 0,
+                      }}
+                    >
                       <Txt size={11} color={C.ink}>
                         <span style={{ color: C.grey }}>
                           {`${t("Item Status")} `}
@@ -500,7 +503,14 @@ export default function OrderDetailScreen({ id }: { id: string }) {
                         <XdIcon
                           name={st.icon}
                           className="shrink-0"
-                          style={{ marginTop: -2 }}
+                          style={{
+                            marginTop:
+                              st.icon === "orderWorkSmall"
+                                ? -0.28
+                                : st.icon === "orderRocketUpSmall"
+                                  ? 0.62
+                                  : -0.56,
+                          }}
                         />
                       )}
                     </div>
@@ -562,17 +572,25 @@ export default function OrderDetailScreen({ id }: { id: string }) {
                   ))}
 
                   {/* Vertical hairline at x 218 -> rel 206, y 563..577 */}
-                  <div
+                  <svg
                     aria-hidden="true"
-                    className="absolute"
+                    className="absolute pointer-events-none"
                     style={{
-                      left: 218 - 12,
+                      left: 218 - 12 - 0.5,
                       top: 563 - 557,
-                      width: 0.5,
+                      width: 1,
                       height: 14,
-                      background: C.hint,
                     }}
-                  />
+                  >
+                    <line
+                      x1="0.5"
+                      x2="0.5"
+                      y1="0"
+                      y2="14"
+                      stroke={C.hint}
+                      strokeWidth={0.5}
+                    />
+                  </svg>
 
                   {/* Comment icon + "Add Comment…" at x 226 / 246 */}
                   <button
@@ -834,11 +852,13 @@ export default function OrderDetailScreen({ id }: { id: string }) {
             height: 30,
             borderRadius: 12,
             background: "#F4F4F4",
+            paddingLeft: 0.7,
           }}
         >
-          <Txt size={11} color={C.ink} mt={textTop(1033, 11) - 1014 - 1}>
+          <Txt size={11} color={C.ink} mt={textTop(1033, 11) - 1014}>
             <span className="font-medium">{`${t("+ Add")} `}</span>
-            {t("Authorized Recipient")}{" "}
+            {t("Authorized Recipient")}
+            <span className="font-medium">{" "}</span>
             {t("The Shipment")}
           </Txt>
         </button>

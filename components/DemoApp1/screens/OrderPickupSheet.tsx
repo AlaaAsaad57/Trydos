@@ -81,7 +81,7 @@ export default function OrderPickupSheet({
     {
       id: "download",
       icon: "infoDownload",
-      label: "download",
+      label: "Download",
       slotCenterX: 214,
       iconX: 204,
       iconY: 855,
@@ -90,7 +90,7 @@ export default function OrderPickupSheet({
     {
       id: "share",
       icon: "infoShare",
-      label: "share",
+      label: "Share",
       slotCenterX: 304,
       iconX: 295,
       iconY: 855,
@@ -175,16 +175,16 @@ export default function OrderPickupSheet({
               {t("Recipient Package Phone Number").slice("Recipient".length)}
             </Txt>
             <div
-              className="flex items-baseline shrink-0"
+              className="relative flex items-baseline shrink-0"
               style={{
                 marginLeft: 12,
                 marginTop: gapTo(textBottom(580, 12), 603, 14),
               }}
             >
-              <Txt size={14} weight="bold" color={C.ink}>
+              <Txt size={14} weight="bold" color={C.ink} style={{ width: 12 }}>
                 +
               </Txt>
-              <Txt size={14} weight="regular" color={C.ink} ml={4}>
+              <Txt size={14} weight="regular" color={C.ink}>
                 {hidePhone ? "•• ••• ••• ••••" : order.recipientPhoneNoPlus}
               </Txt>
             </div>
@@ -283,11 +283,13 @@ export default function OrderPickupSheet({
               height: 30,
               borderRadius: 12,
               background: "#F4F4F4",
+              paddingLeft: 0.7,
             }}
           >
-            <Txt size={11} color={C.ink} mt={textTop(758, 11) - 739 - 1}>
+            <Txt size={11} color={C.ink} mt={textTop(758, 11) - 739}>
               <span className="font-medium">{`${t("+ Add")} `}</span>
-              {t("Authorized Recipient")}{" "}
+              {t("Authorized Recipient")}
+              <span className="font-medium">{" "}</span>
               {t("The Shipment")}
             </Txt>
           </button>
@@ -327,16 +329,14 @@ export default function OrderPickupSheet({
                   className="absolute inset-x-0 text-center font-normal whitespace-nowrap"
                   style={{
                     top: textTop(892, 11) - 850,
+                    paddingLeft:
+                      a.id === "copy" ? 1.6 : a.id === "share" ? 2.2 : 0,
                     fontSize: 11,
                     lineHeight: `${lineBox(11)}px`,
                     color: C.ink,
                   }}
                 >
-                  {a.id === "copy"
-                    ? t("Copy")
-                    : a.id === "download"
-                      ? "Download"
-                      : "Share"}
+                  {t(a.label)}
                 </span>
               </motion.button>
             ))}
