@@ -74,11 +74,34 @@ vi.mock("components/setting/orders/OrderOptionsMenu", () => ({
 }));
 
 vi.mock("components/setting/orders/OrderItemOptions", () => ({
-  default: ({ close, update, onOrderEmptied, orderItem }: any) => (
-    <div data-testid="order-item-options" data-item={orderItem?.id}>
+  default: ({
+    close,
+    update,
+    onOrderEmptied,
+    orderItem,
+    parentOrder,
+    setActivePack,
+    setShouldConfirmReturn,
+  }: any) => (
+    <div
+      data-testid="order-item-options"
+      data-item={orderItem?.id}
+      data-parent-order={String(parentOrder?.id ?? "")}
+      data-return-req={String(parentOrder?.return_request_id ?? "")}
+    >
       <button onClick={close}>item close</button>
       <button onClick={() => update()}>item update</button>
       <button onClick={onOrderEmptied}>item emptied</button>
+      <button
+        onClick={() =>
+          setActivePack({ ...parentOrder, return_request_id: 83 })
+        }
+      >
+        item set pack return
+      </button>
+      <button onClick={() => setShouldConfirmReturn({ item: orderItem })}>
+        item ask confirm return
+      </button>
     </div>
   ),
 }));
@@ -86,8 +109,12 @@ vi.mock("components/setting/orders/OrderItemOptions", () => ({
 vi.mock(
   "components/setting/orders/confirmations/OrderItemReturnConfirmationWindow",
   () => ({
-    default: ({ callback, close }: any) => (
-      <div data-testid="return-confirmation">
+    default: ({ callback, close, orderItem }: any) => (
+      <div
+        data-testid="return-confirmation"
+        data-order={String(orderItem?.id ?? "")}
+        data-return-req={String(orderItem?.return_request_id ?? "")}
+      >
         <button onClick={() => callback()}>confirm return done</button>
         <button onClick={close}>confirm return close</button>
       </div>
@@ -182,7 +209,7 @@ async function renderPage(props: Partial<any> = {}, store: any = {}) {
   const spies = storeSpies();
   const result = await renderWithProviders(
     <OrderDetailsWrapper
-      order_id={props.order_id ?? 1}
+      order_id={"order_id" in props ? props.order_id : 1}
       isRtl={props.isRtl ?? false}
       local={props.local ?? LOCAL}
       order_group_id={props.order_group_id ?? "test-order-group"}
@@ -1033,5 +1060,151 @@ describe("return links that find no return ids", () => {
       orderService.CancelReturnRequest,
       "a cancel was sent although there is no return id to cancel",
     ).not.toHaveBeenCalled();
+  });
+
+  it("keeps the selected second pack active across refreshes and scopes confirm/cancel away from non-returnable packs", async () => {
+    const pack1283 = buildOrder({
+      id: 1283,
+      can_return_order: false,
+      order_has_return_request: false,
+      edit_return_request: false,
+      return_request_id: null as any,
+      details: [
+        buildOrderLine({
+          id: 1510,
+          order_id: 1283,
+          can_return_product: false,
+          return_days_limit: 0,
+        }),
+      ],
+    });
+    const pack1284 = buildOrder({
+      id: 1284,
+      can_return_order: true,
+      order_has_return_request: true,
+      edit_return_request: true,
+      return_request_id: 83,
+      details: [
+        buildOrderLine({
+          id: 1511,
+          order_id: 1284,
+          can_return_product: true,
+          return_days_limit: 14,
+        }),
+      ],
+    });
+    const lockedPack = buildOrder({
+      id: 1285,
+      can_return_order: false,
+      order_has_return_request: true,
+      edit_return_request: false,
+      return_request_id: 50,
+      details: [buildOrderLine({ id: 1512, order_id: 1285 })],
+    });
+
+    orderService.getOrderDetails.mockResolvedValue([
+      pack1283,
+      pack1284,
+      lockedPack,
+    ]);
+    orderService.GetReturnDetailsForOrderGroup.mockResolvedValue({
+      return_requests_data: [
+        returnEntry({
+          order_id: 1284,
+          return_request_id: 83,
+          status: { name: "draft", value: null },
+          order_details: [
+            {
+              detail_id: 1511,
+              return_request_id: 83,
+              already_return: true,
+              return_request_product_id: 901,
+              return_request_product_quantity: "1",
+            },
+          ],
+        }),
+        returnEntry({
+          order_id: 1285,
+          return_request_id: 50,
+          status: { name: "returned_to_location", value: "returned_to_location" },
+          order_details: [
+            {
+              detail_id: 1512,
+              return_request_id: 50,
+              already_return: true,
+              return_request_product_id: 902,
+              return_request_product_quantity: "1",
+            },
+          ],
+        }),
+      ],
+    });
+
+    await renderPage({ order_id: undefined });
+    await screen.findByTestId("order-items-list");
+    const user = userEvent.setup();
+    await user.click(screen.getByText("expand"));
+
+    // On pack 1283 (default data[0]), neither Confirm nor Cancel should leak from 1284.
+    expect(
+      screen.queryByText("Confirm Return Request"),
+      "Confirm Return Request leaked onto non-returnable pack 1283",
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Cancel Return Request"),
+      "Cancel Return Request leaked onto non-returnable pack 1283",
+    ).not.toBeInTheDocument();
+
+    // Switch to pack 1284, open item options, and trigger update().
+    await user.click(screen.getByText("1284", { selector: "span.bold" }));
+    expect(
+      screen.getByText("Confirm Return Request"),
+      "Confirm Return Request did not show on editable draft pack 1284",
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Cancel Return Request"),
+      "Cancel Return Request did not show on editable draft pack 1284",
+    ).toBeInTheDocument();
+
+    await user.click(document.querySelector('[data-pw="order-item-options"]')!);
+    expect(
+      screen.getByTestId("order-item-options").dataset.parentOrder,
+      "OrderItemOptions did not receive pack 1284",
+    ).toBe("1284");
+
+    await user.click(screen.getByText("item set pack return"));
+    await user.click(screen.getByText("item update"));
+    await waitFor(() =>
+      expect(
+        orderService.getOrderDetails,
+        "item update did not refetch order details",
+      ).toHaveBeenCalledTimes(2),
+    );
+    await screen.findByTestId("order-items-list");
+
+    // Pack 1284 stays selected after refetch (does not snap back to 1283).
+    expect(
+      screen.getByTestId("order-item-options").dataset.parentOrder,
+      "refetch snapped OrderItemOptions parentOrder back to pack 1283",
+    ).toBe("1284");
+
+    await user.click(screen.getByText("item ask confirm return"));
+    expect(
+      screen.getByTestId("return-confirmation").dataset.order,
+      "OrderItemReturnConfirmationWindow received pack 1283 instead of 1284",
+    ).toBe("1284");
+    expect(
+      screen.getByTestId("return-confirmation").dataset.returnReq,
+      "OrderItemReturnConfirmationWindow lost pack 1284's return_request_id",
+    ).toBe("83");
+    await user.click(screen.getByText("confirm return close"));
+    await user.click(screen.getByText("item close"));
+
+    // Cancelling on pack 1284 only sends editable request [83], excluding locked [50].
+    await user.click(screen.getByText("Cancel Return Request"));
+    expect(
+      orderService.CancelReturnRequest,
+      "CancelReturnRequest included a locked sibling pack's return_request_id",
+    ).toHaveBeenCalledWith({ return_request_id: [83] });
   });
 });

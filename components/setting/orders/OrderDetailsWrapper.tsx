@@ -93,6 +93,32 @@ function OrderDetailsWrapper({
   // getOrderDetails re-runs on every post-action refresh; only count the first
   // load as a "details viewed".
   const hasTrackedView = useRef(false);
+  // Tracks the pack selected by the shopper (or initial URL `order_id`) so
+  // background refreshes keep the active pack instead of snapping back to data[0].
+  const activePackIdRef = useRef<number | string | null>(order_id ?? null);
+
+  const selectActivePack = (pack: OrderInterface | null) => {
+    activePackIdRef.current = pack?.id ?? null;
+    setActivePack(pack);
+    if (pack) {
+      setOrderData((prev) =>
+        prev.map((o) => (String(o.id) === String(pack.id) ? pack : o)),
+      );
+    }
+  };
+
+  const resolvePackForItem = (
+    item?: { id?: number | string; order_id?: number | string } | null,
+  ) => {
+    if (!item) return ActivePack;
+    return (
+      orderData.find(
+        (o) =>
+          (item.order_id != null && String(o.id) === String(item.order_id)) ||
+          o.details?.some((d) => String(d.id) === String(item.id)),
+      ) ?? ActivePack
+    );
+  };
   const {
     setShouldUpdateOrders,
     shouldUpdateOrders,
@@ -116,6 +142,7 @@ function OrderDetailsWrapper({
       if (!Array.isArray(data) || data.length === 0) {
         setNotFound(true);
         setOrderData([]);
+        activePackIdRef.current = null;
         setActivePack(null);
         setShouldUpdateOrders(0);
         setLoading(false);
@@ -155,11 +182,20 @@ function OrderDetailsWrapper({
       );
 
       setOrderData(data);
+      const targetPackId = activePackIdRef.current ?? order_id;
       let active_order =
-        data?.find((order) => String(order.id) === String(order_id)) ??
+        data?.find((order) => String(order.id) === String(targetPackId)) ??
         data?.[0];
 
+      activePackIdRef.current = active_order?.id ?? null;
       setActivePack(active_order);
+      setSelectedOrderItem((prev) =>
+        prev
+          ? (data
+              .flatMap((o) => o.details ?? [])
+              .find((d) => String(d.id) === String(prev.id)) ?? null)
+          : null,
+      );
 
       if (!hasTrackedView.current && active_order) {
         hasTrackedView.current = true;
@@ -535,7 +571,11 @@ const isNotDraft=()=>{
               }}
               confirmationData={shouldShowConfirmReturn}
               orderData={orderData}
-              orderItem={ActivePack}
+              orderItem={resolvePackForItem(
+                typeof shouldShowConfirmReturn === "object"
+                  ? (shouldShowConfirmReturn as any)?.item
+                  : null,
+              )}
               returnDetails={returnData}
               setShouldConfirmReturn={setShouldConfirmReturn}
             />
@@ -572,9 +612,9 @@ const isNotDraft=()=>{
           close={() => setSelectedOrderItem(null)}
           isRtl={isRtl}
           orderItem={selectedOrderItem}
-          parentOrder={ActivePack}
+          parentOrder={resolvePackForItem(selectedOrderItem)}
           returnDetails={returnData}
-          setActivePack={setActivePack}
+          setActivePack={selectActivePack}
           update={async () => await getOrderDetails()}
           onOrderEmptied={leaveForOrdersList}
         />
@@ -658,7 +698,7 @@ const isNotDraft=()=>{
                       } text-[#1d1d1d] h-[50px] rounded-[20px]  cursor-pointer text-[12px] flex-1 px-[5px] items-center justify-center flex-row basis-0`}
                       key={i}
                       onClick={() => {
-                        setActivePack(s);
+                        selectActivePack(s);
                       }}
                     >
                       <span className="mx-1 bold">{s.id}</span>
@@ -842,12 +882,13 @@ const OrderExpandedDetails = ({
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
     try {
-      if (Array.isArray(isThereAReturnedProductForCancel())) {
+      const cancelIds = isThereAReturnedProductForCancel();
+      if (Array.isArray(cancelIds)) {
         setCancelling(true);
         await Order.CancelReturnRequest({
-          return_request_id: isThereAReturnedProductForCancel(),
+          return_request_id: cancelIds,
         });
-        getOrderDetails();
+        await getOrderDetails();
         setCancelling(false);
       }
     } catch (error) {
@@ -858,57 +899,59 @@ const OrderExpandedDetails = ({
       setCancelling(false);
     }
   };
-  const isAllPreventEdit = () => {
-    return (
-      orderData?.filter((s) => s.edit_return_request === false)?.length ===
-      orderData?.length
-    );
-  };
+  const isDraftReturnStatus = (status: any) =>
+    !status?.value || Boolean(status?.name?.toLowerCase?.().includes("draft"));
+
+  const isPackEditable = (orderId: number | string) =>
+    orderData?.find((o) => String(o.id) === String(orderId))
+      ?.edit_return_request === true;
 
   const isThereAReturnedProduct = () => {
-    let arr = [];
-    if (isAllPreventEdit()) return false;
-    returnDetails.return_requests_data.map((s) => {
-      s.order_details.map((d) => {
+    const arr: number[] = [];
+    returnDetails?.return_requests_data?.forEach((s) => {
+      if (!isPackEditable(s.order_id) || !isDraftReturnStatus(s?.status)) {
+        return;
+      }
+      s.order_details?.forEach((d) => {
         if (d.already_return && d.return_request_id) {
           arr.push(d.return_request_id);
         }
       });
     });
-    let set = new Set(arr);
-    arr = [...set];
-    if (arr.length > 0) return arr;
-    return false;
+    const unique = [...new Set(arr)];
+    return unique.length > 0 ? unique : false;
   };
   const isThereAReturnedProductForCancel = () => {
-    let arr = [];
-    returnDetails.return_requests_data.map((s) => {
-      s.order_details.map((d) => {
+    const arr: number[] = [];
+    returnDetails?.return_requests_data?.forEach((s) => {
+      if (!isPackEditable(s.order_id) || s?.status?.value === "cancelled") {
+        return;
+      }
+      s.order_details?.forEach((d) => {
         if (d.return_request_id) {
           arr.push(d.return_request_id);
         }
       });
     });
-    let set = new Set(arr);
-    arr = [...set];
-    if (arr.length > 0) return arr;
-    return false;
+    const unique = [...new Set(arr)];
+    return unique.length > 0 ? unique : false;
   };
   const shouldShowConfirmReturn = () => {
-    return (
-      returnDetails?.return_requests_data?.filter(
-        (s) =>
-          s?.status?.value === null &&
-          s.order_details.find((d) => d.already_return),
-      )?.length > 0 && isThereAReturnedProduct()
+    return Boolean(
+      order?.edit_return_request &&
+        order?.order_has_return_request &&
+        isThereAReturnedProduct(),
     );
   };
   const shouldShowCancelReturn = () => {
-    return (
+    const packReturn = returnDetails?.return_requests_data?.find(
+      (s) => String(s.order_id) === String(order?.id),
+    );
+    return Boolean(
       order?.edit_return_request &&
-      order.order_has_return_request &&
-      returnDetails?.return_requests_data?.find((s) => s.order_id === order.id)
-        ?.status?.value !== "cancelled"
+        order?.order_has_return_request &&
+        packReturn &&
+        packReturn?.status?.value !== "cancelled",
     );
   };
 
@@ -1110,7 +1153,7 @@ const OrderExpandedDetails = ({
           <div
             className={` underline h-[30px] mt-[31px] items-center justify-center  flex cursor-pointer bg-white  rounded-[15px] text-[12px] text-green-500 medium`}
             onClick={() => {
-              setSelectedOrderItem();
+              setSelectedOrderItem(null);
               setShouldConfirmReturn(true);
             }}
           >

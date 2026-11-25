@@ -148,6 +148,7 @@ function OrderItemOptions({
   const initializeReturn = async () => {
     if (parentOrder.return_request_id) {
       setSelectedScreen("return");
+      return;
     }
     try {
       setIsInitializing(true);
