@@ -3,6 +3,8 @@ import { render, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import QuickPreviewScreen from '../../NewLoginDesign/QuickPreviewScreen';
 import { LogoAnimationProvider } from '../../NewLoginDesign/LogoAnimationContext';
+import { LOGO_GEOMETRY } from '../../NewLoginDesign/animations/geometry';
+import { SAFARI_BAND } from '../../components/DemoApp1/demo1Layout';
 
 /**
  * What this test is for.
@@ -265,17 +267,26 @@ describe('QuickPreviewScreen — the slider gives up the height the page does no
  * ring's top and the two eyes: the pill's top is 103 px above the bottom, the
  * eyes end at 925, and the artboard at 932. The letters stay below the edge.
  *
- * The bug (2026-11-22, the client's iPhone screenshot): a change for iPhone
- * Safari 26 lifted the peek 24 px. Then the top of "try" showed under the eyes,
- * cut flat at the window's end. The peek must be the design's in every
- * browser.
+ * In Chrome on Android (and other browsers) the window ends right at the
+ * browser's bar, so 103 design px above `canvasH` puts 61 design px of the
+ * round logo right above the bar with no gap.
+ *
+ * In iPhone Safari 26 the window ends SAFARI_BAND (15.5 CSS px) ABOVE Safari's
+ * floating bar (`logo-bar-space.jpeg`), and NewLoginWidget lets the round logo
+ * draw across that band to the bar. So the waiting column lowers by
+ * `SAFARI_BAND / scale` design px there: the pill's top still sits 103 design
+ * px above Safari's bar itself, keeping the exact same 61 design px of ring
+ * and eyes above Safari's bar, touching the bar with no white gap, and keeping
+ * the "try" glyphs below Safari's bar top.
  */
 const SAFARI_26 =
     'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1';
 const CHROME_ANDROID =
     'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
-/** The design's distance from the pill's top to the bottom edge. */
+/** The design's distance from the pill's top to the bottom bar edge. */
 const PEEK_TAIL = 103;
+/** Pill height (30) + pill-to-logo gap (12) = 42, leaving 61 design px of logo peek. */
+const PILL_AND_GAP = 42;
 /** The space over the pill, set on the pill box in place of a real layout. */
 const PILL_TOP = 0;
 
@@ -289,6 +300,7 @@ describe('QuickPreviewScreen — the round logo peeks at the bottom as the desig
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
+        vi.useRealTimers();
     });
 
     /** The column's y while it waits, read from its transform. */
@@ -297,23 +309,70 @@ describe('QuickPreviewScreen — the round logo peeks at the bottom as the desig
         return match ? Number(match[1]) : null;
     };
 
-    for (const [browser, ua] of [
-        ['iPhone Safari 26', SAFARI_26],
-        ['Chrome on Android', CHROME_ANDROID],
-    ] as const) {
-        it(`puts the pill 103 px above the bottom in ${browser}, so only the ring's top and the eyes show`, async () => {
-            vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(ua);
-            const { column } = renderOnCanvas(745);
-            // Framer writes the end of the move on the next frames.
-            await act(async () => {
-                await new Promise((resolve) => setTimeout(resolve, 1200));
-            });
-            expect(
-                peekY(column),
-                `in ${browser} the pill is not 103 px above the bottom, so the peek shows more or less than the design's ring top and eyes`,
-            ).toBe(745 - PEEK_TAIL - PILL_TOP);
+    it('puts the pill 103 px above the window bottom in Chrome on Android, where the window ends at the bar', async () => {
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(CHROME_ANDROID);
+        const { column } = renderOnCanvas(745);
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 1200));
         });
-    }
+        expect(
+            peekY(column),
+            'in Chrome on Android the pill is not 103 px above the bottom edge',
+        ).toBe(745 - PEEK_TAIL - PILL_TOP);
+    });
+
+    it("lowers the waiting column by SAFARI_BAND / scale in iPhone Safari 26, so the exact same 61 design px of logo sits sticky above Safari's floating bar", async () => {
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);
+        const scale = 440 / 430;
+        const canvasH = 838;
+        const { canvas, column } = renderOnCanvas(canvasH);
+        canvas.getBoundingClientRect = () =>
+            ({
+                top: 0,
+                bottom: canvasH * scale,
+                left: 0,
+                right: 440,
+                width: 440,
+                height: canvasH * scale,
+                x: 0,
+                y: 0,
+                toJSON: () => ({}),
+            }) as DOMRect;
+        act(() => {
+            for (const { callback } of observed) callback([], {} as ResizeObserver);
+        });
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 1200));
+        });
+
+        const y = peekY(column);
+        expect(y).not.toBeNull();
+        expect(
+            y!,
+            "in iPhone Safari 26 the pill is not 103 design px above Safari's floating bar",
+        ).toBeCloseTo(canvasH + SAFARI_BAND / scale - PEEK_TAIL - PILL_TOP, 3);
+
+        // Above Safari's bar (`canvasH + SAFARI_BAND / scale`), the visible slice
+        // of the 150x150 badge must still be 61 design px: eyes in view, "try" below.
+        const logoTopDesign = y! + PILL_TOP + PILL_AND_GAP;
+        const barTopDesign = canvasH + SAFARI_BAND / scale;
+        const shownAboveBar = barTopDesign - logoTopDesign;
+        const badgeGeo = LOGO_GEOMETRY['badge-ring'];
+        const eyesBottom = badgeGeo.leftDot.y + badgeGeo.dotR;
+        const wordTop = badgeGeo.wordmark.y;
+
+        expect(shownAboveBar, 'the amount of logo above Safari bar changed from 61 design px').toBeCloseTo(61, 3);
+        expect(eyesBottom, 'the two eyes no longer fit above Safari bar').toBeLessThan(shownAboveBar);
+        expect(wordTop, 'the "try" letters crept above Safari bar').toBeGreaterThan(shownAboveBar);
+    });
+
+    it('keeps the expanded column at y = 0 and the 35 px below the button unchanged in iPhone Safari 26', async () => {
+        vi.useFakeTimers();
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);
+        const { card, belowButton } = renderOnCanvas(745);
+        expect(card.style.height).toBe(`${expected(745).cardHeight}px`);
+        expect(belowButton.style.height).toMatch(new RegExp(`^calc\\(${expected(745).belowButton}px`));
+    });
 
     it('lays nothing over the bottom in iPhone Safari 26', () => {
         vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);

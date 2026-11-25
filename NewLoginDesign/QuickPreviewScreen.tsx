@@ -13,6 +13,7 @@ import { DESIGN_H } from 'scaling/scale.config';
 import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
 import { PREVIEW_SLIDES } from './previewSlides';
 import type { LogoSlotConfig } from './logoScreenConfig';
+import { SAFARI_BAND, isFloatingBarSafari } from 'components/DemoApp1/demo1Layout';
 
 interface QuickPreviewScreenProps {
     onComplete: () => void;
@@ -413,10 +414,20 @@ export default function QuickPreviewScreen({
             const belowButton = Math.max(belowButtonMin, GAP.belowButton - deficit);
             // A bigger top gap is height too, and it comes out of the card.
             const cardGives = deficit - (GAP.belowButton - belowButton) + (abovePill - GAP.abovePill);
+            // In iPhone Safari 26 the window ends SAFARI_BAND CSS px above
+            // Safari's floating bar, and NewLoginWidget lets the round logo
+            // reach across that band to the bar. Lower the waiting column by
+            // the same band (in design px) so the pill's top sits
+            // COLLAPSED_TAIL above Safari's bar itself — keeping the exact
+            // same 61 design px of ring and eyes above the bar as today, with
+            // no white gap above the bar and no "try" letters exposed.
+            const drawnH = canvas.getBoundingClientRect().height;
+            const scale = drawnH > 0 && canvasH > 0 ? drawnH / canvasH : 1;
+            const safariBand = isFloatingBarSafari(navigator.userAgent) ? SAFARI_BAND / scale : 0;
             setFit({
                 // pill.offsetTop is the top spacer. Reading it beats
                 // recomputing it from the constants.
-                collapsedY: Math.max(0, canvasH - COLLAPSED_TAIL - pill.offsetTop),
+                collapsedY: Math.max(0, canvasH + safariBand - COLLAPSED_TAIL - pill.offsetTop),
                 fitScale: !pickerShownRef.current && columnH > canvasH ? canvasH / columnH : 1,
                 cardHeight: XD.quickPreview.card.height - cardGives,
                 belowButton,

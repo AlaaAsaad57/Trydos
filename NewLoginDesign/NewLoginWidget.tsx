@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import 'public/styles/rdb-auth.css';
+import { SAFARI_BAND, UNDER_BAR, isFloatingBarSafari } from 'components/DemoApp1/demo1Layout';
 import { LogoAnimationProvider } from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
 import LogoAnimationModal from './LogoAnimationModal';
@@ -104,6 +106,90 @@ const STORAGE_KEY = 'trydos.logoDemoConfig';
  * the badge slides.
  */
 const opensWithColumn = (step: AuthStep) => step === 'quick-preview' || step === 'country-picker';
+
+const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+/**
+ * How far past `window.innerHeight` (in CSS px) the round badge logo is allowed
+ * to paint in iPhone Safari 26 while the start column is on stage.
+ *
+ * Why this exact reach:
+ *  - Safari 26 ends `window.innerHeight` SAFARI_BAND (15.5 CSS px) above the
+ *    top edge of its floating address pill. Running 4.5 px past that edge
+ *    (20 CSS px total, where `SAFARI_BAND + 4.5 === 20`) tucks the dotted ring
+ *    cleanly behind the top border of Safari's floating bar with zero gap.
+ *  - With the peek lowered by SAFARI_BAND (see QuickPreviewScreen), the badge's
+ *    "try" glyphs start 8.37 design px (~7.3–8.6 CSS px) below Safari's bar top
+ *    — at innerHeight + 22.8..24.1 CSS px — and Safari's floating pill ends
+ *    around innerHeight + 68 CSS px with ~28 px of uncovered screen below it.
+ *    Clipping at 20 CSS px cuts above "try" and well inside Safari's pill, so
+ *    nothing dark smudges behind the glass URL and nothing pokes out under the
+ *    bottom of Safari's pill.
+ */
+export const SAFARI_LOGO_REACH = Math.ceil(SAFARI_BAND + 4.5);
+
+/** Design-px slack below `#master-canvas` so its own clip-path never cuts ahead of SAFARI_LOGO_REACH. */
+const SAFARI_STAGE_CLIP_PX = 28;
+
+export const SAFARI_BAR_STYLE_ID = 'login-safari-bar';
+
+/**
+ * Why a document layer and not `position: fixed` in iPhone Safari 26:
+ *  1. WebKit (`LocalFrameView::fixedContainerEdges` / `WKWebView
+ *     _updateFixedColorExtensionViews`) hit-tests the bottom edge of the window
+ *     for any `fixed` or `sticky` box >= 90% wide; finding one makes Safari
+ *     cover the band above and under its floating bar with a solid colour view,
+ *     cutting all graphics flat at `window.innerHeight`.
+ *  2. Safari 26 also clips `fixed` layers at `window.innerHeight`; only content
+ *     in the document, backed by document flow reaching under Safari's bar
+ *     (`login-doc-room`), is composited across SAFARI_BAND to the bar.
+ *
+ * Scoped with `[data-safari-column]` so every rule switches off in the same
+ * frame `Get Started` opens — leaving keyboard lift, coloured outcome screens
+ * and QR sheets on the standard fixed scaler untouched, with zero remounts.
+ */
+export const SAFARI_BAR_CSS =
+    'html:has([data-pw="new-login-widget"][data-safari-column]){overflow-x:visible!important;background-color:#ffffff;}' +
+    'body:has([data-pw="new-login-widget"][data-safari-column]){background-color:#ffffff!important;}' +
+    'body:has([data-pw="new-login-widget"][data-safari-column]) .site-container{overflow-x:visible!important;}' +
+    'body:has([data-pw="new-login-widget"][data-safari-column]) .home-navbar{display:none!important;}' +
+    `[data-pw="new-login-widget"][data-safari-column]{position:absolute!important;inset:auto!important;top:var(--login-safari-top,0px)!important;left:0!important;width:100%!important;height:calc(100dvh + ${SAFARI_LOGO_REACH}px)!important;}` +
+    '[data-pw="new-login-widget"][data-safari-column] #app-outer{position:absolute!important;inset:0!important;}' +
+    `[data-pw="new-login-widget"][data-safari-column] #master-canvas,[data-pw="new-login-widget"][data-safari-column] [data-pw="login-stage"]{contain:layout size style!important;overflow:visible!important;clip-path:inset(0px 0px -${SAFARI_STAGE_CLIP_PX}px 0px);}`;
+
+/**
+ * Injected ahead of `<Page>` so `#login-safari-bar` is in `<head>` before the
+ * browser ever paints `#app-outer`: Safari 26 holds onto a fixed bottom box it
+ * saw on frame 0, so avoiding `fixed` from the first paint prevents that latch.
+ * Writing a `<style>` in `<head>` (like AppScaler's `canvasFitScript`) keeps
+ * React 19 hydration mismatch-free.
+ */
+export const SAFARI_BAR_SCRIPT =
+    '(function(){' +
+    'var u=navigator.userAgent;' +
+    'var v=u.match(/Version\\/(\\d+)[^ ]* Mobile\\/\\S+ Safari/);' +
+    'if(!(/iPhone|iPod/.test(u)&&v&&Number(v[1])>=26))return;' +
+    `var id=${JSON.stringify(SAFARI_BAR_STYLE_ID)};` +
+    'var e=document.getElementById(id);' +
+    'if(!e){e=document.createElement("style");e.id=id;document.head.appendChild(e);}' +
+    `e.textContent=${JSON.stringify(SAFARI_BAR_CSS)};` +
+    '})()';
+
+/** True when `el` scrolls on its own and still has room in the gesture's direction. */
+function canScrollBox(el: Element, dx: number, dy: number): boolean {
+    const style = getComputedStyle(el);
+    const scrolls = (overflow: string) => /auto|scroll/.test(overflow);
+    const down = Math.abs(dy) >= Math.abs(dx);
+    if (down && scrolls(style.overflowY) && el.scrollHeight > el.clientHeight) {
+        if (dy > 0) return el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+        if (dy < 0) return el.scrollTop > 0;
+        return true;
+    }
+    if ((!down || dy === 0) && scrolls(style.overflowX) && el.scrollWidth > el.clientWidth) {
+        return true;
+    }
+    return false;
+}
 
 /**
  * Read the saved picks, filling in anything the file does not carry.
@@ -222,6 +308,95 @@ export default function NewLoginWidget({
 
     /** The box the screens slide inside. `AuthLogoLayer` measures against it. */
     const stageRef = useRef<HTMLDivElement>(null);
+    const widgetRef = useRef<HTMLElement>(null);
+    const docRoomRef = useRef<HTMLDivElement>(null);
+
+    const inColumn = opensWithColumn(step);
+    const [safariBar, setSafariBar] = useState(false);
+
+    useBrowserLayoutEffect(() => {
+        if (!isFloatingBarSafari(navigator.userAgent)) return;
+        setSafariBar(true);
+        let styleEl = document.getElementById(SAFARI_BAR_STYLE_ID) as HTMLStyleElement | null;
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = SAFARI_BAR_STYLE_ID;
+            document.head.appendChild(styleEl);
+        }
+        styleEl.textContent = SAFARI_BAR_CSS;
+        return () => {
+            document.getElementById(SAFARI_BAR_STYLE_ID)?.remove();
+        };
+    }, []);
+
+    const safariUnderBar = safariBar && inColumn;
+
+    useBrowserLayoutEffect(() => {
+        if (!safariUnderBar) return;
+        if (window.scrollY !== 0) window.scrollTo(0, 0);
+
+        const sync = () => {
+            const y = window.scrollY;
+            widgetRef.current?.style.setProperty('--login-safari-top', `${y}px`);
+            if (docRoomRef.current) {
+                docRoomRef.current.style.height = `${y + window.innerHeight + UNDER_BAR}px`;
+            }
+        };
+        sync();
+
+        const html = document.documentElement;
+        const prevOverscroll = html.style.getPropertyValue('overscroll-behavior');
+        const prevOverscrollPriority = html.style.getPropertyPriority('overscroll-behavior');
+        html.style.setProperty('overscroll-behavior', 'none');
+
+        let lastTouch: { x: number; y: number } | null = null;
+        const onTouchStart = (e: TouchEvent) => {
+            const t = e.touches[0];
+            lastTouch = t ? { x: t.clientX, y: t.clientY } : null;
+        };
+        const holdPage = (e: Event) => {
+            let dx = 0;
+            let dy = 0;
+            if (e instanceof WheelEvent) {
+                dx = e.deltaX;
+                dy = e.deltaY;
+            } else if (typeof TouchEvent !== 'undefined' && e instanceof TouchEvent) {
+                const t = e.touches[0];
+                if (t && lastTouch) {
+                    dx = lastTouch.x - t.clientX;
+                    dy = lastTouch.y - t.clientY;
+                }
+            }
+            for (
+                let el = e.target instanceof Element ? e.target : null;
+                el && el !== document.body;
+                el = el.parentElement
+            ) {
+                if (canScrollBox(el, dx, dy)) return;
+            }
+            if (e.cancelable) e.preventDefault();
+        };
+
+        window.addEventListener('scroll', sync, { passive: true });
+        window.addEventListener('resize', sync, { passive: true });
+        document.addEventListener('touchstart', onTouchStart, { passive: true });
+        document.addEventListener('touchmove', holdPage, { passive: false });
+        document.addEventListener('wheel', holdPage, { passive: false });
+
+        return () => {
+            window.removeEventListener('scroll', sync);
+            window.removeEventListener('resize', sync);
+            document.removeEventListener('touchstart', onTouchStart);
+            document.removeEventListener('touchmove', holdPage);
+            document.removeEventListener('wheel', holdPage);
+            widgetRef.current?.style.removeProperty('--login-safari-top');
+            if (prevOverscroll) {
+                html.style.setProperty('overscroll-behavior', prevOverscroll, prevOverscrollPriority);
+            } else {
+                html.style.removeProperty('overscroll-behavior');
+            }
+        };
+    }, [safariUnderBar]);
 
     const goTo = (nextStep: AuthStep, dir: number = 1) => {
         setDirection(dir);
@@ -280,11 +455,29 @@ export default function NewLoginWidget({
              */
             ignoreReducedMotion
         >
+            {safariUnderBar &&
+                createPortal(
+                    <div
+                        ref={docRoomRef}
+                        aria-hidden="true"
+                        data-pw="login-doc-room"
+                        style={{
+                            flex: '0 0 0px',
+                            width: 0,
+                            height: `${window.scrollY + window.innerHeight + UNDER_BAR}px`,
+                            pointerEvents: 'none',
+                        }}
+                    />,
+                    document.body,
+                )}
             <main
+                ref={widgetRef}
                 data-pw="new-login-widget"
+                data-safari-column={inColumn ? '' : undefined}
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
                 style={{ backgroundColor: getScreenBg() }}
             >
+                {inColumn && <script dangerouslySetInnerHTML={{ __html: SAFARI_BAR_SCRIPT }} />}
                 {/*
                   * Floating demo control bar: the flow steps, the logo motion
                   * picker and how long one loop of it runs.
@@ -293,7 +486,7 @@ export default function NewLoginWidget({
                   * to the design. Nothing here changes a screen's own layout.
                   */}
                 {showControls && (
-                <div className="fixed top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
+                <div className="absolute top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* 0. Hide the menu. Only this checkbox stays, so it can be turned back on. */}
                         <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
@@ -473,6 +666,7 @@ export default function NewLoginWidget({
             >
                 <div
                     ref={stageRef}
+                    data-pw="login-stage"
                     /**
                      * Never let the stage scroll, and put it back if it does.
                      *
