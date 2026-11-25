@@ -37,6 +37,13 @@ interface AuthLogoLayerProps {
      * nothing interrupted, because nothing about the logo changed.
      */
     slot: LogoSlotConfig;
+    /**
+     * Optional design-px y (within the 150 x 150 badge box) below which the
+     * badge is clipped while waiting at the bottom in iPhone Safari 26. Lets
+     * the top 61 px peek + 5 px bar tuck show while keeping "try" (y >= 69.37)
+     * and the lower ring out from under Safari's floating glass pill.
+     */
+    bottomClipDesign?: number;
 }
 
 /** Below this nothing is worth a re-render, and rounding noise is not a move. */
@@ -115,6 +122,7 @@ export default function AuthLogoLayer({
     dotColor,
     ringColor,
     slot,
+    bottomClipDesign,
 }: AuthLogoLayerProps) {
     const [box, setBox] = useState<Box | null>(null);
 
@@ -179,7 +187,13 @@ export default function AuthLogoLayer({
             // fill at once, which reads as a flicker while the mark is moving,
             // so the fill gets a transition of its own.
             className="absolute top-0 left-0 z-30 pointer-events-none [&_path]:transition-[fill] [&_path]:duration-300"
-            style={{ transformOrigin: 'top left' }}
+            style={{
+                transformOrigin: 'top left',
+                clipPath:
+                    bottomClipDesign !== undefined
+                        ? `inset(-16px -16px ${AUTH_LOGO_SIZE - bottomClipDesign}px -16px)`
+                        : undefined,
+            }}
             initial={{ x: box.left, y: box.top, scale: box.scale, opacity: 0 }}
             animate={{ x: box.left, y: box.top, scale: box.scale, opacity: 1 }}
             transition={live ? LOCKED : TRAVEL}

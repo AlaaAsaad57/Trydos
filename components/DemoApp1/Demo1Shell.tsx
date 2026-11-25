@@ -703,7 +703,7 @@ function Demo1ShellInner({
  */
 function IntroBlank() {
   usePageColor(C.white);
-  return <div style={{ minHeight: "100dvh", background: C.white }} />;
+  return <div data-pw="demo-intro-blank" style={{ minHeight: "100dvh", background: C.white }} />;
 }
 
 /**

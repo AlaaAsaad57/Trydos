@@ -440,7 +440,12 @@ export default function QuickPreviewScreen({
         const observer = new ResizeObserver(measure);
         observer.observe(canvas);
         observer.observe(column);
-        return () => observer.disconnect();
+        const vv = window.visualViewport;
+        vv?.addEventListener('resize', measure);
+        return () => {
+            observer.disconnect();
+            vv?.removeEventListener('resize', measure);
+        };
     }, [belowButtonMin, abovePill]);
 
     /**

@@ -6,7 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import 'public/styles/rdb-auth.css';
-import { SAFARI_BAND, UNDER_BAR, isFloatingBarSafari } from 'components/DemoApp1/demo1Layout';
+import { followTopTint, type TintHome } from 'components/DemoApp/topTint';
+import { UNDER_BAR, isFloatingBarSafari } from 'components/DemoApp1/demo1Layout';
 import { LogoAnimationProvider } from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
 import LogoAnimationModal from './LogoAnimationModal';
@@ -109,71 +110,63 @@ const opensWithColumn = (step: AuthStep) => step === 'quick-preview' || step ===
 
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
+const LOGIN_TINT_HOME: TintHome = { host: () => document.body, rest: null };
+
 /**
- * How far past `window.innerHeight` (in CSS px) the round badge logo is allowed
- * to paint in iPhone Safari 26 while the start column is on stage.
+ * Design-px y inside the 150 x 150 round badge below which the mark is clipped
+ * while waiting at the bottom in iPhone Safari 26.
  *
- * Why this exact reach:
- *  - Safari 26 ends `window.innerHeight` SAFARI_BAND (15.5 CSS px) above the
- *    top edge of its floating address pill. Running 4.5 px past that edge
- *    (20 CSS px total, where `SAFARI_BAND + 4.5 === 20`) tucks the dotted ring
- *    cleanly behind the top border of Safari's floating bar with zero gap.
- *  - With the peek lowered by SAFARI_BAND (see QuickPreviewScreen), the badge's
- *    "try" glyphs start 8.37 design px (~7.3–8.6 CSS px) below Safari's bar top
- *    — at innerHeight + 22.8..24.1 CSS px — and Safari's floating pill ends
- *    around innerHeight + 68 CSS px with ~28 px of uncovered screen below it.
- *    Clipping at 20 CSS px cuts above "try" and well inside Safari's pill, so
- *    nothing dark smudges behind the glass URL and nothing pokes out under the
- *    bottom of Safari's pill.
+ * Why 66:
+ *  - With the column lowered by `SAFARI_BAND / scale` (QuickPreviewScreen),
+ *    Safari's floating bar top edge sits at y = 61 design px of the badge
+ *    (showing the exact same 61 design px of dotted ring + eyes above the bar).
+ *  - 66 tucks 5 design px of the dotted ring behind the top border of Safari's
+ *    floating bar (zero gap), while cutting strictly above the "try" glyphs
+ *    (which start at y = 69.367 design px) and 84 design px above the bottom of
+ *    the ring — so nothing dark smudges behind the glass URL and nothing pokes
+ *    out in the uncovered zone below Safari's floating pill.
  */
-export const SAFARI_LOGO_REACH = Math.ceil(SAFARI_BAND + 4.5);
-
-/** Design-px slack below `#master-canvas` so its own clip-path never cuts ahead of SAFARI_LOGO_REACH. */
-const SAFARI_STAGE_CLIP_PX = 28;
-
-export const SAFARI_BAR_STYLE_ID = 'login-safari-bar';
+export const SAFARI_BADGE_CLIP_DESIGN = 66;
 
 /**
- * Why a document layer and not `position: fixed` in iPhone Safari 26:
- *  1. WebKit (`LocalFrameView::fixedContainerEdges` / `WKWebView
- *     _updateFixedColorExtensionViews`) hit-tests the bottom edge of the window
- *     for any `fixed` or `sticky` box >= 90% wide; finding one makes Safari
- *     cover the band above and under its floating bar with a solid colour view,
- *     cutting all graphics flat at `window.innerHeight`.
- *  2. Safari 26 also clips `fixed` layers at `window.innerHeight`; only content
- *     in the document, backed by document flow reaching under Safari's bar
- *     (`login-doc-room`), is composited across SAFARI_BAND to the bar.
+ * Rendered synchronously ahead of `<main>` so on every iOS WebKit frame —
+ * including frame 0 of a `<Suspense>` client mount on `/demo` — neither
+ * `<main>` nor `#app-outer` is ever `position: fixed`. WebKit's
+ * `LocalFrameView::fixedContainerEdges` latches onto any screen-wide `fixed`
+ * bottom box it sees even once and covers the band above Safari's floating bar
+ * with WKWebView's solid `_bottomColorExtensionView`.
  *
- * Scoped with `[data-safari-column]` so every rule switches off in the same
- * frame `Get Started` opens — leaving keyboard lift, coloured outcome screens
- * and QR sheets on the standard fixed scaler untouched, with zero remounts.
+ * Kept at `100dvh` / `overflow: hidden` until `[data-safari-under-bar]` turns
+ * on so Chrome on iPhone (`CriOS`) and Safari < 26 look identical to `fixed`.
+ */
+export const IOS_FRAME0_NO_FIXED_CSS =
+    '@supports (-webkit-touch-callout: none){' +
+    '[data-pw="new-login-widget"][data-safari-column],' +
+    '[data-pw="new-login-widget"][data-safari-column] #app-outer{' +
+    'position:absolute!important;bottom:auto!important;' +
+    '}}';
+
+/**
+ * Active only in iPhone Safari 26+ while `country-picker` or `quick-preview`
+ * is on stage (`[data-safari-under-bar]`). Mirrors the proven `/demo` document
+ * contract (`DemoApp1/ui.tsx` `Layer` + `ScreenPage`, commit `1dfc910bf`):
+ *  1. Full-width document ancestry (`html`, `body`, `.site-container`,
+ *     `.main-content`, `demo1-app`, `demo-intro-blank`) is `overflow: visible`,
+ *     `#ffffff` white, and `100dvh + UNDER_BAR` tall so WebKit tiles real
+ *     document content across `SAFARI_BAND` and under Safari's glass bar.
+ *  2. `<main>` runs `UNDER_BAR` past `--app-canvas-height` with `overflow-y:
+ *     visible`, and `#master-canvas` + `[data-pw="login-stage"]` drop `contain`,
+ *     `isolation` and `overflow: hidden` so `AuthLogoLayer` paints across
+ *     `SAFARI_BAND` right up to Safari's bar.
  */
 export const SAFARI_BAR_CSS =
-    'html:has([data-pw="new-login-widget"][data-safari-column]){overflow-x:visible!important;background-color:#ffffff;}' +
-    'body:has([data-pw="new-login-widget"][data-safari-column]){background-color:#ffffff!important;}' +
-    'body:has([data-pw="new-login-widget"][data-safari-column]) .site-container{overflow-x:visible!important;}' +
-    'body:has([data-pw="new-login-widget"][data-safari-column]) .home-navbar{display:none!important;}' +
-    `[data-pw="new-login-widget"][data-safari-column]{position:absolute!important;inset:auto!important;top:var(--login-safari-top,0px)!important;left:0!important;width:100%!important;height:calc(100dvh + ${SAFARI_LOGO_REACH}px)!important;}` +
-    '[data-pw="new-login-widget"][data-safari-column] #app-outer{position:absolute!important;inset:0!important;}' +
-    `[data-pw="new-login-widget"][data-safari-column] #master-canvas,[data-pw="new-login-widget"][data-safari-column] [data-pw="login-stage"]{contain:layout size style!important;overflow:visible!important;clip-path:inset(0px 0px -${SAFARI_STAGE_CLIP_PX}px 0px);}`;
-
-/**
- * Injected ahead of `<Page>` so `#login-safari-bar` is in `<head>` before the
- * browser ever paints `#app-outer`: Safari 26 holds onto a fixed bottom box it
- * saw on frame 0, so avoiding `fixed` from the first paint prevents that latch.
- * Writing a `<style>` in `<head>` (like AppScaler's `canvasFitScript`) keeps
- * React 19 hydration mismatch-free.
- */
-export const SAFARI_BAR_SCRIPT =
-    '(function(){' +
-    'var u=navigator.userAgent;' +
-    'var v=u.match(/Version\\/(\\d+)[^ ]* Mobile\\/\\S+ Safari/);' +
-    'if(!(/iPhone|iPod/.test(u)&&v&&Number(v[1])>=26))return;' +
-    `var id=${JSON.stringify(SAFARI_BAR_STYLE_ID)};` +
-    'var e=document.getElementById(id);' +
-    'if(!e){e=document.createElement("style");e.id=id;document.head.appendChild(e);}' +
-    `e.textContent=${JSON.stringify(SAFARI_BAR_CSS)};` +
-    '})()';
+    'html:has([data-pw="new-login-widget"][data-safari-under-bar]){overflow-x:visible!important;overflow-y:visible!important;background-color:#ffffff!important;}' +
+    `body:has([data-pw="new-login-widget"][data-safari-under-bar]){overflow:visible!important;background-color:#ffffff!important;min-height:calc(100dvh + ${UNDER_BAR}px)!important;}` +
+    `body:has([data-pw="new-login-widget"][data-safari-under-bar]) .site-container,body:has([data-pw="new-login-widget"][data-safari-under-bar]) .main-content,body:has([data-pw="new-login-widget"][data-safari-under-bar]) [data-pw="demo1-app"],body:has([data-pw="new-login-widget"][data-safari-under-bar]) [data-pw="demo-intro-blank"]{height:auto!important;min-height:calc(100dvh + ${UNDER_BAR}px)!important;overflow:visible!important;background-color:#ffffff!important;}` +
+    'body:has([data-pw="new-login-widget"][data-safari-under-bar]) .home-navbar{display:none!important;}' +
+    `[data-pw="new-login-widget"][data-safari-under-bar]{position:absolute!important;inset:auto!important;top:var(--login-safari-top,0px)!important;left:0!important;width:100%!important;height:calc(var(--app-canvas-height, 100dvh) + ${UNDER_BAR}px)!important;overflow-x:hidden!important;overflow-y:visible!important;}` +
+    '[data-pw="new-login-widget"][data-safari-under-bar] #app-outer{position:absolute!important;inset:0!important;}' +
+    '[data-pw="new-login-widget"][data-safari-under-bar] #master-canvas,[data-pw="new-login-widget"][data-safari-under-bar] [data-pw="login-stage"]{contain:none!important;isolation:auto!important;overflow:visible!important;}';
 
 /** True when `el` scrolls on its own and still has room in the gesture's direction. */
 function canScrollBox(el: Element, dx: number, dy: number): boolean {
@@ -315,18 +308,9 @@ export default function NewLoginWidget({
     const [safariBar, setSafariBar] = useState(false);
 
     useBrowserLayoutEffect(() => {
-        if (!isFloatingBarSafari(navigator.userAgent)) return;
-        setSafariBar(true);
-        let styleEl = document.getElementById(SAFARI_BAR_STYLE_ID) as HTMLStyleElement | null;
-        if (!styleEl) {
-            styleEl = document.createElement('style');
-            styleEl.id = SAFARI_BAR_STYLE_ID;
-            document.head.appendChild(styleEl);
+        if (isFloatingBarSafari(navigator.userAgent)) {
+            setSafariBar(true);
         }
-        styleEl.textContent = SAFARI_BAR_CSS;
-        return () => {
-            document.getElementById(SAFARI_BAR_STYLE_ID)?.remove();
-        };
     }, []);
 
     const safariUnderBar = safariBar && inColumn;
@@ -334,6 +318,13 @@ export default function NewLoginWidget({
     useBrowserLayoutEffect(() => {
         if (!safariUnderBar) return;
         if (window.scrollY !== 0) window.scrollTo(0, 0);
+
+        // Proven on the client's iPhone (commit 1dfc910bf): on a white screen
+        // with no header, Safari 26 still cuts at `window.innerHeight` unless a
+        // blended white fixed strip sits at the top (isolating WebKit's root
+        // group and repainting fixed container edges with nothing at bottom).
+        const topStrip = followTopTint('#ffffff', LOGIN_TINT_HOME, { blend: true });
+        topStrip.set(1);
 
         const sync = () => {
             const y = window.scrollY;
@@ -384,6 +375,7 @@ export default function NewLoginWidget({
         document.addEventListener('wheel', holdPage, { passive: false });
 
         return () => {
+            topStrip.release();
             window.removeEventListener('scroll', sync);
             window.removeEventListener('resize', sync);
             document.removeEventListener('touchstart', onTouchStart);
@@ -455,6 +447,8 @@ export default function NewLoginWidget({
              */
             ignoreReducedMotion
         >
+            {inColumn && <style>{IOS_FRAME0_NO_FIXED_CSS}</style>}
+            {safariUnderBar && <style>{SAFARI_BAR_CSS}</style>}
             {safariUnderBar &&
                 createPortal(
                     <div
@@ -474,10 +468,10 @@ export default function NewLoginWidget({
                 ref={widgetRef}
                 data-pw="new-login-widget"
                 data-safari-column={inColumn ? '' : undefined}
+                data-safari-under-bar={safariUnderBar ? '' : undefined}
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
                 style={{ backgroundColor: getScreenBg() }}
             >
-                {inColumn && <script dangerouslySetInnerHTML={{ __html: SAFARI_BAR_SCRIPT }} />}
                 {/*
                   * Floating demo control bar: the flow steps, the logo motion
                   * picker and how long one loop of it runs.
@@ -649,7 +643,8 @@ export default function NewLoginWidget({
 
             <Page
                 variant="scaled"
-                maxDeficit={opensWithColumn(step) ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
+                inDocument={inColumn}
+                maxDeficit={inColumn ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
                 outerBg={
                     step === 'input-name'
                         ? 'passcode'
@@ -891,10 +886,13 @@ export default function NewLoginWidget({
                     <AuthLogoLayer
                         stageRef={stageRef}
                         step={step}
-                        live={opensWithColumn(step)}
+                        live={inColumn}
                         dotColor={logoColor.dot}
                         ringColor={logoColor.ring}
                         slot={activeSlot}
+                        bottomClipDesign={
+                            safariUnderBar && !previewExpanded ? SAFARI_BADGE_CLIP_DESIGN : undefined
+                        }
                     />
 
                     {/* QR Bottom Sheet Modal (slides up over GetStarted) */}
