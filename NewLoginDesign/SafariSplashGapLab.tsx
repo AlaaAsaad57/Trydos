@@ -196,6 +196,9 @@ export function buildSafariSplashCss(mode: SafariSplashMode): string {
         'html,body{overflow:visible!important;overflow-x:visible!important;overflow-y:visible!important;background-color:#ffffff!important;}' +
         '.site-container,.main-content,[data-pw="demo1-app"],[data-pw="demo-intro-blank"]{overflow:visible!important;overflow-x:visible!important;overflow-y:visible!important;background-color:#ffffff!important;}' +
         '.home-navbar{display:none!important;}' +
+        // Lower `<main>` from z-[99999999999] (clamped to 2147483647) while splash waiting is active
+        // so body-portaled layers (topTint 2147483646, fixed-0w/body-layer badges, rulers, lab) sit above it.
+        '[data-pw="new-login-widget"][data-splash-waiting]{z-index:100!important;}' +
         '[data-pw="new-login-widget"][data-splash-waiting] #master-canvas,' +
         '[data-pw="new-login-widget"][data-splash-waiting] [data-pw="login-stage"]{contain:none!important;isolation:auto!important;overflow:visible!important;}';
 
@@ -797,7 +800,7 @@ function SafariRulerProbe({ show }: { show: boolean }) {
                     position: 'absolute',
                     top: innerH - 20 + (window.scrollY || 0),
                     right: 4,
-                    zIndex: 2147483644,
+                    zIndex: 2147483647,
                     pointerEvents: 'none',
                 }}
             >
@@ -813,7 +816,7 @@ function SafariRulerProbe({ show }: { show: boolean }) {
                     left: 4,
                     width: 0,
                     height: 0,
-                    zIndex: 2147483644,
+                    zIndex: 2147483647,
                     pointerEvents: 'none',
                 }}
             >
@@ -947,7 +950,7 @@ export function SafariSplashDebugMenu({
                     position: 'fixed',
                     top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
                     right: 8,
-                    zIndex: 2147483645,
+                    zIndex: 2147483647,
                     width: open ? 'min(330px, calc(100vw - 16px))' : 'auto',
                 }}
             >
