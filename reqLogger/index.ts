@@ -73,6 +73,17 @@ const MAX_DEPTH = 6;
 
 export const REQ_LOG_ON = process.env.REQ_LOG === "1";
 const LOG_BODY_ON_SUCCESS = process.env.REQ_LOG_BODY === "1";
+const LOG_FORMAT_JSON = process.env.LOG_FORMAT === "json";
+
+/** Read the active request correlation ID set by server.mjs (AsyncLocalStorage)
+ *  without importing node:async_hooks into the Next.js client graph. */
+function getActiveRequestId(): string | undefined {
+  try {
+    return (globalThis as any).__trydosRequestContext?.getStore()?.requestId;
+  } catch {
+    return undefined;
+  }
+}
 
 export interface ReqLogEntry {
   /** Service role name — market, chat, stories, comments, wallet, elastic.
@@ -225,17 +236,72 @@ export async function logRequest(entry: ReqLogEntry): Promise<void> {
     // The searchable half. Short keys, no spaces inside a value, so a search
     // for "uid=422" matches this line and nothing near it.
     const { api, host } = splitUrl(String(url));
+    const requestId = getActiveRequestId();
+    const errText = describeError(error);
+
+    // Structured JSON mode for Docker / Loki ingestion (LOG_FORMAT=json).
+    // Keeps Vercel's plain-text searchable format unchanged when unset.
+    if (LOG_FORMAT_JSON) {
+      const level =
+        status === 0 || status >= 500 || Boolean(error)
+          ? "error"
+          : status >= 400
+            ? "warn"
+            : "info";
+
+      const jsonEntry: Record<string, unknown> = {
+        timestamp: new Date(Date.now()).toISOString(),
+        level,
+        message: "backend request completed",
+        env:
+          process.env.APP_ENV ||
+          process.env.SENTRY_ENVIRONMENT ||
+          process.env.NODE_ENV ||
+          "development",
+        service: "trydos-storefront",
+        component: "BackendClient",
+        target_service: server,
+        http_method: method,
+        path: api,
+        status_code: status,
+        user_id: id,
+      };
+      if (requestId) jsonEntry.request_id = requestId;
+      if (durationMs != null) jsonEntry.duration_ms = durationMs;
+      if (host) jsonEntry.host = host;
+      if (backend) jsonEntry.backend = backend;
+      if (errText) jsonEntry.error_message = errText;
+      if (withBodies) {
+        if (requestBody !== undefined) jsonEntry.request_body = scrub(requestBody);
+        if (responseBody !== undefined) jsonEntry.response_body = scrub(responseBody);
+      }
+
+      let serialized: string;
+      try {
+        serialized = JSON.stringify(jsonEntry);
+      } catch {
+        delete jsonEntry.request_body;
+        delete jsonEntry.response_body;
+        jsonEntry.detail = "[unserializable]";
+        serialized = JSON.stringify(jsonEntry);
+      }
+
+      if (level === "error") console.error(serialized);
+      else console.log(serialized);
+      return;
+    }
+
     const head =
       `[req] srv=${server} api=${api} m=${method} st=${status} uid=${id}` +
       (durationMs != null ? ` ms=${durationMs}` : "");
 
     // The detail half.
     const detail: Record<string, unknown> = {};
+    if (requestId) detail.request_id = requestId;
     if (name) detail.name = name;
     if (host) detail.host = host;
     if (backend) detail.backend = backend;
     if (url !== api) detail.url = url;
-    const errText = describeError(error);
     if (errText) detail.err = errText;
     if (withBodies) {
       if (requestBody !== undefined) detail.req = scrub(requestBody);

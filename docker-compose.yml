@@ -23,6 +23,11 @@ services:
     # 127.0.0.1 part, Docker opens the port to the whole internet.
     ports:
       - "127.0.0.1:${STOREFRONT_PORT:-3000}:3000"
+    labels:
+      service: "trydos-storefront"
+      stack: "trydos-storefront"
+      env: "staging"
+      role: "web"
     logging:
       driver: json-file
       options:

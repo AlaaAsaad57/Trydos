@@ -56,6 +56,8 @@ ENV PORT=3000
 COPY --from=build --chown=node:node /app/package.json ./package.json
 COPY --from=build --chown=node:node /app/next.config.ts ./next.config.ts
 COPY --from=build --chown=node:node /app/tsconfig.json ./tsconfig.json
+COPY --from=build --chown=node:node /app/server.mjs ./server.mjs
+COPY --from=build --chown=node:node /app/utils/server/httpObservability.mjs ./utils/server/httpObservability.mjs
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/.next ./.next
@@ -65,9 +67,8 @@ USER node
 
 EXPOSE 3000
 
-# /robots.txt is cheap: proxy.ts skips it, so it never redirects or calls a
-# backend.
+# /health is served directly by server.mjs (bypasses proxy.ts and backends).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD node -e "fetch('http://127.0.0.1:3000/robots.txt').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+    CMD node -e "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["node_modules/.bin/next", "start", "-H", "0.0.0.0", "-p", "3000"]
+CMD ["node", "server.mjs"]

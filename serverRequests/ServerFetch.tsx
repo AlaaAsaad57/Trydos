@@ -54,12 +54,16 @@ const createServerFetch = async <T = any,>({
     // time of the attempt that answered, not the sum of all of them.
     const elapsed = startTimer();
     try {
+      const activeRequestId = (
+        globalThis as any
+      ).__trydosRequestContext?.getStore()?.requestId;
       const fetchOptions: RequestInit = {
         method: method,
         headers: {
           "Content-Type": "application/json",
           country: country,
           lang: lang,
+          ...(activeRequestId ? { "X-Request-ID": activeRequestId } : {}),
           ...headers,
         },
         body: body,

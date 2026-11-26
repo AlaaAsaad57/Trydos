@@ -196,5 +196,31 @@ as required, optional, or `[build]`. The main rules:
      `CF-Connecting-IP` too.
 3. Add the nginx `server` block: the storefront domain → `127.0.0.1:3000` (or
    the chosen `STOREFRONT_PORT`). Copy the other blocks in
-   `/etc/nginx/conf.d/ramaaz-projects.conf`, but with the header from point 2.
+   `/etc/nginx/conf.d/ramaaz-projects.conf`, but with the header from point 2,
+   and block public access to `/metrics`:
+
+   ```nginx
+   location = /metrics {
+       deny all;
+       return 404;
+   }
+   ```
+
 4. Add the DNS record for that domain.
+
+## Observability (metrics and structured logs)
+
+In Docker, `server.mjs` wraps Next.js with the same observability contract used
+by `MediaServing` (Vercel deployments ignore `Dockerfile` and `server.mjs`):
+
+- **Metrics:** `GET http://127.0.0.1:3000/metrics` exposes Prometheus metrics
+  (`http_requests_total`, `http_request_duration_seconds`, and Node runtime
+  metrics) with normalized `route` templates. Copy
+  `observability/prometheus/targets/trydos-storefront.json` into the server's
+  Prometheus targets folder (`/var/www/opt/observability/prometheus/targets/`).
+- **Health check:** `GET http://127.0.0.1:3000/health` returns `200 {"status":"ok"}`.
+- **Logs:** `docker-compose.yml` keeps `driver: json-file` (`20m` x 5) and
+  carries container labels (`service`, `stack`, `env`, `role`) for the host log
+  shipper (Promtail / Grafana Alloy) to tail and push to Loki. Set `APP_ENV=staging`,
+  `LOG_FORMAT=json`, and `REQ_LOG=1` in `.env.server` so both HTTP access logs
+  and backend call logs emit single-line JSON linked by `request_id`.
