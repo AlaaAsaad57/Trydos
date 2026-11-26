@@ -9,6 +9,13 @@ import { LogoAnimationProvider } from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
 import LogoAnimationModal from './LogoAnimationModal';
 import DemoDeviceInfoModal from './DemoDeviceInfoModal';
+import {
+    SafariSplashBadgeRenderer,
+    SafariSplashDebugMenu,
+    buildSafariSplashPrepaintScript,
+    useSafariSplashLab,
+    useSafariSplashRuntime,
+} from './SafariSplashGapLab';
 import { DEFAULT_LOGO_CONFIG, cloneLogoConfig } from './logoScreenConfig';
 import { AUTH_SLIDE } from './authLayout';
 import type { LogoConfig, LogoSlotId } from './logoScreenConfig';
@@ -104,6 +111,7 @@ const STORAGE_KEY = 'trydos.logoDemoConfig';
  * the badge slides.
  */
 const opensWithColumn = (step: AuthStep) => step === 'quick-preview' || step === 'country-picker';
+const SAFARI_SPLASH_PREPAINT_SCRIPT = buildSafariSplashPrepaintScript();
 
 /**
  * Read the saved picks, filling in anything the file does not carry.
@@ -200,6 +208,14 @@ export default function NewLoginWidget({
     const [abovePill, setAbovePill] = useState<number>(0);
     /** The device and window numbers, for a bug report from a phone we cannot see. */
     const [isDeviceInfoOpen, setIsDeviceInfoOpen] = useState<boolean>(false);
+    const [splashReplayKey, setSplashReplayKey] = useState<number>(0);
+
+    const { settings: safariLab, effectiveMode: safariMode, isSafari26, updateSettings: updateSafariLab } =
+        useSafariSplashLab();
+    const inColumn = opensWithColumn(step);
+    const isSplashWaiting = inColumn && !previewExpanded;
+    const safariWaitingActive = isSplashWaiting && safariMode !== 'off';
+    useSafariSplashRuntime(safariWaitingActive, safariMode);
 
     /**
      * Saved picks are read after mount, never during render. The server has no
@@ -280,8 +296,13 @@ export default function NewLoginWidget({
              */
             ignoreReducedMotion
         >
+            {isSplashWaiting && (
+                <script dangerouslySetInnerHTML={{ __html: SAFARI_SPLASH_PREPAINT_SCRIPT }} />
+            )}
             <main
                 data-pw="new-login-widget"
+                data-splash-waiting={isSplashWaiting ? '' : undefined}
+                data-safari-splash-mode={safariWaitingActive ? safariMode : undefined}
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
                 style={{ backgroundColor: getScreenBg() }}
             >
@@ -456,7 +477,8 @@ export default function NewLoginWidget({
 
             <Page
                 variant="scaled"
-                maxDeficit={opensWithColumn(step) ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
+                inDocument={safariWaitingActive}
+                maxDeficit={inColumn ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
                 outerBg={
                     step === 'input-name'
                         ? 'passcode'
@@ -473,6 +495,7 @@ export default function NewLoginWidget({
             >
                 <div
                     ref={stageRef}
+                    data-pw="login-stage"
                     /**
                      * Never let the stage scroll, and put it back if it does.
                      *
@@ -521,12 +544,15 @@ export default function NewLoginWidget({
                             {/* 1. Country Picker, then Quick Preview: one column */}
                             {opensWithColumn(step) && (
                                 <QuickPreviewScreen
+                                    key={splashReplayKey}
                                     onComplete={() => goTo('get-started', 1)}
                                     onExpand={() => setPreviewExpanded(true)}
                                     wordmarkSlot={logoConfig['quick-preview-wordmark']}
                                     lang={langCode}
                                     belowButtonMin={belowButtonMin}
                                     abovePill={abovePill}
+                                    safariBandPx={safariWaitingActive ? safariLab.bandPx : 0}
+                                    pauseAutoExpand={safariLab.pauseSplash}
                                     picker={
                                         step === 'country-picker' && countryPicker
                                             ? countryPicker(() => goTo('quick-preview', 1))
@@ -697,10 +723,11 @@ export default function NewLoginWidget({
                     <AuthLogoLayer
                         stageRef={stageRef}
                         step={step}
-                        live={opensWithColumn(step)}
+                        live={inColumn}
                         dotColor={logoColor.dot}
                         ringColor={logoColor.ring}
                         slot={activeSlot}
+                        hidden={safariWaitingActive}
                     />
 
                     {/* QR Bottom Sheet Modal (slides up over GetStarted) */}
@@ -715,6 +742,28 @@ export default function NewLoginWidget({
                     />
                 </div>
             </Page>
+            <SafariSplashBadgeRenderer
+                active={safariWaitingActive}
+                mode={safariMode}
+                bandPx={safariLab.bandPx}
+                clipDesignY={safariLab.clipDesignY}
+                stageRef={stageRef}
+                dotColor={logoColor.dot}
+                ringColor={logoColor.ring}
+                slot={activeSlot}
+            />
+            {inColumn && (
+                <SafariSplashDebugMenu
+                    settings={safariLab}
+                    effectiveMode={safariMode}
+                    isSafari26={isSafari26}
+                    onUpdate={updateSafariLab}
+                    onReplay={() => {
+                        setPreviewExpanded(false);
+                        setSplashReplayKey((k) => k + 1);
+                    }}
+                />
+            )}
         </main>
         </LogoAnimationProvider>
     );

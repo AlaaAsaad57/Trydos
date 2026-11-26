@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { motion } from 'framer-motion';
 import { useLogoAnimation, LogoAnimationType } from './LogoAnimationContext';
 import { useAnimationEngine } from './animations/useAnimationEngine';
@@ -34,6 +34,12 @@ export interface NewLoginLogoProps {
      * "cinematic build, glyphs held" the Quick Preview asks for.
      */
     animateWord?: boolean;
+    /**
+     * Optional SVG viewBox y-coordinate (0..150 on `badge-ring`) below which
+     * the mark is clipped inside the SVG itself, avoiding HTML `clip-path` or
+     * `overflow: hidden` wrappers.
+     */
+    clipBottomY?: number;
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -105,7 +111,9 @@ export default function NewLoginLogo({
     animationVariant,
     durationSeconds,
     animateWord = true,
+    clipBottomY,
 }: NewLoginLogoProps) {
+    const clipUid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
     const context = useLogoAnimation();
     const animation: LogoAnimationType = animationVariant ?? context.animation ?? 'none';
 
@@ -196,6 +204,7 @@ export default function NewLoginLogo({
 
     if (variant === 'badge-ring') {
         const ring = logoMotion.ring;
+        const bottomClipId = clipBottomY !== undefined ? `badge-bottom-clip-${clipUid}` : undefined;
         return (
             <svg
                 // Remount on a pattern change. Framer Motion holds on to every
@@ -213,7 +222,15 @@ export default function NewLoginLogo({
                 data-logo-animation={animation}
                 data-logo-motion={logoMotion.isActive ? 'running' : 'static'}
             >
-                <defs>{logoMotion.defs}</defs>
+                <defs>
+                    {logoMotion.defs}
+                    {bottomClipId && (
+                        <clipPath id={bottomClipId}>
+                            <rect x={-16} y={-16} width={geo.width + 32} height={Math.max(0, clipBottomY! + 16)} />
+                        </clipPath>
+                    )}
+                </defs>
+                <g clipPath={bottomClipId ? `url(#${bottomClipId})` : undefined}>
                 {logoMotion.behind}
 
                 {/* Invisible artboard square from the design file. Keeps spacing. */}
@@ -248,6 +265,7 @@ export default function NewLoginLogo({
                     </motion.g>
                 </g>
                 {logoMotion.ringOverlay}
+                </g>
             </svg>
         );
     }

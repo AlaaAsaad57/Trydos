@@ -49,6 +49,14 @@ interface QuickPreviewScreenProps {
      * mark has no new place to go to.
      */
     picker?: React.ReactNode;
+    /**
+     * Extra downward shift (in CSS px) for the collapsed splash peek so the
+     * pill + round badge sit flush above Safari 26's floating bar instead of
+     * stopping at `window.innerHeight`. 0 everywhere else.
+     */
+    safariBandPx?: number;
+    /** Hold the splash in its waiting state (debug lab toggle). */
+    pauseAutoExpand?: boolean;
 }
 
 /**
@@ -342,6 +350,8 @@ export default function QuickPreviewScreen({
     belowButtonMin = BELOW_BUTTON_MIN,
     abovePill = GAP.abovePill,
     picker,
+    safariBandPx = 0,
+    pauseAutoExpand = false,
 }: QuickPreviewScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
     const showPicker = picker != null;
@@ -413,10 +423,13 @@ export default function QuickPreviewScreen({
             const belowButton = Math.max(belowButtonMin, GAP.belowButton - deficit);
             // A bigger top gap is height too, and it comes out of the card.
             const cardGives = deficit - (GAP.belowButton - belowButton) + (abovePill - GAP.abovePill);
+            const drawnH = canvas.getBoundingClientRect().height;
+            const scale = drawnH > 0 && canvasH > 0 ? drawnH / canvasH : 1;
+            const safariBandDesign = safariBandPx > 0 ? safariBandPx / scale : 0;
             setFit({
                 // pill.offsetTop is the top spacer. Reading it beats
                 // recomputing it from the constants.
-                collapsedY: Math.max(0, canvasH - COLLAPSED_TAIL - pill.offsetTop),
+                collapsedY: Math.max(0, canvasH + safariBandDesign - COLLAPSED_TAIL - pill.offsetTop),
                 fitScale: !pickerShownRef.current && columnH > canvasH ? canvasH / columnH : 1,
                 cardHeight: XD.quickPreview.card.height - cardGives,
                 belowButton,
@@ -429,8 +442,13 @@ export default function QuickPreviewScreen({
         const observer = new ResizeObserver(measure);
         observer.observe(canvas);
         observer.observe(column);
-        return () => observer.disconnect();
-    }, [belowButtonMin, abovePill]);
+        const vv = window.visualViewport;
+        vv?.addEventListener('resize', measure);
+        return () => {
+            observer.disconnect();
+            vv?.removeEventListener('resize', measure);
+        };
+    }, [belowButtonMin, abovePill, safariBandPx]);
 
     /**
      * The picker is taller than a short page, so it may have been scrolled
@@ -470,6 +488,7 @@ export default function QuickPreviewScreen({
     // hydrated" state was set here before. On /demo, in the dev build, that
     // update was lost once and the column never rose.)
     useEffect(() => {
+        if (pauseAutoExpand) return;
         const timer = setTimeout(() => {
             setIsExpanded(true);
             onExpand?.();
@@ -478,7 +497,7 @@ export default function QuickPreviewScreen({
         // `onExpand` is deliberately not a dependency. It is a fresh closure on
         // every render of the widget, so watching it would restart the eight
         // seconds on any unrelated state change.
-    }, [autoExpandDelayMs]);
+    }, [autoExpandDelayMs, pauseAutoExpand]);
 
     const handleNext = () => {
         if (slideIndex < PREVIEW_SLIDES.length - 1) {

@@ -37,6 +37,8 @@ interface AuthLogoLayerProps {
      * nothing interrupted, because nothing about the logo changed.
      */
     slot: LogoSlotConfig;
+    /** Hide visually without unmounting while SafariSplashBadgeRenderer draws the waiting splash mark. */
+    hidden?: boolean;
 }
 
 /** Below this nothing is worth a re-render, and rounding noise is not a move. */
@@ -115,6 +117,7 @@ export default function AuthLogoLayer({
     dotColor,
     ringColor,
     slot,
+    hidden = false,
 }: AuthLogoLayerProps) {
     const [box, setBox] = useState<Box | null>(null);
 
@@ -179,7 +182,7 @@ export default function AuthLogoLayer({
             // fill at once, which reads as a flicker while the mark is moving,
             // so the fill gets a transition of its own.
             className="absolute top-0 left-0 z-30 pointer-events-none [&_path]:transition-[fill] [&_path]:duration-300"
-            style={{ transformOrigin: 'top left' }}
+            style={{ transformOrigin: 'top left', visibility: hidden ? 'hidden' : undefined }}
             initial={{ x: box.left, y: box.top, scale: box.scale, opacity: 0 }}
             animate={{ x: box.left, y: box.top, scale: box.scale, opacity: 1 }}
             transition={live ? LOCKED : TRAVEL}
