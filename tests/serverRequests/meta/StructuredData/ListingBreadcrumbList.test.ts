@@ -39,10 +39,10 @@ describe("the listing JSON-LD", () => {
       list.itemListElement.map((i: any) => i.item.image),
       "a product's picture was not found in any of its picture fields",
     ).toEqual([
-      "https://example.com/h.jpg",
-      "https://example.com/c.jpg",
-      "https://example.com/b.jpg",
-      "https://example.com/x.jpg",
+      "https://example.com/image/upload/h.jpg",
+      "https://example.com/image/upload/c.jpg",
+      "https://example.com/image/upload/b.jpg",
+      "https://example.com/image/upload/x.jpg",
     ]);
     expect(list.itemListElement[0].item.offers, "the offer is wrong").toEqual({
       "@type": "Offer",

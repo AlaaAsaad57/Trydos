@@ -51,7 +51,7 @@ const json = async (res: Response) => res.json();
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubEnv("BACKEND_URL", "https://core.test");
-  vi.stubEnv("NEXT_PUBLIC_BASE_MEDIA_URL", "https://media.test/image/upload");
+  vi.stubEnv("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL", "https://media.test");
   vi.stubEnv("GEMINI_API_KEY", KEY);
 
   io.cookieGet.mockImplementation((name: string) => (name === "MARKET-TOKEN" ? { value: TOKEN } : undefined));

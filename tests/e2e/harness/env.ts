@@ -49,22 +49,13 @@ export const BACKEND_ADDRESS_KEYS = [
   "COMMENT_BACKEND_URL",
   "FLEET_BASE_URL", // a separate product, phase 19
   "ADMIN_DASHBOARD_BASE_URL", // a separate product, phase 19
-  // The media store. Two keys, and today both resolve to the same host — the
-  // first is where the browser uploads, the second is where it reads a picture
-  // back. Both are checked because a run that uploads to staging and reads from
-  // somewhere else would still be pointing at somewhere else.
+  // The media store. One key covers uploads and reading images/videos back.
   "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
-  "NEXT_PUBLIC_BASE_MEDIA_URL",
 ] as const;
 
-/** The media keys, which the guard additionally requires to be `https:`.
- *
- *  Every other address here is reached by the server; these two are reached by
- *  the browser, and one of them carries an API key in a header. A plain-text
- *  hop is not acceptable for either. */
+/** The media key, which the guard additionally requires to be `https:`. */
 export const HTTPS_ONLY_KEYS: readonly string[] = [
   "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
-  "NEXT_PUBLIC_BASE_MEDIA_URL",
 ];
 
 /** Parse one `.env` file.
@@ -194,19 +185,9 @@ export const hasShopperBCode = (): boolean =>
 export const hasTestAccountPhones = (): boolean =>
   hasShopperA() || hasShopperB();
 
-/** The media store. Needed by the cases that upload a profile picture and read
- *  it back.
- *
- *  Both, because the app throws "Media server upload is not configured"
- *  unless the first is set (`services/auth.ts`), and the picture is read
- *  back through the second. Uploads are authorised by the upload ticket
- *  alone; there is no static media key any more. Gating on fewer would make a
- *  half-configured environment **fail** where it should skip. */
+/** The media store. Needed by the cases that upload media and read it back. */
 export const hasMedia = (): boolean =>
-  allSet(
-    "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
-    "NEXT_PUBLIC_BASE_MEDIA_URL",
-  );
+  allSet("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL");
 
 /** The delivery worker. A separate product with its own login. */
 export const hasFleet = (): boolean =>

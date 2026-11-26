@@ -55,8 +55,6 @@ const viteSetup = {
 // The browser suite does not get these — it reads the real, untracked
 // .env.development instead, and skips when those values are missing.
 const isolatedEnv = {
-  NEXT_PUBLIC_BASE_MEDIA_URL: 'https://example.com',
-  NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL: 'https://example.com',
   NEXT_PUBLIC_MEDIA_SERVER_BASE_URL: 'https://example.com',
   NEXT_PUBLIC_CHAT_BACKEND_URL: 'https://example.com',
   NEXT_PUBLIC_DEFAULT_COUNTRY: 'gb',

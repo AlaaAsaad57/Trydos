@@ -151,14 +151,16 @@ describe("the listing metadata", () => {
       '"boots" - Shoes | ترايدوس',
     );
     expect(meta.openGraph.images[0].url, "the category picture was not the share picture").toBe(
-      "https://example.com/shoes.png",
+      "https://example.com/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/shoes.png",
     );
   });
 
   it("falls back to the outline picture, then to nothing", async () => {
     io.search.mockResolvedValueOnce(labelsAnswer({ category: { name: "Bags", outline_photo_path: "/o.png" } }));
     const outline: any = await build("sy-en", ["categories", "bags"]);
-    expect(outline.openGraph.images[0].url, "the outline picture was not used").toBe("https://example.com/o.png");
+    expect(outline.openGraph.images[0].url, "the outline picture was not used").toBe(
+      "https://example.com/image/upload/w_1200,h_630,c_pad/f_jpg/q_90/o.png",
+    );
 
     io.search.mockResolvedValueOnce(labelsAnswer({ category: { name: "Bags" } }));
     const none: any = await build("sy-en", ["categories", "bags"]);

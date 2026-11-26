@@ -256,10 +256,10 @@ describe("small helpers — remaining branches", () => {
 
   it("descriptorIconUrl puts a bare filename under the folder for its kind", () => {
     expect(descriptorIconUrl("g.svg", "group"), "a group icon went to the wrong media folder").toBe(
-      "https://example.com/descriptors/descriptor_groups/g.svg",
+      "https://example.com/image/upload/descriptors/descriptor_groups/g.svg",
     );
     expect(descriptorIconUrl("d.svg", "descriptor"), "a descriptor icon went to the wrong media folder").toBe(
-      "https://example.com/descriptors/descriptors/d.svg",
+      "https://example.com/image/upload/descriptors/descriptors/d.svg",
     );
   });
 

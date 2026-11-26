@@ -105,6 +105,8 @@ import { useAppStore } from "store";
 
 // Set in vitest.config.ts for the whole unit project.
 const MEDIA = "https://example.com";
+const MEDIA_IMAGE = `${MEDIA}/image/upload`;
+const MEDIA_VIDEO = `${MEDIA}/video/upload`;
 
 describe("building a picture address (GetImageUrl)", () => {
   it("leaves a full address alone", () => {
@@ -115,13 +117,13 @@ describe("building a picture address (GetImageUrl)", () => {
   it("puts the media address in front of a bare path", () => {
     // What the gateway sends: no leading slash.
     expect(GetImageUrl("customers/profile/a.jpg")).toBe(
-      `${MEDIA}/customers/profile/a.jpg`,
+      `${MEDIA_IMAGE}/customers/profile/a.jpg`,
     );
   });
 
   it("does not double the slash when the path already has one", () => {
     expect(GetImageUrl("/customers/profile/a.jpg")).toBe(
-      `${MEDIA}/customers/profile/a.jpg`,
+      `${MEDIA_IMAGE}/customers/profile/a.jpg`,
     );
   });
 
@@ -148,10 +150,10 @@ describe("building a picture address (GetImageUrl)", () => {
     // while the plain-text route above added the slash. Both behave the same
     // way now, so it no longer matters which shape a picture arrives in.
     expect(GetImageUrl({ file_path: "products/a.jpg" })).toBe(
-      `${MEDIA}/products/a.jpg`,
+      `${MEDIA_IMAGE}/products/a.jpg`,
     );
     expect(GetImageUrl({ file_path: "/products/a.jpg" })).toBe(
-      `${MEDIA}/products/a.jpg`,
+      `${MEDIA_IMAGE}/products/a.jpg`,
     );
   });
 });
@@ -499,15 +501,15 @@ describe("naming the screen for analytics (DetectScreen)", () => {
 
 describe("building a video address (getVideoUrl)", () => {
   it("adds the media address, the folder and the file type", () => {
-    expect(getVideoUrl("clip")).toBe(`${MEDIA}/product/videos/clip.mp4`);
+    expect(getVideoUrl("clip")).toBe(`${MEDIA_VIDEO}/product/videos/clip.mp4`);
   });
 
   it("does not add the file type twice", () => {
-    expect(getVideoUrl("clip.mp4")).toBe(`${MEDIA}/product/videos/clip.mp4`);
+    expect(getVideoUrl("clip.mp4")).toBe(`${MEDIA_VIDEO}/product/videos/clip.mp4`);
   });
 
   it("does not double the slash when the name has one", () => {
-    expect(getVideoUrl("/clip")).toBe(`${MEDIA}/product/videos/clip.mp4`);
+    expect(getVideoUrl("/clip")).toBe(`${MEDIA_VIDEO}/product/videos/clip.mp4`);
   });
 
   it("leaves an already-hosted address exactly as it is", () => {
