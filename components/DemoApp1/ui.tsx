@@ -170,6 +170,9 @@ export function usePageColor(color: string) {
 /** How many layers hold the page still right now. */
 let locks = 0;
 
+/** True while a layer (a sheet, a modal) is open over the page. */
+export const anyLayerOpen = () => locks > 0;
+
 /**
  * True for a box that scrolls on its own and can still move the way the
  * gesture goes: `dx`, `dy` are how far the content is asked to scroll (0, 0
@@ -1672,6 +1675,9 @@ export function useScreenHeight(watch = true) {
  */
 const OVERSHOOT_MARGIN = 8;
 
+/** A `keepHeight` sheet on a short window: the dimmed page it leaves above its top, under the status bar, in px. */
+const KEEP_TOP_GAP = 12;
+
 /** How far a sheet's top (design `y`, lowered by `lower`) may rise above its rest place. */
 export const overshootRoom = (y: number, lower = 0) =>
   Math.max(0, y - STATUS_BAR + lower - OVERSHOOT_MARGIN);
@@ -1730,8 +1736,24 @@ export function Sheet({
   over,
   timing = SHEET_TRANSITION,
   z,
+  keepHeight = false,
 }: {
   open: boolean;
+  /**
+   * Take the content's height and rest on the bottom, even for a sheet that
+   * starts above y 300. For a tall sheet with no scroll of its own (the
+   * sign-in request, `Sign In request`): its content is laid out from the
+   * file, so at the file's size the sheet is the file's height (`y` to the
+   * artboard's end). On a short phone its top goes up, and its last button is
+   * never under the window's end; on a narrow one a line that wraps makes the
+   * sheet taller, and nothing in it gives way.
+   *
+   * The sheet is never taller than the window, less the status bar and
+   * KEEP_TOP_GAP: on a phone shorter than that (an iPhone SE in Safari) its
+   * top stops there, and a block of the content that can shrink (a
+   * `flex-shrink` block, as the sign-in request's card) gives up the rest.
+   */
+  keepHeight?: boolean;
   /**
    * The sheet's layer `z` (see `Layer`). Raise it for a sheet that must cover
    * the checkout's price panel (CartParts, over every usual layer).
@@ -1777,6 +1799,17 @@ export function Sheet({
   // How far down the white box is, inside the panel, while the spring passes the end (overshootLift).
   const lift = useMotionValue(0);
   const room = overshootRoom(y, lower);
+  /**
+   * The room for the spring, for a `keepHeight` sheet: its top rests where its
+   * content puts it, so the top may rise only as far as the room left above
+   * it in the window.
+   */
+  const roomNow = () => {
+    const el = panel.current;
+    if (!keepHeight || !el) return room;
+    const top = window.innerHeight - (el.offsetHeight - UNDER_BAR);
+    return Math.min(room, Math.max(0, top - OVERSHOOT_MARGIN));
+  };
   const handle = (
     <div
       data-pw="demo-sheet-handle"
@@ -1825,8 +1858,17 @@ export function Sheet({
                 // sheet keeps its top, so the dimmed page shows above it.
                 // Both run on under Safari's bar (UNDER_BAR): the window ends
                 // above that bar, and the page would show under it.
-                ...(fit || y < 300
+                ...(fit || (y < 300 && !keepHeight)
                   ? { top: top(y) }
+                  : keepHeight
+                  ? {
+                      // As tall as its content; `100%` is the window (the
+                      // layer's box). A column, so the content can shrink
+                      // when the most is reached.
+                      maxHeight: `calc(100% - ${SAFE_TOP} - ${KEEP_TOP_GAP}px + ${UNDER_BAR}px)`,
+                      display: "flex",
+                      flexDirection: "column",
+                    }
                   : { height: DESIGN_H - y + UNDER_BAR }),
                 bottom: -UNDER_BAR,
               }}
@@ -1837,7 +1879,7 @@ export function Sheet({
               transition={timing}
               onUpdate={(latest) =>
                 lift.set(
-                  overshootLift(latest.y, rest, room, panel.current?.offsetHeight ?? 0),
+                  overshootLift(latest.y, rest, roomNow(), panel.current?.offsetHeight ?? 0),
                 )
               }
               drag="y"
@@ -1852,7 +1894,7 @@ export function Sheet({
               {/* The white box, pushed down while the spring passes the end (overshootLift). */}
               <motion.div
                 data-pw="demo-sheet-box"
-                className="relative flex flex-col w-full h-full overflow-hidden"
+                className={`relative flex flex-col w-full overflow-hidden ${keepHeight ? "flex-auto min-h-0" : "h-full"}`}
                 style={{
                   y: lift,
                   background: C.white,
@@ -1878,7 +1920,7 @@ export function Sheet({
                   </div>
                 )}
                 <div
-                  className={`flex flex-col w-full ${band > 0 ? "flex-1 min-h-0" : "h-full"} ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
+                  className={`flex flex-col w-full ${band > 0 ? "flex-1 min-h-0" : keepHeight ? "flex-auto min-h-0" : "h-full"} ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
                   style={{
                     // A `fit` sheet scrolls, and its steps run on under
                     // Safari's bar; it keeps room for the part of a lowered

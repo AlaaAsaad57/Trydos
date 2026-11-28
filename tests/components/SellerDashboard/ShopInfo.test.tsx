@@ -259,7 +259,7 @@ describe("Shop info — saving", () => {
     expect(
       screen.getByAltText("Banner preview").getAttribute("src"),
       "after the save the banner should come from its stored address",
-    ).toBe("https://example.com/seller/new-banner.webp");
+    ).toBe("https://example.com/image/upload/seller/new-banner.webp");
   });
 
   it("sends no logo when the media server answers with nothing", async () => {

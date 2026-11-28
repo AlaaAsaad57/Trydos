@@ -34,6 +34,13 @@ export interface NewLoginLogoProps {
      * "cinematic build, glyphs held" the Quick Preview asks for.
      */
     animateWord?: boolean;
+    /**
+     * Optional SVG viewBox y-coordinate (0..150 on `badge-ring`). Below it a
+     * white half-disc, as wide as the ring, is painted over the mark, so the
+     * part of the badge that lies under Safari's bar (outside the screen) is
+     * plain white and never shows through the glass.
+     */
+    coverBottomY?: number;
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -105,6 +112,7 @@ export default function NewLoginLogo({
     animationVariant,
     durationSeconds,
     animateWord = true,
+    coverBottomY,
 }: NewLoginLogoProps) {
     const context = useLogoAnimation();
     const animation: LogoAnimationType = animationVariant ?? context.animation ?? 'none';
@@ -196,6 +204,19 @@ export default function NewLoginLogo({
 
     if (variant === 'badge-ring') {
         const ring = logoMotion.ring;
+        /**
+         * The white half-disc. Its flat edge lies on `coverBottomY`, its centre
+         * on the ring's axis, and its radius reaches the ring's lowest point
+         * from that edge, so every part of the ring under the edge is covered.
+         * `sweep-flag` 0 takes the arc under the chord, not over it.
+         */
+        const cover = (() => {
+            if (coverBottomY === undefined || !geo.ring) return null;
+            const { cx, cy, r } = geo.ring;
+            // 4 units of margin: the ring's own dots are about 2 units wide.
+            const radius = r + Math.abs(cy - coverBottomY) + 4;
+            return `M${cx - radius},${coverBottomY}A${radius},${radius},0,0,0,${cx + radius},${coverBottomY}Z`;
+        })();
         return (
             <svg
                 // Remount on a pattern change. Framer Motion holds on to every
@@ -248,6 +269,7 @@ export default function NewLoginLogo({
                     </motion.g>
                 </g>
                 {logoMotion.ringOverlay}
+                {cover && <path d={cover} fill="#ffffff" data-logo-part="bottom-cover" />}
             </svg>
         );
     }

@@ -84,7 +84,13 @@ export default function PersonalInfoScreen() {
   const verified = profile.emailVerified === false ? "" : profile.email;
   const [gender, setGender] = useState<ProfileGender | null>(profile.gender);
   const [codeFor, setCodeFor] = useState<string | null>(null);
-  /** The save the backend refused for the e-mail code; sent again after a right code. */
+  /**
+   * The e-mail a right code has already saved on the account, in the
+   * backend's form (trimmed, lowercase). A later save (after another field
+   * was refused) leaves it out and does not ask for a second code.
+   */
+  const [provedEmail, setProvedEmail] = useState<string | null>(null);
+  /** The save that waits for the e-mail code; sent after a right code. */
   const [waitingSave, setWaitingSave] = useState<Record<string, unknown> | null>(
     null,
   );
@@ -120,8 +126,43 @@ export default function PersonalInfoScreen() {
     return changed;
   };
 
-  /** Sends `changed`. A refusal for the e-mail code opens the code sheet. */
-  const save = async (changed: Record<string, unknown>) => {
+  /**
+   * The new e-mail `changed` carries, in the backend's form, or null. An
+   * e-mail is new when it differs from the saved one after trimming and
+   * lowercasing; the same address in other capitals is not.
+   */
+  const newEmailOf = (changed: Record<string, unknown>): string | null => {
+    const typed = normalizeEmail(String(changed.email ?? ""));
+    if (!typed || typed === normalizeEmail(profile.email ?? "")) return null;
+    return typed;
+  };
+
+  /**
+   * Sends `changed`. The core backend saves a new e-mail only through its
+   * code check (send-otp, then verify-otp saves it), so the profile save
+   * never carries one:
+   *  1. A new e-mail opens the code sheet before any save (b48a3e999 on
+   *     development). This does not need the backend to refuse first:
+   *     backend PR #699 is not live, and without it a new e-mail was saved
+   *     with no code.
+   *  2. The backend's "verify the new email" answer still opens the sheet,
+   *     as a second net.
+   * `proved` is the e-mail a right code has just saved; the state is not
+   * set yet in the same tap, so the sheet passes it here.
+   */
+  const save = async (changed: Record<string, unknown>, proved: string | null = provedEmail) => {
+    const newEmail = newEmailOf(changed);
+    if (newEmail && newEmail !== proved) {
+      setWaitingSave(changed);
+      setCodeFor(newEmail);
+      return;
+    }
+    // The e-mail is the saved one (other capitals) or a proved one: the
+    // profile save leaves it out.
+    if ("email" in changed && (!newEmail || newEmail === proved)) {
+      changed = { ...changed };
+      delete changed.email;
+    }
     if (!Object.keys(changed).length) {
       setEditing(false);
       return;
@@ -135,7 +176,7 @@ export default function PersonalInfoScreen() {
         // The next step of the change, not an error: prove the e-mail with a
         // code, then send the rest again.
         setWaitingSave(changed);
-        setCodeFor(String(changed.email));
+        setCodeFor(normalizeEmail(String(changed.email ?? email)));
         return;
       }
       // The request layer already showed the refusal. Keep what the shopper
@@ -189,13 +230,16 @@ export default function PersonalInfoScreen() {
               setCodeFor(null);
               setWaitingSave(null);
             }}
-            onVerified={() => {
+            onVerified={(saved) => {
               // verify-otp saved the e-mail; send the rest of the change.
+              // The address as the backend saved it; the sheet's own as a fallback.
+              const proved = normalizeEmail(saved || codeFor || "");
+              setProvedEmail(proved);
               const rest = { ...(waitingSave ?? {}) };
               delete rest.email;
               setCodeFor(null);
               setWaitingSave(null);
-              void save(rest);
+              void save(rest, proved);
             }}
           />
         </>

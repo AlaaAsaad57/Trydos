@@ -1,6 +1,8 @@
 // Pure helpers shared by server and client code. This file must stay free of
 // the statically-imported translation tables (utils/server/index.tsx) — client
 // components import from here so anything added below ships in client bundles.
+import { getMediaImageBaseUrl, getMediaVideoBaseUrl } from "utils/mediaUrl";
+
 export const getConfiguredImage = ({
   src,
   width = null,
@@ -38,7 +40,7 @@ export const GetImageUrl = (url) => {
     // path with no leading slash produced
     // "https://media.example.comcustomers/a.jpg" — a picture that cannot load.
     return (
-      process.env.NEXT_PUBLIC_BASE_MEDIA_URL +
+      getMediaImageBaseUrl() +
       (url.file_path.startsWith("/") ? url.file_path : "/" + url.file_path)
     );
   }
@@ -51,7 +53,7 @@ export const GetImageUrl = (url) => {
   // path. Ensure exactly one slash between the media base and a relative path so
   // both forms resolve correctly.
   return (
-    process.env.NEXT_PUBLIC_BASE_MEDIA_URL +
+    getMediaImageBaseUrl() +
     (path.startsWith("/") ? path : "/" + path)
   );
 };
@@ -216,7 +218,7 @@ export const getVideoUrl = (
   }
 
   // Otherwise, treat input as public ID and build the correct format
-  const mediaBase = process.env.NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL;
+  const mediaBase = getMediaVideoBaseUrl();
   // const version = "v1";
   const folder = "product/videos";
 

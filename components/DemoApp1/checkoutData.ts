@@ -1,4 +1,5 @@
 import { getLocalizedCountryName } from "utils/countryData";
+import { countryFlag } from "./countryFlag";
 import type { BagView } from "./bagView";
 import type { ProfileAddress } from "./useProfileData";
 import type { DeliveryPlace } from "./screens/DeliveryMethodSheet";
@@ -37,12 +38,17 @@ export function checkoutAddress(address: ProfileAddress, language: string): Chec
   };
 }
 
-/** The place under the delivery sheet's title: the country, then the province and the town. */
+/**
+ * The place under the delivery sheet's title: the flag, the country, then the
+ * province and the town. The flag is the design's row flag for its four
+ * countries, else the standard one (countryFlag.ts, OQ-5 of Stage 7e).
+ */
 export function deliveryPlace(address: ProfileAddress, language: string): DeliveryPlace {
   const province = address.area[address.area.length - 1] ?? "";
   const town = address.area.length > 1 ? address.area[1] : "";
   const rest = [province, town].filter((part, i, all) => part && all.indexOf(part) === i);
   return {
+    ...countryFlag(address.countryIso),
     country: countryName(address, language),
     rest: rest.length > 0 ? ` | ${rest.join(" | ")}` : "",
   };

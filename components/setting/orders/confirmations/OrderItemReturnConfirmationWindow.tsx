@@ -35,6 +35,15 @@ function OrderItemReturnConfirmationWindow({
   const { setOrderOptions, language } = useAppStore();
   // A3-7: the terms page exists; Product replaces its text later.
   const { lang } = useParams();
+  const targetOrder =
+    confirmationData?.item?.order_id != null &&
+    String(orderItem?.id) !== String(confirmationData.item.order_id)
+      ? (orderData?.find(
+          (o) => String(o.id) === String(confirmationData.item.order_id),
+        ) ?? orderItem)
+      : orderItem;
+  const isDraftReturnStatus = (status: any) =>
+    !status?.value || Boolean(status?.name?.toLowerCase?.().includes("draft"));
   const ReturnedItems = () => {
     let arr = [];
     if (confirmationData?.item) {
@@ -69,7 +78,7 @@ function OrderItemReturnConfirmationWindow({
     }
 
     returnDetails?.return_requests_data?.map((ret_ite) => {
-      if (!ret_ite?.status?.value || ret_ite.status?.name?.includes("draft")) {
+      if (isDraftReturnStatus(ret_ite?.status)) {
         ret_ite?.order_details?.map((s) => {
           if (s.already_return) {
             let product = orderData
@@ -89,30 +98,34 @@ function OrderItemReturnConfirmationWindow({
     return arr;
   };
   const [loading, setLoading] = useState(false);
-  const isThereAReturnedProduct = () => {
-    let arr = [];
+  const isThereAReturnedProduct = (currentReqId?: number | string | null) => {
+    const arr: (number | string)[] = [];
+    if (currentReqId) {
+      arr.push(currentReqId);
+    }
 
-    returnDetails?.return_requests_data?.map((s) => {
-      s.order_details?.map((req) => {
+    returnDetails?.return_requests_data?.forEach((s) => {
+      if (!isDraftReturnStatus(s?.status)) return;
+      s.order_details?.forEach((req) => {
         if (
           req.already_return ||
           req.detail_id === confirmationData?.item?.id
         ) {
-          if (!arr.find((d) => d === req?.return_request_id))
-            arr.push(req?.return_request_id);
+          if (req?.return_request_id && !arr.includes(req.return_request_id)) {
+            arr.push(req.return_request_id);
+          }
         }
       });
     });
-    let set = new Set(arr);
-    arr = [...set];
-    if (arr.length > 0) return arr;
+    const unique = [...new Set(arr)];
+    if (unique.length > 0) return unique;
     return false;
   };
   const GetUniqueImagesInArrays = (): string[] => {
     const arr: string[] = confirmationData?.images ?? [];
     const newArr: string[] =
       returnDetails?.return_requests_data
-        ?.find((s) => s.return_request_id === orderItem?.return_request_id)
+        ?.find((s) => s.return_request_id === targetOrder?.return_request_id)
         ?.order_details?.find((s) => s.detail_id === confirmationData?.item?.id)
         ?.img ?? [];
     if (!arr.length) return [];
@@ -134,7 +147,7 @@ function OrderItemReturnConfirmationWindow({
             reason_id: confirmationData.reasons,
             id: confirmationData.return_request_product_id,
           });
-          req = orderItem.return_request_id;
+          req = targetOrder?.return_request_id;
         } else {
           req = await order.ReturnProduct({
             images: confirmationData.images,
@@ -142,12 +155,12 @@ function OrderItemReturnConfirmationWindow({
             product_id: confirmationData.item.product_id,
             quantity: confirmationData.item.qty,
             reason_id: confirmationData.reasons,
-            return_request_id: orderItem.return_request_id,
-            order_id: orderItem.id,
+            return_request_id: targetOrder?.return_request_id,
+            order_id: targetOrder?.id,
           });
         }
         trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_RETURN_REQUESTED, {
-          order_id: orderItem?.id,
+          order_id: targetOrder?.id,
           item_id: confirmationData.item?.id,
           product_id: confirmationData.item?.product_id,
           return_reason:
@@ -160,7 +173,7 @@ function OrderItemReturnConfirmationWindow({
 
       if (confirm) {
         await order.ConfirmReturnRequest({
-          return_request_id: isThereAReturnedProduct(),
+          return_request_id: isThereAReturnedProduct(req),
         });
       }
       await callback();
@@ -209,7 +222,7 @@ function OrderItemReturnConfirmationWindow({
         <div className="w-full flex-row">
           <RenderReturnedItem
             returned_items={ReturnedItems()}
-            paidCurrency={orderItem?.currency}
+            paidCurrency={targetOrder?.currency}
           />
         </div>
         <div className="flex-col mt-auto w-full items-center">

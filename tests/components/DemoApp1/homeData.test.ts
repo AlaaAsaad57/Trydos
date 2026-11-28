@@ -24,7 +24,7 @@ const boutique = (slug: string, extra: Record<string, unknown> = {}) => ({
 
 describe("toHomeStore (one boutique from the search engine as a home card)", () => {
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_BASE_MEDIA_URL = MEDIA;
+    process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL = MEDIA;
   });
 
   it("keeps the slug", () => {
@@ -42,10 +42,10 @@ describe("toHomeStore (one boutique from the search engine as a home card)", () 
   });
 
   it("turns the icon path into a full media address", () => {
-    expect(
-      toHomeStore(boutique("zara"), "sy-en")?.logo,
-      "the card's logo is not the boutique icon on the media host",
-    ).toBe(`${MEDIA}/boutiques/zara.png`);
+    // One media origin since bfae3eb6e: images read from <origin>/image/upload.
+    const logo = toHomeStore(boutique("zara"), "sy-en")?.logo ?? "";
+    expect(logo.startsWith(`${MEDIA}/image/upload/`), `the card's logo is not on the media host's image path: ${logo}`).toBe(true);
+    expect(logo.endsWith("/boutiques/zara.png"), `the card's logo is not the boutique icon: ${logo}`).toBe(true);
   });
 
   it("gives no logo for a boutique with no icon", () => {

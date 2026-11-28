@@ -60,8 +60,12 @@ export default function DeliveryMethodSheet({
   );
 }
 
-/** The address's place under the title: the flag, the country (Medium), then "| province | town". */
-export type DeliveryPlace = { flag?: XdIconName; country: string; rest: string };
+/**
+ * The address's place under the title: the flag, the country (Medium), then "| province | town".
+ * `flag` is the design's row flag; `flagSrc` is the standard flag of a country the design's set
+ * does not have (components/DemoApp1/countryFlag.ts).
+ */
+export type DeliveryPlace = { flag?: XdIconName; flagSrc?: string; country: string; rest: string };
 
 /** What "Done" closes the sheet with: a pickup centre, or delivery to the address. */
 export type DeliveryChoice = { kind: "centre"; id: string } | { kind: "address" };
@@ -377,8 +381,8 @@ function SheetBody({
 /**
  * The address's place under the line, centred: the flag, then the country
  * (Medium) and "| province | town", as "Syria | Aleppo | El Jamiliya".
- * Syria has no flag of its own yet (demoPlaces.ts): the file draws the Turkish
- * one there, so Syria shows none.
+ * The file draws the Turkish flag for Syria too; Syria shows its own flag
+ * (flagSyRow, demoPlaces.ts).
  */
 function Place({ place }: { place: DeliveryPlace }) {
   return (
@@ -393,9 +397,18 @@ function Place({ place }: { place: DeliveryPlace }) {
         ...LINE_14,
       }}
     >
-      {place.flag && (
+      {place.flag ? (
         <XdIcon name={place.flag} size={FLAG.size} className="shrink-0" style={{ marginInlineEnd: FLAG.gap }} />
-      )}
+      ) : place.flagSrc ? (
+        <img
+          src={place.flagSrc}
+          alt=""
+          width={FLAG.size}
+          height={FLAG.size}
+          className="shrink-0 object-contain"
+          style={{ width: FLAG.size, height: FLAG.size, marginInlineEnd: FLAG.gap }}
+        />
+      ) : null}
       {/* One text line: a flex item drops its leading space, so the two parts share one span. */}
       <span className="font-normal">
         <span className="font-medium">{place.country}</span>

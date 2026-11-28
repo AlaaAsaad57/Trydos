@@ -576,7 +576,7 @@ describe("DescriptorsSection", () => {
     expect(screen.queryByText("Hidden group"), "a group with no usable descriptor must be hidden").toBeNull();
     const imgs = Array.from(container.querySelectorAll("img")).map((i) => i.getAttribute("src"));
     expect(imgs, "the group icon must come from the media server folder").toContain(
-      "https://example.com/descriptors/descriptor_groups/group.svg",
+      "https://example.com/image/upload/descriptors/descriptor_groups/group.svg",
     );
     expect(imgs, "an absolute descriptor icon must be used as-is").toContain(
       "https://cdn.example.com/luster.svg",

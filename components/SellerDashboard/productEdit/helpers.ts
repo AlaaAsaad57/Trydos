@@ -15,6 +15,7 @@
  */
 
 import { translateFunction } from "utils/functions";
+import { getMediaImageBaseUrl } from "utils/mediaUrl";
 import { sanitizeHtml } from "utils/sanitizeHtml";
 
 // Aliased `tx` (not `t`) because `t` is used as a local param/var below.
@@ -139,7 +140,7 @@ export function descriptorIconUrl(
   if (icon.startsWith("http")) return icon;
   const folder =
     kind === "group" ? "descriptors/descriptor_groups" : "descriptors/descriptors";
-  return `${process.env.NEXT_PUBLIC_BASE_MEDIA_URL}/${folder}/${icon}`;
+  return `${getMediaImageBaseUrl()}/${folder}/${icon}`;
 }
 
 /** A descriptor is renderable in the editor when the seller can supply a value:

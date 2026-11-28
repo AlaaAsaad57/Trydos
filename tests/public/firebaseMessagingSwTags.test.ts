@@ -582,12 +582,62 @@ describe("a click on a notification", () => {
     ).toHaveBeenCalledTimes(1);
   });
 
+  // "order placed" opens the order it is about, like every other order
+  // notification (the in-page toast and the bell list already do). It used to
+  // open the orders list.
+  const placedPush = (orderGroupId?: number) =>
+    marketPush({
+      type: "order placed",
+      ...(orderGroupId === undefined ? {} : { order_group_id: orderGroupId }),
+      description: "Placed",
+    });
+
+  it('an "order placed" click opens that order\'s details page', async () => {
+    const worker = loadWorker();
+    const data = await worker.cardFor(placedPush(12));
+    // A tab on the orders list is not the order: it must not be reused.
+    worker.windows.push(tab("/sy-en/settings/orders"));
+
+    await worker.click(data);
+
+    expect(
+      worker.clients.openWindow.mock.calls,
+      'the "order placed" click did not open the details page of order 12',
+    ).toEqual([[ORDER_URL]]);
+  });
+
+  it('an "order placed" click focuses the open tab on that order and asks it to refresh', async () => {
+    const worker = loadWorker();
+    const data = await worker.cardFor(placedPush(12));
+    const open = tab("/sy-en/settings/orders/12");
+    worker.windows.push(open);
+
+    await worker.click(data);
+
+    expect(open.focus, "the tab already open on order 12 was not brought to the front").toHaveBeenCalled();
+    expect(
+      open.postMessage,
+      "the open order tab was not asked to load order 12 again",
+    ).toHaveBeenCalledWith({ type: "REFRESH_ORDER_DETAILS", order_group_id: 12 });
+    expect(
+      worker.clients.openWindow,
+      "a second tab was opened although order 12 was already open",
+    ).not.toHaveBeenCalled();
+  });
+
+  it('an "order placed" push without an order group id opens the orders list, not an "undefined" order', async () => {
+    const worker = loadWorker();
+    const data = await worker.cardFor(placedPush());
+
+    await worker.click(data);
+
+    expect(
+      worker.clients.openWindow.mock.calls,
+      'the "order placed" click with no order id did not open the orders list',
+    ).toEqual([[`${ORIGIN}/settings/orders`]]);
+  });
+
   it.each([
-    [
-      "order placed",
-      marketPush({ type: "order placed", order_group_id: 77, description: "Placed" }),
-      `${ORIGIN}/settings/orders`,
-    ],
     [
       "product discount",
       marketPush({ type: "product discount", product_slug: "p-2", description: "Cheaper" }),

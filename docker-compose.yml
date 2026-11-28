@@ -1,0 +1,39 @@
+# Storefront on the shared staging server.
+# How to use it: docs/server-deploy.md
+#
+# Run from the repo folder:
+#   docker compose up -d --build
+
+services:
+  storefront:
+    build:
+      context: .
+      secrets:
+        - storefront_env
+    image: trydos-storefront:latest
+    container_name: trydos-storefront
+    restart: unless-stopped
+    # Small init process, so `docker stop` ends the app cleanly.
+    init: true
+    # The same file the build used. Server-only values (backend URLs, keys)
+    # are read again at run time.
+    env_file:
+      - .env.server
+    # 127.0.0.1 only. The server's nginx is the one public entry. Without the
+    # 127.0.0.1 part, Docker opens the port to the whole internet.
+    ports:
+      - "127.0.0.1:${STOREFRONT_PORT:-3000}:3000"
+    labels:
+      service: "trydos-storefront"
+      stack: "trydos-storefront"
+      env: "staging"
+      role: "web"
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+secrets:
+  storefront_env:
+    file: ./.env.server

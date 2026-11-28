@@ -51,6 +51,8 @@ export type Leave = {
   shrink?: Origin;
   swipe?: boolean;
   fade?: boolean;
+  /** The old screen fades out, then the new one fades in (THROUGH): the start into the app on /demo. */
+  through?: boolean;
 };
 
 /**
@@ -61,13 +63,20 @@ export type Leave = {
  */
 export type Slide = Leave & { side: 1 | -1 };
 
+/**
+ * The start into the app on /demo: the start's white page fades out, then the
+ * app fades in, in seconds. One after the other: a cross-fade laid the old
+ * page's words over Home's for a quarter of a second.
+ */
+export const THROUGH = { out: 0.25, in: 0.35 } as const;
+
 /** The clip of a page cut to a card's box. `bottom` is the room under the box. */
 const cutTo = (o: Origin, bottom: string) =>
   `inset(${o.top}px ${o.right}px ${bottom} ${o.left}px)`;
 
 const slide: Variants = {
-  enter: ({ dir, side, grow, shrink, swipe, fade }: Slide) => {
-    if (fade) return { x: 0, opacity: 0 };
+  enter: ({ dir, side, grow, shrink, swipe, fade, through }: Slide) => {
+    if (fade || through) return { x: 0, opacity: 0 };
     if (swipe) return { x: `${dir * side * 100}%`, opacity: 1 };
     // The page in the document is as tall as all of it, so the room under
     // the card is counted from the page's end: 100% less the card's bottom.
@@ -77,8 +86,14 @@ const slide: Variants = {
     if (shrink) return { x: 0, opacity: 1 };
     return { x: `${dir * side * 100}%`, opacity: 0 };
   },
-  center: ({ dir, side, grow, swipe }: Slide) =>
-    swipe
+  center: ({ dir, side, grow, swipe, through }: Slide) =>
+    through
+      ? {
+          x: 0,
+          opacity: 1,
+          transition: { duration: THROUGH.in, delay: THROUGH.out, ease: "easeOut" },
+        }
+      : swipe
       ? sliderMove((dir * side) as 1 | -1, false)
       : grow
       ? {
@@ -94,7 +109,9 @@ const slide: Variants = {
           },
         }
       : { x: 0, opacity: 1 },
-  exit: ({ dir, side, grow, shrink, swipe, fade }: Slide) => {
+  exit: ({ dir, side, grow, shrink, swipe, fade, through }: Slide) => {
+    if (through)
+      return { x: 0, opacity: 0, transition: { duration: THROUGH.out, ease: "easeIn" } };
     if (fade) return { x: 0, opacity: 0 };
     if (swipe) return sliderMove((dir * side) as 1 | -1, true);
     // The screen under a growing page: it stays, and goes once it is covered.

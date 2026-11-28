@@ -23,6 +23,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
 import { GetTicket } from "utils/UploadUtils";
+import { getMediaImageBaseUrl } from "utils/mediaUrl";
 import { completeClaim, completeQrLogin, QrLoginError } from "services/qrLogin";
 import {
   EmailVerificationRequiredError,
@@ -855,9 +856,11 @@ class AuthService {
       const imagePath = this.getImageForCookie(
         userObj?.image ?? userProfile?.image,
       );
-      const profilePictureURL = imagePath
-        ? `${process.env.NEXT_PUBLIC_BASE_MEDIA_URL}${imagePath}`
-        : null;
+      const imageBase = getMediaImageBaseUrl();
+      const profilePictureURL =
+        imagePath && imageBase
+          ? `${imageBase}${imagePath.startsWith("/") ? imagePath : "/" + imagePath}`
+          : null;
 
       let wallet_update = await fetchData({
         url: "/users/me",
@@ -1090,9 +1093,11 @@ class AuthService {
         const prevImagePath = this.getImageForCookie(
           previousUserObj?.image ?? userProfile?.image,
         );
-        const prevProfilePictureURL = prevImagePath
-          ? `${process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL}${prevImagePath}`
-          : null;
+        const prevImageBase = getMediaImageBaseUrl();
+        const prevProfilePictureURL =
+          prevImagePath && prevImageBase
+            ? `${prevImageBase}${prevImagePath.startsWith("/") ? prevImagePath : "/" + prevImagePath}`
+            : null;
 
         try {
           await fetchData({

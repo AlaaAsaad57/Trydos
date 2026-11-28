@@ -217,6 +217,61 @@ describe("sending the return", () => {
     expect(orderService.ReturnProduct, "a product was added with nothing to add").not.toHaveBeenCalled();
   });
 
+  it("resolves the item's owning pack when orderItem mismatches, confirms the newly created request, and skips non-draft siblings", async () => {
+    orderService.ReturnProduct.mockResolvedValue(83);
+    const pack1283 = buildOrder({ id: 1283, return_request_id: null as any });
+    const pack1284 = buildOrder({ id: 1284, return_request_id: 83 } as any);
+    await renderWindow({
+      orderItem: pack1283,
+      orderData: [pack1283, pack1284],
+      confirmationData: {
+        item: {
+          ...buildOrderLine({ id: 1511, order_id: 1284, product_id: 56, qty: 1 }),
+          quantity: 1,
+        },
+        images: ["watch.png"],
+        reasons: REASON,
+        qty: 1,
+        additon_cost: false,
+      },
+      returnDetails: {
+        return_requests_data: [
+          {
+            order_id: 1285,
+            return_request_id: 50,
+            status: { name: "returned_to_location", value: "returned_to_location" },
+            order_details: [
+              { detail_id: 99, product_id: 9, already_return: true, return_request_id: 50 },
+            ],
+          },
+        ],
+      } as any,
+    });
+    const user = userEvent.setup();
+    await user.click(agree());
+    await user.click(screen.getByText("I Agree & Return"));
+
+    await waitFor(() =>
+      expect(
+        orderService.ReturnProduct,
+        "ReturnProduct was called with mismatched pack 1283 instead of owning pack 1284",
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order_detail_id: 1511,
+          product_id: 56,
+          order_id: 1284,
+          return_request_id: 83,
+        }),
+      ),
+    );
+    expect(
+      orderService.ConfirmReturnRequest,
+      "ConfirmReturnRequest did not send only the draft request 83",
+    ).toHaveBeenCalledWith({
+      return_request_id: [83],
+    });
+  });
+
   it("logs a failure and stays open, and ignores taps while sending", async () => {
     const props = await renderWindow({
       callback: async () => {

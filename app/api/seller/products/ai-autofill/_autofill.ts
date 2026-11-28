@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { HandleAuthedFetch } from "serverRequests/HandleAuthedFetch";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getMediaImageBaseUrl } from "utils/mediaUrl";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // Server-only helpers for POST /api/seller/products/ai-autofill.
@@ -160,7 +161,7 @@ export function parseImageName(value: unknown): string | null {
 /** Download `/product/<name>` from our media host. `null` when the host does
  *  not serve it as an image of a usable size. */
 export async function loadImage(name: string): Promise<AutofillImage | null> {
-  const base = (process.env.NEXT_PUBLIC_BASE_MEDIA_URL || "").replace(/\/$/, "");
+  const base = getMediaImageBaseUrl();
   if (!base) return null;
   try {
     const res = await fetch(`${base}/product/${name}`, {

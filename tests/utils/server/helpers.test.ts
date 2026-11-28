@@ -43,6 +43,8 @@ import {
 
 // The media address the test settings hand every helper here.
 const MEDIA = "https://example.com";
+const MEDIA_IMAGE = `${MEDIA}/image/upload`;
+const MEDIA_VIDEO = `${MEDIA}/video/upload`;
 
 describe("preparing a picture for a slot (getConfiguredImage)", () => {
   it("asks the media server for the height the slot needs", () => {
@@ -118,13 +120,13 @@ describe("building a picture address (GetImageUrl)", () => {
 
   it("puts the media address in front of a bare path", () => {
     expect(GetImageUrl("customers/profile/a.jpg")).toBe(
-      `${MEDIA}/customers/profile/a.jpg`,
+      `${MEDIA_IMAGE}/customers/profile/a.jpg`,
     );
   });
 
   it("does not double the slash when the path already has one", () => {
     expect(GetImageUrl("/customers/profile/a.jpg")).toBe(
-      `${MEDIA}/customers/profile/a.jpg`,
+      `${MEDIA_IMAGE}/customers/profile/a.jpg`,
     );
   });
 
@@ -143,10 +145,10 @@ describe("building a picture address (GetImageUrl)", () => {
     // media address ("…example.comcustomers/a.jpg" — a picture that cannot
     // load), while the text route added the slash. Both join the same way now.
     expect(GetImageUrl({ file_path: "customers/a.jpg" })).toBe(
-      `${MEDIA}/customers/a.jpg`,
+      `${MEDIA_IMAGE}/customers/a.jpg`,
     );
     expect(GetImageUrl({ file_path: "/customers/a.jpg" })).toBe(
-      `${MEDIA}/customers/a.jpg`,
+      `${MEDIA_IMAGE}/customers/a.jpg`,
     );
   });
 });
@@ -372,21 +374,21 @@ describe("showing a price (RoundPrice) — the charged rule and the display rule
 describe("building a video address (getVideoUrl)", () => {
   it("adds the media address, the folder and the file type", () => {
     expect(getVideoUrl("clip", {})).toBe(
-      `${MEDIA}/product/videos/clip.mp4?`,
+      `${MEDIA_VIDEO}/product/videos/clip.mp4?`,
     );
   });
 
   it("does not add the file type twice", () => {
-    expect(getVideoUrl("clip.mp4", {})).toBe(`${MEDIA}/product/videos/clip.mp4?`);
+    expect(getVideoUrl("clip.mp4", {})).toBe(`${MEDIA_VIDEO}/product/videos/clip.mp4?`);
   });
 
   it("does not double the slash when the name has one", () => {
-    expect(getVideoUrl("/clip.mp4", {})).toBe(`${MEDIA}/product/videos/clip.mp4?`);
+    expect(getVideoUrl("/clip.mp4", {})).toBe(`${MEDIA_VIDEO}/product/videos/clip.mp4?`);
   });
 
   it("asks for the short preview when the caller wants one", () => {
     expect(getVideoUrl("clip", { end: 5 })).toBe(
-      `${MEDIA}/product/videos/clip.mp4?target=preview`,
+      `${MEDIA_VIDEO}/product/videos/clip.mp4?target=preview`,
     );
   });
 
@@ -406,7 +408,7 @@ describe("building a video address (getVideoUrl)", () => {
     // The options are optional in the signature and were read as if they were
     // not, so leaving them out threw. Every caller passes them today, which is
     // the only reason it never fired.
-    expect(getVideoUrl("clip")).toBe(`${MEDIA}/product/videos/clip.mp4?`);
+    expect(getVideoUrl("clip")).toBe(`${MEDIA_VIDEO}/product/videos/clip.mp4?`);
   });
 });
 

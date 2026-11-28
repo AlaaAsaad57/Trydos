@@ -26,8 +26,10 @@ import AppScreens from "components/DemoApp1/AppScreens";
 import {
   DEMO_KEYS,
   KEEP_CASE,
+  PREVIEW_ONLY_KEYS,
   type DemoDictionary,
 } from "components/DemoApp/demoKeys";
+import { getMediaServerBaseUrl } from "utils/mediaUrl";
 import { translateFunction } from "utils/server";
 import NavigationLoaderSafetyNet from "components/global/NavigationLoaderSafetyNet";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
@@ -166,7 +168,8 @@ export default async function RootLayout({ children, modal }) {
   const [country, language] = lang.split("-");
   // Opens the media connections early: each new one costs about 0.25 s, and a
   // late photo must not wait for that. Products use both hosts.
-  const mediaBase = process.env.NEXT_PUBLIC_BASE_MEDIA_URL;
+  // One media origin since bfae3eb6e (utils/mediaUrl.ts).
+  const mediaBase = getMediaServerBaseUrl();
   if (mediaBase) preconnect(new URL(mediaBase).origin);
   preconnect("https://media_server.ramaaz.dev");
   // The bar mounts after hydration, so its icons used to start only then, and on
@@ -181,8 +184,9 @@ export default async function RootLayout({ children, modal }) {
   // UI-MIGRATION-PLAN.md). The layout cannot know the path, so every page
   // gets them: 370 keys, Arabic 20 KB (7 KB gzip) on 2026-11-04. Built as the
   // /demo layout builds them: English keeps the design's case for KEEP_CASE.
+  // The words of screens only /demo shows yet stay out (PREVIEW_ONLY_KEYS).
   const screenWords: DemoDictionary = Object.fromEntries(
-    DEMO_KEYS.map((key) => [
+    DEMO_KEYS.filter((key) => !PREVIEW_ONLY_KEYS.has(key)).map((key) => [
       key,
       language === "en" && KEEP_CASE.has(key)
         ? key

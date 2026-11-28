@@ -15,6 +15,7 @@ import { useProfileData } from "../useProfileData";
 import { PlaceParts } from "../placeParts";
 import Toast, { useToast } from "../chat/Toast";
 import { C, ROW, fill, gapTo, lineBox, textBottom } from "../demo1Layout";
+import { countryFlag } from "../countryFlag";
 import {
   Box,
   Field,
@@ -462,14 +463,7 @@ export function useAddressForm({
       >
         {/* The 18 px flag at (12, 29), the name from x 38 on baseline 43. */}
         <div className="flex items-start shrink-0" style={{ marginTop: 6 }}>
-          <img
-            src={`/icons/flag/${countryIso}.svg`}
-            alt=""
-            width={18}
-            height={18}
-            className="shrink-0 object-contain"
-            style={{ width: 18, height: 18 }}
-          />
+          <RowFlag iso={countryIso} size={18} />
           <Txt ml={8} size={14} weight="medium">
             {countryName}
           </Txt>
@@ -635,14 +629,7 @@ function CountrySheet({
           background: C.field,
         }}
       >
-        <img
-          src={`/icons/flag/${iso}.svg`}
-          alt=""
-          width={30}
-          height={30}
-          className="shrink-0 object-contain"
-          style={{ marginInlineStart: 12, width: 30, height: 30 }}
-        />
+        <RowFlag iso={iso} size={30} style={{ marginInlineStart: 12 }} />
         <Txt ml={54 - 12 - 30} size={14}>
           {name}
         </Txt>
@@ -762,14 +749,7 @@ function PlaceSheet({
           paddingInlineStart: 1.33 * 2,
         }}
       >
-        <img
-          src={`/icons/flag/${iso}.svg`}
-          alt=""
-          width={18}
-          height={18}
-          className="shrink-0 object-contain"
-          style={{ width: 18, height: 18 }}
-        />
+        <RowFlag iso={iso} size={18} />
         <span
           className="whitespace-nowrap"
           style={{
@@ -884,5 +864,25 @@ function PlaceSheet({
         </AnimatePresence>
       </div>
     </Sheet>
+  );
+}
+
+/**
+ * A country's flag in a row: the design's row flag when its set has the
+ * country, else the standard flag (countryFlag.ts, OQ-5 of Stage 7e).
+ */
+function RowFlag({ iso, size, style }: { iso: string; size: number; style?: React.CSSProperties }) {
+  const { flag, flagSrc } = countryFlag(iso);
+  if (flag) return <XdIcon name={flag} size={size} className="shrink-0" style={style} />;
+  if (!flagSrc) return null;
+  return (
+    <img
+      src={flagSrc}
+      alt=""
+      width={size}
+      height={size}
+      className="shrink-0 object-contain"
+      style={{ width: size, height: size, ...style }}
+    />
   );
 }

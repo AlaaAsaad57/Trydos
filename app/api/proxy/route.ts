@@ -322,6 +322,13 @@ async function proxyRequest(request: NextRequest, call: ProxyCall) {
       language,
       sellerId,
     );
+    const activeRequestId =
+      request.headers.get("x-request-id") ||
+      request.headers.get("x-correlation-id") ||
+      (globalThis as any).__trydosRequestContext?.getStore()?.requestId;
+    if (activeRequestId) {
+      headers["X-Request-ID"] = activeRequestId;
+    }
 
     // 4. Read the body (supports JSON and FormData)
     let body: BodyInit | null = null;

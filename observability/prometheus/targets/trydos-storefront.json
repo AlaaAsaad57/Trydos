@@ -1,0 +1,14 @@
+[
+  {
+    "targets": [
+      "host.docker.internal:3000"
+    ],
+    "labels": {
+      "service": "trydos-storefront",
+      "stack": "trydos-storefront",
+      "env": "staging",
+      "runtime": "nodejs",
+      "alert_email_group": "frontend-team"
+    }
+  }
+]

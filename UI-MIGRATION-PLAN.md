@@ -142,6 +142,8 @@ The order puts the work that does not depend on other work first, and the riskie
 | 7 | 1–2 | Home + search | Highest risk: SEO, Elasticsearch, cache, every visitor. |
 | 7b | 1–2 | Store page for every product listing (A-32) | Home opens it. Same Elasticsearch, cache and SEO work as Stage 7. |
 | 7c | 2 | Product page (A-33; buy part waits for D-45) | The store opens it. SEO page of every product, and the buy flow starts here. |
+| 7d | 1 | Bag, checkout, buy bar (added 2026-11-18) | The designs came from `development`. |
+| 7e | 2–3 | Start flow (country picker, Quick Preview), sign-in sheet, orders, and every `development` change since 2026-11-17 | The designs came from `development`; the designer approved them there. |
 | 8 | 1 | Full regression, designer sign-off, merge | Last check before `development`. |
 
 Each stage ends with: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, the e2e specs of
@@ -1595,6 +1597,202 @@ The designs came from `development` (XD `Home Page – 50` to `– 103`, built a
 - **Tests:** `AppShell.test.tsx` used a product page as "a page of no tab". It now uses a listing page
   (`/sy-en/filters/x`), and the product page is in the list of pages with no shell bar. The full unit suite
   has no new failures: the 53 red tests left fail the same way on the merge commit `9b0807853`.
+
+## Stage 7e — sign-in start, orders, and every `development` change since 2026-11-17 (added on 2026-11-28)
+
+The designs and fixes come from `development`: 27 commits, from `ac30db094` (the last commit that
+`9b0807853` took) to `9517cb02b` (2026-11-28), in 135 files. All five `cart/new-design-*` pair branches
+are already inside `development`. Stage 7e takes every one of the 27 commits. The "Commit map" below
+names the step for each one, so nothing is missed.
+
+Both `development` and `ui-migrations` are staging branches. No step here reaches production.
+
+### Rules for Stage 7e (the owner, 2026-11-28)
+
+| # | Part | Rule |
+|---|------|------|
+| S7e-1 | Same design | The designer approved the screens on `development` (`/demo`). The real screens must look and move exactly as `/demo` on `development`: same boxes, sizes, colours, words, icons and motion. Copy the demo screen code, and change only where its data comes from. Never redraw, "improve" or move a part. A difference from `/demo` is a bug of this stage. |
+| S7e-2 | Real data | Every new or changed part shows real data and does a real action wherever the backend supports it. |
+| S7e-3 | No backend yet | The part stays on screen exactly as designed. Its action shows "Soon available" (A-8). **Never remove or hide a designed part because the backend does not support it yet.** A design text with no data source stays as fixed text (as in Stage 7c). No mock data and no fake success. |
+| S7e-4 | Everything | Take every commit, the Safari splash gap work too (`NewLoginDesign/SafariSplashGapLab.tsx`). The owner: both branches are staging, so this is safe. **On `ui-migrations`, remove the lab's debug parts but keep the fix** (owner, 2026-11-28): the debug menu (`SafariSplashDebugMenu`), its rulers and badges, and the way to switch modes by hand (`?safariFix=` and the saved setting) go. The fix that Safari 26 gets by default stays: the default mode, the frame-0 CSS inside `@layer utilities`, and the white half-disc (`NewLoginLogo` `coverBottomY`). Step 4 research names the exact parts of the fix. |
+| S7e-5 | Branch | Work on `ui-migrations` (as S7d-1). If this stage runs as a `/wf:*` ticket, the ticket branch is cut from `ui-migrations` and the PR goes to `ui-migrations`, not to `development`. |
+| S7e-6 | Shared code | As in Stage 7d: shipping code never imports the `/demo` data files (`demoOrders.ts`, `DemoData.tsx`). Each design screen draws plain data; `/demo` and the real app each map their own data into it. |
+| S7e-7 | Proof | Compare every real screen with `/demo` on `development`, at 440 x 802, 402 x 712 and 375 x 635, in Chromium and WebKit, in `en` and `ar` (tools in `C:\Users\DELL\xd-parity`). Write each difference that is left, and why, in "Where Stage 7e stopped". |
+| S7e-8 | Usual rules | Skeletons while data loads. RTL with logical sides (A-13, A-14). Old analytics events only (D-10). New words in all three translation files. Tests: the plan's rule of 2026-11-04 (no new unit tests, the full suite in CI); the tests that come with the merge stay. |
+| S7e-9 | Speed | **Highly recommended (owner, 2026-11-28).** Every page and every popup or sheet opens as smoothly and as fast as it does now on `ui-migrations`: the screen mount (no full reload), the page slide, skeletons at once, no wait on a tap. No cache as the speed fix (the owner: "cache is not a solution"); fix bytes, serial reads, streaming and JS instead. Heavy new parts (the country map, the order timeline motion, the splash code) load only where they show, and never slow the first paint of other pages. Measure a page or sheet before and after it changes, on a production build with a slow phone (4x CPU), and write the numbers in "Where Stage 7e stopped". |
+
+### Step 1 — merge `development` (to `9517cb02b`) into `ui-migrations`
+
+A test merge (`git merge-tree`, 2026-11-28) gives these conflicts. Keep both sides' work in each one:
+
+| File | How to solve it |
+|------|-----------------|
+| `NewLoginDesign/NewLoginWidget.tsx` | The hardest one (867 changed lines on `ui-migrations`). Keep the real login flow of Stage 2 (send code, verify, the 3-wrong-codes lock, resend, name, `?next=`, events). Add `development`'s `country-picker` step, the picker in the Quick Preview column, the shared slides, and the splash lab and its runtime. |
+| `components/DemoApp1/Demo1Shell.tsx` | `/demo` keeps `development`'s start flow (login layer → picker → page, and the sign-in sheet). Keep what `ui-migrations` moved out to the real shell. |
+| `components/DemoApp/demoKeys.ts`, `components/DemoApp/demoRoutes.ts` | Add-only: keep both sides. The new routes are `settings/orders` and `settings/orders/[id]`. |
+| `components/DemoApp1/screens/AddressFormScreen.tsx` | Keep the real places (S4-7, `GetProvinces`). Take `CountryRow` and Syria's flag. |
+| `components/DemoApp1/screens/DeliveryMethodSheet.tsx` | Keep S7d-2 (Pickup = "Soon available"). Take Syria's flag. |
+| `components/DemoApp1/screens/PersonalInfoScreen.tsx` | Keep `ui-migrations` (`3f8e6f016` is the same change as `efeb565ec`). Then do Step 3. |
+| `components/DemoApp1/screens/ProfileScreen.tsx` | Keep the real data. The Orders row opens the new orders screen (Step 6). |
+| `components/setting/profile/PersonalInfoForm.tsx` and its test | Stay deleted on `ui-migrations`. Their fix moves in Step 3. |
+| `tests/app/smallRoutes.test.tsx` | Keep both sides' cases. They must match the final `loginDemo` page. |
+
+The 55 new keys in each of `ar` / `tr` / `ku` merge with no conflict.
+
+### Step 2 — fixes that come with the merge as they are (check each one on `ui-migrations`)
+
+1. `140b3aea9` — after an expire, a market call waits for the sign-in prompt, not for the new guest (`utils/fetchData.ts`).
+2. `60fd710af` — market calls wait while the session-expired prompt is open (`utils/fetchData.ts`).
+3. `c2a6720e0` — an "order placed" push opens `/settings/orders/<order_group_id>` (`public/firebase-messaging-sw.js`). Step 6 keeps this URL.
+4. `22de7f5e9` — order details keep the chosen pack after a refresh; the return request and the cancel use the pack of the item (`components/setting/orders/*`). Step 6 carries this logic into the new screens.
+5. `bfae3eb6e` — one media origin, `utils/mediaUrl.ts`. `NEXT_PUBLIC_BASE_MEDIA_URL` and `NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL` are gone; only `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` stays. Check the Vercel env of the `ui-migrations` preview. Also check that no new-design screen on `ui-migrations` builds a media URL by itself.
+6. `0d93cd90a` and its merge `490632f97`, then `cc6f0f605` — Docker image, `server.mjs`, the HTTP observability, the Prometheus target, the request logger, one header line in `/api/proxy`. Server setup, with no UI: check only that the build still passes.
+7. `38617d539` — a docs file `customer-email-otp-frontend-guide.md` (and login code that Step 4 covers).
+
+### Step 3 — port `b48a3e999` into `PersonalInfoScreen`
+
+On `ui-migrations`, the email code sheet opens only when the core backend refuses the save with "verify the
+new email" (400, backend PR #699). PR #699 is not live, so a new email is saved with no code. Port the fix:
+
+- The screen opens the code sheet itself when the email is not empty and differs from the saved one (trimmed, lowercase).
+- The profile save never sends the new email: `verify-otp` saves it, then the screen saves only the other changed fields.
+- The 400 still opens the sheet, as a second net. After a right code, the email is not sent again.
+- Same email in other capitals, or a cleared email: no code, saved at once.
+- New phone and new email: the phone check, then the code, then one save with the phone token.
+
+### Step 4 — the start flow: start animation → country picker → Quick Preview → Get Started
+
+Boards: `Ramaaz pay signin – 14`, `– 16`, `– 15`, the Quick Preview, Get Started. Code: `CountryPickerBody`,
+`CountryRow`, the `country-picker` step of `NewLoginWidget`, the `picker` prop of `QuickPreviewScreen`,
+`previewSlides.tsx`, `authLayout.ts`, `countryMap.svg`, `countryLogo.svg`, `flagSyRow.svg`, and the splash
+fix (`NewLoginLogo` `coverBottomY`, `AuthLogoLayer`, `scaling/AppScaler.tsx`, `scaling/Page.tsx`).
+
+Real data and actions:
+- **The country list** = the list `components/Home/Init.tsx` reads for `utils/PopupCountry.tsx` (`dataCountries`, `getCountries`, with its load error and retry). The map paints the same countries.
+- **A pick** = `PopupCountry`'s action: the `country` / `lang` cookies (`setLocaizationCookies`) and the move to the new `/<country>-<lang>/` URL. Keep its events.
+- **When it shows** = where `PopupCountry` shows now (`shouldShowBluredInfo`: a new visitor, `?no-country`, `?changed-country`, a `gb-` URL). The new flow replaces `PopupCountry` there. Delete `PopupCountry` only when nothing else uses it (D-6).
+- **Bots** never see it, and the page HTML renders under it (SEO).
+- **Quick Preview → Get Started** opens the real login of Stage 2. "Later" opens the page.
+- **The splash gap fix** comes from `development` (S7e-4), on the real `/login` too. The lab's debug menu, rulers, badges and hand mode switch are removed on `ui-migrations`; the default fix stays. Check the bottom logo in Safari 26 (WebKit) after the removal: it must look as it does on `development` with the default mode.
+
+### Step 5 — the sign-in request sheet
+
+Board: `Sign In request`. Code: `SignInRequestSheet`, `SignInSlides` (the Quick Preview slides in an Embla card),
+`e1218dd5b` (no white under "Later" in iPhone Safari 26), `88bf4e63a` (the card's line is never cut).
+
+Real data and actions:
+- Shows to a **guest only**, never to a signed-in shopper. A guest has a numeric id too, so test the phone (`isValidPhone`), not `auth.UserID()`.
+- 5 s after the page shows, once per page load. It waits while another sheet is open or while the shopper types, and checks again every second (as on `/demo`).
+- "Get Started" opens the real login, and the end of the login comes back to the same page. "Later", the dimmed page and a drag down close it.
+
+### Step 6 — the orders screens
+
+Boards: `Home Page – 53` (Orders), `– 60`, `– 61`, `– 62`, `– 64`, `– 66` (Orders Details), `– 63` (all the
+timeline icons), `– 65` (Pickup Order QR sheet). Code: `OrdersScreen`, `OrderDetailScreen`, `OrderPickupSheet`,
+`OrderTimelineWidget`, `components/orderTimeline/animatedDemo/*`, the 41 `order*.svg` icons, and the label
+fixes of `343861377`.
+
+The real routes stay `/[lang]/settings/orders` and `/[lang]/settings/orders/[id]`, because pushes
+(`c2a6720e0`), the bell list and the toasts open them. Data map (Step 6 research confirms each line):
+
+| Design part | Real source | No source yet (S7e-3) |
+|---|---|---|
+| Orders list, tabs All / In Progress / Delivered / Returned / Cancelled | `fetchOrders` (`services/orders.ts`); count `fetchOrdersCount`; hidden orders `fetchHiddenOrders` | — |
+| Order details, packs | `order.getOrderDetails(id)` + the active pack logic of `22de7f5e9` | — |
+| Timeline (Preparing / Shipped / Delivered) and item status (Packing, Shipping Operations, On Way, Picked) | the order and item status fields | a step with no field: fixed design text |
+| "Remaining 1 Day", "EST Today In 6 Hours", "Expected Delivery Date", "Work Days" | the order dates, `shipping_days`, `shipping_duration_days` | fixed design text |
+| Shipment company and id | the order's shipment fields | the design's own "Waiting Shipment Number…" |
+| Recipient, contact, delivery address | the order's address | — |
+| Product line (colour, size, "Composed Of", pieces), price, currency | the order item; `count_of_pieces` and `unit` (S7d-14) | — |
+| Pickup point, "Pickup Now", the QR sheet, "Show In Map", "+ Add Authorized Recipient" | the backend has no pickup centres (S7d-2) | shown as designed; the taps say "Soon available" |
+| "Rate & Get Money", stars, "Add Comment…" | `order.RateOrderWithhComment`, `order.UploadImageForRating` | the money reward: fixed text |
+| The three dots | the old actions: Cancel This Pack, Change Delivery Address & Note, Hide This Pack | — |
+| Return request, cancel an item, report an item, change a variant, invoice | the old flows (`services/order.ts`) | — |
+
+The old actions have no board. They are redrawn in the new style with `AskSheet` and the sheets' parts, as in
+S7d-11. They stay: they are real actions. Keep the old orders page events. `demoOrders.ts` stays demo-only.
+Delete an old `components/setting/orders/*` file only when nothing uses it (D-6).
+
+### Step 7 — small shared changes (check each on the real screens)
+
+- Syria's row flag (`flagSyRow.svg`): the country picker, the address sheet and field, the delivery sheet.
+- `Sheet keepHeight` (`components/DemoApp1/ui.tsx`): a tall sheet rests on the bottom and keeps its last button on a short phone.
+- `ListingParts keepLinks`: "More Info" stays on one line.
+- The six Quick Preview slide texts and "Slide" now have `ar` / `tr` / `ku` words, so the real `/login` stops showing them in English.
+
+### Commit map — every `development` commit since `ac30db094`
+
+| Commit | What | Step |
+|---|---|---|
+| `92bc0762f` | country picker, then the sign-in request | 4, 5 |
+| `22c2fb2ee` | smooth start, picker ↔ login | 4, 5, 7 |
+| `ff6da89f6` | Syria's flag, map fill, slides in the card | 4, 5, 7 |
+| `efeb565ec` | email code in Personal Info | 1 (already ported as `3f8e6f016`) |
+| `88bf4e63a` | the sign-in card's line is never cut | 5 |
+| `b48a3e999` | ask for the email code before saving | 3 |
+| `c51f79b05` | login prefetch (removed again by `e77c8072a`) | 1 |
+| `e1218dd5b` | no white under "Later" in Safari 26 | 5 |
+| `e77c8072a` | open on the login, then the picker, then the page | 4 |
+| `38617d539` | login code + email guide doc | 2, 4 |
+| `7281a4f92` | picker after the start animation | 4 |
+| `270748ff5` | picker → Quick Preview | 4 |
+| `437a40577`, `e75ea48a8` | the round logo's peek: tried, then put back | 4 (no net change) |
+| `140b3aea9`, `60fd710af` | session-expired fixes in `fetchData` | 2 |
+| `c2a6720e0` | "order placed" push opens the order | 2, 6 |
+| `0d93cd90a`, `490632f97` | Docker image and its merge | 2 |
+| `015010e8c` | orders screens and icons | 6 |
+| `343861377` | orders labels and styles | 6 |
+| `22de7f5e9` | active pack, return request | 2, 6 |
+| `cc6f0f605` | observability | 2 |
+| `bfae3eb6e` | one media origin | 2 |
+| `652e02605`, `a7e4e762f`, `9517cb02b` | Safari splash gap lab and the final fix | 4 |
+
+Not in Stage 7e (not committed on 2026-11-28): 3 changed demo files in `../trydos-checkout-85-102-86-103`
+(`CheckoutScreen`, `OrderDoneScreen`, `WalletCashInSheet`) and `components/global/PageCover.tsx` in
+`../trydos-popcheck`. They join when they are on `development`.
+
+### Open for the owner (the default is used until you answer)
+
+1. The start flow (Step 4): the default shows it only where `PopupCountry` shows now, not on every load as `/demo` does.
+2. The login from the start flow and the sign-in sheet: the default opens the login as a layer over the page, as `/demo` does (S7e-1). The other openers keep `/[lang]/login?next=` (D-11).
+3. The orders' old actions: the default redraws them in the new style (S7d-11). Ask the designer for boards.
+
+### Where Stage 7e part 1 stopped (2026-11-28) — ticket `ui-migrations-7e-merge`, not committed yet
+
+Work item: `_specs/ui-migrations-7e-merge/` (implement done; verify next). Branch `ticket/ui-migrations-7e-merge`
+from `246536cea`, with `9517cb02b` merged (`--no-commit`; `/wf:publish-pr` makes the one commit).
+
+- **Speed (S7e-9, AC-15)**, production build, Chromium 430 x 932, 4x CPU, cache off, median of 5
+  (`xd-parity/perf/s7e-speed.cjs`; JS = scripts finished by the load event):
+
+  | Page | JS before | JS after | First paint before | First paint after |
+  |---|---|---|---|---|
+  | `/sy-en/login` | 396,623 B | 400,245 B (+3,622) | 484 ms | 540 ms |
+  | `/sy-en` (home) | 370,974 B | 372,812 B (+1,838) | 560 ms | 652 ms |
+
+  - Login budget (P-8): before + the picker parts (about 6.1 KB, source gzip): **met**. The +3.6 KB holds
+    `previewSlides` and the slim splash fix (the full lab of `development` is 12.4 KB source gzip).
+  - Home budget (after ≤ before): **not met, +1,838 B (+0.5%)**. No word list reaches the home page's client
+    code, so the likely source is the merged shared fixes (`fetchData` session hold, media helpers, the
+    `through` fade). Not proven: the "before" build is gone and no bundle analysis was run on it.
+  - First paint: the runs vary from 348 to 2,220 ms on this laptop, so the medians are within the noise.
+- **Splash (AC-8, P-1)**, real `/sy-en/login`, WebKit with an iPhone Safari 26 user agent
+  (`xd-parity/perf/s7e-splash.cjs`): mode `in-flow`, `<main>` relative, stage `contain: none`, frame-0
+  style and in-flow badge present, no debug menu, **no fixed box at the bottom edge**. Chromium: unchanged
+  (`<main>` fixed, no style). Not yet seen on a real iPhone.
+- **`/demo` against `development` (AC-4)**, Chromium 430 x 932 (`s7e-demoflow.cjs`, `s7e-diff.py`;
+  `development` = Vercel preview of `9517cb02b`): the same steps in the same order. Pixel difference:
+  sign-in sheet 0.00%, Get Started 0.02%; splash, picker and Quick Preview about 1% = `development`'s "Lab"
+  debug pill (removed here on purpose) and the flipping pill / logo frame; the page 1.7% = the Home slider
+  caught mid-move.
+- **Build fix outside the plan (owner's OK):** `app/(client)/[lang]/demo/settings/orders/[id]/page.tsx`
+  got `generateStaticParams` (the 2 demo orders) and awaits its params, as the real orders page does.
+  Without it the build failed: the `[lang]` layout's screen mount reads the path outside Suspense.
+- **Old reds, not from this ticket:** `tests/utils/tinyUtils.test.ts` (4, page lock) and
+  `tests/components/DemoApp1/Demo1Shell.test.tsx` (9: the 3 listed in Stage 7b, plus the empty address list
+  ×2, "Add & save" ×2, the delivery sheet's bottom blocks ×2). The same 13 fail on `246536cea`.
+- **Not checked yet:** the flags in the browser in `en` / `ar` (unit tests only); the real sign-in and the
+  3-wrong-codes lock on the preview (needs the branch pushed, P-3); the full unit suite in CI.
 
 ## Stage 8 — regression, sign-off, merge
 

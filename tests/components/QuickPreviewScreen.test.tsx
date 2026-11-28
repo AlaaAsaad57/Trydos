@@ -89,7 +89,12 @@ function renderOnCanvas(canvasHeight: number) {
     const card = canvas!.querySelector<HTMLElement>('.cursor-grab')?.parentElement ?? null;
     expect(card, 'the quick preview screen did not render its slider card').not.toBeNull();
     // The spacer under the button is the last thing in the column.
-    const belowButton = column.lastElementChild as HTMLElement;
+    // The space under the button is the last box of the part under the badge.
+    // That part is its own box now (it slides in after the country picker),
+    // so the column's own last child is that box, not the space.
+    const body = canvas!.querySelector<HTMLElement>('[data-pw="quick-preview-body"]');
+    expect(body, 'the quick preview screen did not render its part under the badge').not.toBeNull();
+    const belowButton = body!.lastElementChild as HTMLElement;
     return { canvas: canvas!, column, card: card!, belowButton };
 }
 
@@ -250,5 +255,72 @@ describe('QuickPreviewScreen — the slider gives up the height the page does no
                 `slide ${index + 1} draws its border at a different height than the card box`,
             ).toBe(String(expected(745).cardHeight));
         }
+    });
+});
+
+/*
+ * The round logo that peeks at the bottom during the start animation.
+ *
+ * The design (`Ramaaz pay signin - 14`) shows the pill and, under it, only the
+ * ring's top and the two eyes: the pill's top is 103 px above the bottom, the
+ * eyes end at 925, and the artboard at 932. The letters stay below the edge.
+ *
+ * The bug (2026-11-22, the client's iPhone screenshot): a change for iPhone
+ * Safari 26 lifted the peek 24 px. Then the top of "try" showed under the eyes,
+ * cut flat at the window's end. The peek must be the design's in every
+ * browser.
+ */
+const SAFARI_26 =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1';
+const CHROME_ANDROID =
+    'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';
+/** The design's distance from the pill's top to the bottom edge. */
+const PEEK_TAIL = 103;
+/** The space over the pill, set on the pill box in place of a real layout. */
+const PILL_TOP = 0;
+
+describe('QuickPreviewScreen — the round logo peeks at the bottom as the design draws it', () => {
+    beforeEach(() => {
+        observed = [];
+        vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+        vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
+    /** The column's y while it waits, read from its transform. */
+    const peekY = (column: HTMLElement) => {
+        const match = column.style.transform.match(/translateY\((-?[\d.]+)px\)/);
+        return match ? Number(match[1]) : null;
+    };
+
+    for (const [browser, ua] of [
+        ['iPhone Safari 26', SAFARI_26],
+        ['Chrome on Android', CHROME_ANDROID],
+    ] as const) {
+        it(`puts the pill 103 px above the bottom in ${browser}, so only the ring's top and the eyes show`, async () => {
+            vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(ua);
+            const { column } = renderOnCanvas(745);
+            // Framer writes the end of the move on the next frames.
+            await act(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 1200));
+            });
+            expect(
+                peekY(column),
+                `in ${browser} the pill is not 103 px above the bottom, so the peek shows more or less than the design's ring top and eyes`,
+            ).toBe(745 - PEEK_TAIL - PILL_TOP);
+        });
+    }
+
+    it('lays nothing over the bottom in iPhone Safari 26', () => {
+        vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(SAFARI_26);
+        const { canvas } = renderOnCanvas(745);
+        expect(
+            canvas.querySelector('[data-pw="quick-preview-bottom-fade"]'),
+            'iPhone Safari 26 still gets the white fade over the bottom',
+        ).toBeNull();
     });
 });
