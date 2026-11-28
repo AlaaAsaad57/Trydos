@@ -332,6 +332,10 @@ const INTRO_KEYS = [
   ...SLIDE_KEYS,
   // The page dots' label: "Slide 2".
   "Slide",
+  // The real picker when the country list cannot be read (A2-21): the old
+  // popup's words, drawn as two rows in the picker's place.
+  "The country list could not be loaded",
+  "Try again",
 ] as const;
 
 /**
@@ -779,10 +783,28 @@ export const DEMO_KEYS = [
 export type DemoKey = (typeof DEMO_KEYS)[number];
 
 /**
- * Words that only `/demo` shows until their screens become real (Stage 7e,
- * Step 8): the orders screens (part 3) and the start flow with the sign-in
- * request (part 2). The real `[lang]` layout sends every other `DEMO_KEYS`
- * word to every page, so these stay out of it; `/demo` keeps all.
+ * The words of the real start flow and the real sign-in request (Stage 7e
+ * part 2): AppStartFlow and AppSignInAsk. The [lang] layout looks them up on
+ * the server and gives them to Init only, so the screen mount's words
+ * (`screenWords`) do not carry them. The four country names are the design's
+ * rows; "Soon available" is the answer of "More Info".
+ */
+export const INTRO_DICTIONARY_KEYS: readonly DemoKey[] = [
+  ...INTRO_KEYS,
+  "Soon available",
+  "Turkiye",
+  "Syria",
+  "Iraq",
+  "Lebanon",
+];
+
+/**
+ * Words the screen mount does not need: the orders screens, which only `/demo`
+ * shows until part 3 of Stage 7e, and the start flow with the sign-in request.
+ * The real start flow and sign-in request (part 2) get their words from
+ * INTRO_DICTIONARY_KEYS, through Init, not from the screen mount. The real
+ * `[lang]` layout sends every other `DEMO_KEYS` word to every page, so these
+ * stay out of it; `/demo` keeps all.
  *
  * A word a real new-design screen already uses is not in this set (checked
  * on 2026-11-28, review follow-up P-2): "All" (chat reactions),

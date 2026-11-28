@@ -79,6 +79,14 @@ describe("Homepage store — flags and screens", () => {
     expect(scrollTo, "the page did not go back to the top").toHaveBeenCalledWith({ top: 0 });
     expect(document.documentElement.style.overflow, "the page stayed locked after the login closed").toBe("initial");
   });
+
+  it("setLoginLayerOpen sets and clears the flag", () => {
+    expect(useAppStore.getState().loginLayerOpen, "a login layer is marked open before any opened").toBe(false);
+    useAppStore.getState().setLoginLayerOpen(true);
+    expect(useAppStore.getState().loginLayerOpen, "an open login layer was not marked").toBe(true);
+    useAppStore.getState().setLoginLayerOpen(false);
+    expect(useAppStore.getState().loginLayerOpen, "a closed login layer is still marked open").toBe(false);
+  });
 });
 
 describe("Homepage store — the stories bar and viewer", () => {

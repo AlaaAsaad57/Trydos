@@ -1,5 +1,5 @@
 import React from "react";
-import { render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import SignInRequestSheet from "components/DemoApp1/screens/SignInRequestSheet";
@@ -21,8 +21,9 @@ vi.mock("embla-carousel-react", () => ({
   ],
 }));
 
-// The sheet reads its words through the shell; the key is the English text.
-vi.mock("components/DemoApp1/Demo1Shell", () => ({
+// The sheet reads its words through the shell (screenNav, which /demo and the
+// real app both give); the key is the English text.
+vi.mock("components/DemoApp1/screenNav", () => ({
   useDemoNav: () => ({ t: (key: string) => key }),
 }));
 
@@ -87,6 +88,24 @@ describe("Demo sign-in request: the white under \"Later\"", () => {
       end.minHeight,
       `in iPhone Safari 26 the sign-in request keeps a least white under "Later" (min-height ${end.minHeight}), so the sheet sits higher than the file`,
     ).toBe("0px");
+    unmount();
+  });
+});
+
+describe("Sign-in request: More Info", () => {
+  it("More Info calls onMoreInfo", () => {
+    const onMoreInfo = vi.fn();
+    const { unmount } = render(
+      <SignInRequestSheet open onClose={() => {}} onStart={() => {}} onMoreInfo={onMoreInfo} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "More Info" }));
+    expect(onMoreInfo, "a tap on More Info did not reach the host").toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
+  it("More Info is only drawn, not a button, when the host gives no onMoreInfo (/demo)", () => {
+    const { unmount } = render(<SignInRequestSheet open onClose={() => {}} onStart={() => {}} />);
+    expect(screen.queryByRole("button", { name: "More Info" }), "More Info became a button on /demo").toBeNull();
     unmount();
   });
 });

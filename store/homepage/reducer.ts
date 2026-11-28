@@ -40,6 +40,14 @@ interface HomeState {
   categories: any[];
   settings: Settings | null;
   loginOpen: boolean;
+  /**
+   * True while a login layer of the new design is open over the page: the
+   * start flow (AppStartFlow) or the sign-in request's login (AppSignInAsk).
+   * Not `loginOpen`: AuthSections turns that into a move to /[lang]/login.
+   * Only one scaled canvas may be mounted (scaling/AppScaler.tsx), so the
+   * session-expired and phone-check widgets wait while this is true.
+   */
+  loginLayerOpen: boolean;
   boutiques: any[];
   session_id: string;
   previous_event_button_name: string | null;
@@ -68,6 +76,7 @@ const initialState: HomeState = {
   categories: [],
   settings: null,
   loginOpen: false,
+  loginLayerOpen: false,
   boutiques: [],
   session_id: newSessionId(),
   previous_event_button_name: null,
@@ -113,6 +122,7 @@ export const useHomeStore = (set, get) => ({
     }
     set({ loginOpen: open, showMessage: false });
   },
+  setLoginLayerOpen: (open: boolean) => set({ loginLayerOpen: open }),
 
   watchStory: (payload: { id: string | number; pid: string | number }) =>
     set((state) => {

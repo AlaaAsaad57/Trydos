@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoNav } from "../screenNav";
 import {
   C,
   SHEET,
@@ -37,7 +37,8 @@ import SignInSlides from "./SignInSlides";
  *    and the white under it (END_GAP; none in iPhone Safari 26).
  *
  * "Get Started" opens the new login design (/loginDemo). "Later", the dimmed
- * page and a drag down close the sheet.
+ * page and a drag down close the sheet. "More Info" calls `onMoreInfo` when the
+ * host gives one (the real app says "Soon available"); /demo gives none.
  */
 
 /** The file's sheet: its top, and the shadow on its top edge. */
@@ -70,10 +71,13 @@ export default function SignInRequestSheet({
   open,
   onClose,
   onStart,
+  onMoreInfo,
 }: {
   open: boolean;
   onClose: () => void;
   onStart: () => void;
+  /** A tap on "More Info"; without it the words are only drawn blue. */
+  onMoreInfo?: () => void;
 }) {
   const { t } = useDemoNav();
   // Read once, in the browser: the sheet shows only after a tap, never in the
@@ -123,7 +127,24 @@ export default function SignInRequestSheet({
             node: (
               <>
                 Great Features And The Full Version.{" "}
-                <span style={{ color: C.blue }}>More Info</span>
+                <span
+                  role={onMoreInfo ? "button" : undefined}
+                  tabIndex={onMoreInfo ? 0 : undefined}
+                  onClick={onMoreInfo}
+                  onKeyDown={
+                    onMoreInfo
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onMoreInfo();
+                          }
+                        }
+                      : undefined
+                  }
+                  style={{ color: C.blue, cursor: onMoreInfo ? "pointer" : undefined }}
+                >
+                  More Info
+                </span>
               </>
             ),
           },
@@ -138,7 +159,7 @@ export default function SignInRequestSheet({
         lineHeight={20}
         mt={paraTop(521, 14, 20) - (327 + 150)}
       >
-        <Rich text={words} keepLinks />
+        <Rich text={words} keepLinks onLink={onMoreInfo} />
       </FileLines>
 
       {/* The card and its dots: the quick preview's slider (SignInSlides). */}
@@ -152,7 +173,8 @@ export default function SignInRequestSheet({
         className="relative flex items-center justify-center shrink-0 cursor-pointer"
         style={{
           marginTop: 789 - (761 + 8),
-          marginLeft: 20,
+          // Logical, as the card above: equal sides on an RTL page too.
+          marginInlineStart: 20,
           width: fill(20),
           height: 60,
           borderRadius: 20,

@@ -98,6 +98,7 @@ beforeEach(() => {
     userProfile: null,
     userChat: null,
     loginOpen: false,
+    loginLayerOpen: false,
     shouldAuthinticated: null,
     selectedStory: null,
     addStoryEnable: false,
@@ -257,6 +258,14 @@ describe("AppShell — the new bottom bar on every page", () => {
     expect(bar(), "the bar was not mounted at all, so its hiding cannot be checked").not.toBeNull();
     expect(barShown(), "the bar shows over the open sign-in").toBe(false);
     expect(barRoom(), "--app-bar-room is set while the bar is hidden").toBe("");
+  });
+
+  it("the bar hides while a login layer is open", () => {
+    useAppStore.setState({ loginLayerOpen: true } as any);
+    openOn("/sy-en/filters/x");
+    expect(bar(), "the bar was not mounted at all, so its hiding cannot be checked").not.toBeNull();
+    expect(barShown(), "the bar shows over the start flow / sign-in login layer").toBe(false);
+    expect(barRoom(), "the page lost its bar room under a login layer, so a page scrolled to its end jumped up 64 px after the layer closed").not.toBe("");
   });
 
   it("keeps the bar over an open chat, with Chat lit", () => {

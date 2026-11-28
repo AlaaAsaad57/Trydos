@@ -23,8 +23,10 @@ import Init from "components/Home/Init";
 import NavbarClient from "components/Home/NavbarClient";
 import AppShell from "components/DemoApp1/AppShell";
 import AppScreens from "components/DemoApp1/AppScreens";
+import ShellStartCover from "components/DemoApp1/ShellStartCover";
 import {
   DEMO_KEYS,
+  INTRO_DICTIONARY_KEYS,
   KEEP_CASE,
   PREVIEW_ONLY_KEYS,
   type DemoDictionary,
@@ -193,6 +195,16 @@ export default async function RootLayout({ children, modal }) {
         : translateFunction(key, language),
     ]),
   );
+  // The words of the start flow and the sign-in request (Stage 7e part 2),
+  // for Init only: about 20 keys, built the same way as screenWords.
+  const introWords: DemoDictionary = Object.fromEntries(
+    INTRO_DICTIONARY_KEYS.map((key) => [
+      key,
+      language === "en" && KEEP_CASE.has(key)
+        ? key
+        : translateFunction(key, language),
+    ]),
+  );
   return (
     <html
       className={[
@@ -268,6 +280,10 @@ export default async function RootLayout({ children, modal }) {
           }}
         />
         <SpeedInsights />
+        {/* The start flow's white, in the first piece of the HTML, on the
+            global gb address where the flow always shows (Stage 7e part 2).
+            Init's own cover is in a Suspense and arrives later. */}
+        {country === "gb" && <ShellStartCover />}
         <div className="site-container items-center">
           <OverlayVisibilityProvider>
             <NavigationLoaderGate>
@@ -290,7 +306,7 @@ export default async function RootLayout({ children, modal }) {
             All four render nothing visible — they are effect-only or provider
             components — so fallback={null} costs no layout shift. */}
         <Suspense fallback={null}>
-          <Init />
+          <Init words={introWords} />
         </Suspense>
 
         {/* The skeleton of the page a tap is going to. */}

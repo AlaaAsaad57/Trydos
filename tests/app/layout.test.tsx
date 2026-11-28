@@ -178,6 +178,33 @@ describe("the locale root layout — media and words (Stage 7e part 1)", () => {
     expect("usd" in words, "\"usd\" is used by the real profile and must stay").toBe(true);
     expect("Home" in words, "the other screen words must stay").toBe(true);
   });
+
+  it("sends the intro words to Init and keeps them out of the screen words", async () => {
+    spies.lang.current = "sy-ar";
+    const { default: RootLayout } = await loadLayout();
+    const { default: AppScreens } = await import("components/DemoApp1/AppScreens");
+    const { default: Init } = await import("components/Home/Init");
+    const tree: any = await RootLayout({ children: null, modal: null });
+    const intro = find(tree, (n) => n.type === Init)?.props.words ?? {};
+    expect(intro["Select Your Region"], "the picker's title did not reach Init in the page language").toBe("ar:Select Your Region");
+    expect(intro.Syria, "a design country name did not reach Init in the page language").toBe("ar:Syria");
+    expect(intro["Soon available"], "More Info's answer did not reach Init").toBe("ar:Soon available");
+    expect(intro["Try again"], "the country list retry did not reach Init").toBe("ar:Try again");
+    const screenWords = find(tree, (n) => n.type === AppScreens)?.props.dictionary ?? {};
+    expect("Select Your Region" in screenWords, "the start flow's words were also sent to the screen mount").toBe(false);
+  });
+
+  it("draws the start flow's white in the first HTML on a gb address only", async () => {
+    const { default: ShellStartCover } = await import("components/DemoApp1/ShellStartCover");
+    spies.lang.current = "gb-en";
+    let { default: RootLayout } = await loadLayout();
+    let tree: any = await RootLayout({ children: null, modal: null });
+    expect(findAll(tree, (n) => n.type === ShellStartCover).length, "the gb address has no start cover in its first HTML").toBe(1);
+    spies.lang.current = "sy-en";
+    ({ default: RootLayout } = await loadLayout());
+    tree = await RootLayout({ children: null, modal: null });
+    expect(findAll(tree, (n) => n.type === ShellStartCover).length, "a country address got the start cover").toBe(0);
+  });
 });
 
 describe("the locale root layout and the new bottom bar", () => {

@@ -13,18 +13,29 @@ import { useAppStore } from "store";
 import { GetCountries } from "serverRequests/product";
 import auth from "services/auth";
 import SheetSkeleton from "components/skeleton/SheetSkeleton";
+import StartCover from "components/DemoApp1/StartCover";
+import AppSignInAsk from "components/DemoApp1/AppSignInAsk";
+import type { DemoDictionary } from "components/DemoApp/demoKeys";
 
 // Lazy: only a new visitor and a shopper asked about notifications see these.
-const PopupCountry = dynamic(() => import("utils/PopupCountry"), {
+// The start flow (Stage 7e part 2) replaces the old country popup. Its loader
+// renders on the server too, so it must read no browser value: StartCover,
+// never SheetSkeleton, whose CoverBox once hung the page there.
+const AppStartFlow = dynamic(() => import("components/DemoApp1/AppStartFlow"), {
   ssr: false,
-  loading: () => <SheetSkeleton />,
+  loading: () => <StartCover />,
 });
 const NotificationWidget = dynamic(
   () => import("components/global/NotificationWidget"),
   { ssr: false, loading: () => <SheetSkeleton /> },
 );
 
-function Init() {
+function Init({
+  words = {},
+}: {
+  /** The start flow's and the sign-in request's words, from the [lang] layout. */
+  words?: DemoDictionary;
+}) {
   const { lang } = useParams();
   const router = useRouter();
   const isNotificationModal = useAppStore((s) => s.isNotificationModal);
@@ -37,8 +48,8 @@ function Init() {
   const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
   const [dataCountries, setCountriesData] = useState([]);
-  // A2-21: true when the country list could not be read. The popup then
-  // shows a retry instead of a spinner that never ends.
+  // A2-21: true when the country list could not be read. The start flow's
+  // picker then shows a retry instead of rows that never come.
   const [countriesFailed, setCountriesFailed] = useState(false);
 
   // Initialize login check once. CheckLogin's proactive refresh returns true
@@ -208,17 +219,15 @@ function Init() {
   return (
     <>
       {shouldShowBluredInfo() && (
-        <PopupCountry
-          forChanged={searchParams.get("changed-country")}
-          noCountry={searchParams.get("no-country") || lang?.includes("gb-")}
+        <AppStartFlow
+          words={words}
+          countries={dataCountries}
+          changed={searchParams.get("changed-country")}
           loadFailed={countriesFailed}
           onRetry={getCountries}
-          countries={dataCountries.map((s) => s.iso)}
-          options={dataCountries.map((s) => {
-            return { label: s.name, value: s.iso };
-          })}
         />
       )}
+      <AppSignInAsk words={words} />
       {isNotificationModal && (
         <NotificationWidget
           onAllow={onAllow}

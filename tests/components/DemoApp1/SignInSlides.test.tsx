@@ -22,8 +22,9 @@ vi.mock("embla-carousel-react", () => ({
   ],
 }));
 
-// The card reads its words through the shell; the key is the English text.
-vi.mock("components/DemoApp1/Demo1Shell", () => ({
+// The card reads its words through the shell (screenNav, which /demo and the
+// real app both give); the key is the English text.
+vi.mock("components/DemoApp1/screenNav", () => ({
   useDemoNav: () => ({ t: (key: string) => key }),
 }));
 
