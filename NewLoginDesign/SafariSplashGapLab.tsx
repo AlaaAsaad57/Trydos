@@ -187,8 +187,21 @@ export function resolveSafariSplashMode(
  *  - ZERO `position: fixed` on `<main>` or `#app-outer` from frame 0.
  *  - Scoped to `[data-pw="new-login-widget"][data-splash-waiting]` AND removed completely
  *    the instant the splash finishes (`previewExpanded` turns true) or mode is `off`.
+ *  - Every rule lives INSIDE `@layer utilities`. Tailwind 4 (`important: true`)
+ *    writes `.fixed { position: fixed !important }` in that layer, and for
+ *    `!important` rules a layered rule beats an unlayered one, whatever its
+ *    specificity. An unlayered sheet therefore never took `<main>` out of
+ *    `fixed`: Safari 26 found a viewport-sized fixed white box at the bottom
+ *    edge in all six modes and painted its solid colour view over the room
+ *    under its bar (WebKit `LocalFrameView::fixedContainerEdges`). Inside the
+ *    same layer the two-attribute selector outranks `.fixed`.
  */
 export function buildSafariSplashCss(mode: SafariSplashMode): string {
+    const rules = buildSafariSplashRules(mode);
+    return rules ? `@layer utilities{${rules}}` : '';
+}
+
+function buildSafariSplashRules(mode: SafariSplashMode): string {
     if (mode === 'off') return '';
 
     const docTall = mode === 'scroll-nudge' ? '200dvh' : 'calc(100lvh + 220px)';
@@ -514,7 +527,7 @@ interface SafariSplashBadgeRendererProps {
  * Renders the waiting bottom badge using the selected non-clipping architecture
  * (`in-flow`, `fixed-0w`, `body-layer`, `scroll-nudge`, `sticky-0w`, or `lvh-canvas`).
  *
- * Uses SVG-internal `<clipPath>` (`clipBottomY`) computed dynamically against
+ * Paints a white half-disc inside the SVG (`coverBottomY`) from a line computed against
  * `innerHeight + bandPx + (clipDesignY - 61) * scale`, so:
  *  - During the 0.8s entrance slide, nothing peeks below Safari's floating bar.
  *  - At rest, the dotted ring reaches cleanly across the strip and tucks behind
@@ -551,7 +564,7 @@ export function SafariSplashBadgeRenderer({
             ringColor={ringColor}
             width={metrics.sizeCss}
             height={metrics.sizeCss}
-            clipBottomY={dynamicClipDesignY}
+            coverBottomY={dynamicClipDesignY}
         />
     );
 

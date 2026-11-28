@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useLogoAnimation, LogoAnimationType } from './LogoAnimationContext';
 import { useAnimationEngine } from './animations/useAnimationEngine';
@@ -35,11 +35,12 @@ export interface NewLoginLogoProps {
      */
     animateWord?: boolean;
     /**
-     * Optional SVG viewBox y-coordinate (0..150 on `badge-ring`) below which
-     * the mark is clipped inside the SVG itself, avoiding HTML `clip-path` or
-     * `overflow: hidden` wrappers.
+     * Optional SVG viewBox y-coordinate (0..150 on `badge-ring`). Below it a
+     * white half-disc, as wide as the ring, is painted over the mark, so the
+     * part of the badge that lies under Safari's bar (outside the screen) is
+     * plain white and never shows through the glass.
      */
-    clipBottomY?: number;
+    coverBottomY?: number;
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -111,9 +112,8 @@ export default function NewLoginLogo({
     animationVariant,
     durationSeconds,
     animateWord = true,
-    clipBottomY,
+    coverBottomY,
 }: NewLoginLogoProps) {
-    const clipUid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
     const context = useLogoAnimation();
     const animation: LogoAnimationType = animationVariant ?? context.animation ?? 'none';
 
@@ -204,7 +204,19 @@ export default function NewLoginLogo({
 
     if (variant === 'badge-ring') {
         const ring = logoMotion.ring;
-        const bottomClipId = clipBottomY !== undefined ? `badge-bottom-clip-${clipUid}` : undefined;
+        /**
+         * The white half-disc. Its flat edge lies on `coverBottomY`, its centre
+         * on the ring's axis, and its radius reaches the ring's lowest point
+         * from that edge, so every part of the ring under the edge is covered.
+         * `sweep-flag` 0 takes the arc under the chord, not over it.
+         */
+        const cover = (() => {
+            if (coverBottomY === undefined || !geo.ring) return null;
+            const { cx, cy, r } = geo.ring;
+            // 4 units of margin: the ring's own dots are about 2 units wide.
+            const radius = r + Math.abs(cy - coverBottomY) + 4;
+            return `M${cx - radius},${coverBottomY}A${radius},${radius},0,0,0,${cx + radius},${coverBottomY}Z`;
+        })();
         return (
             <svg
                 // Remount on a pattern change. Framer Motion holds on to every
@@ -222,15 +234,7 @@ export default function NewLoginLogo({
                 data-logo-animation={animation}
                 data-logo-motion={logoMotion.isActive ? 'running' : 'static'}
             >
-                <defs>
-                    {logoMotion.defs}
-                    {bottomClipId && (
-                        <clipPath id={bottomClipId}>
-                            <rect x={-16} y={-16} width={geo.width + 32} height={Math.max(0, clipBottomY! + 16)} />
-                        </clipPath>
-                    )}
-                </defs>
-                <g clipPath={bottomClipId ? `url(#${bottomClipId})` : undefined}>
+                <defs>{logoMotion.defs}</defs>
                 {logoMotion.behind}
 
                 {/* Invisible artboard square from the design file. Keeps spacing. */}
@@ -265,7 +269,7 @@ export default function NewLoginLogo({
                     </motion.g>
                 </g>
                 {logoMotion.ringOverlay}
-                </g>
+                {cover && <path d={cover} fill="#ffffff" data-logo-part="bottom-cover" />}
             </svg>
         );
     }

@@ -95,6 +95,27 @@ describe('SafariSplashGapLab — Safari 26 splash bottom-logo strategies', () =>
         }
     });
 
+    it('puts every frame-0 rule inside @layer utilities, so position:relative beats the layered .fixed !important of Tailwind', () => {
+        // Tailwind 4 with `important: true` writes `.fixed { position: fixed !important }`
+        // inside `@layer utilities`. For !important rules a layered rule beats an
+        // unlayered one, so an unlayered override never takes <main> out of
+        // `fixed`. Safari 26 then finds a viewport-sized fixed white box at the
+        // bottom edge and paints its solid colour view over the room under its
+        // bar (seen on the iPhone in all six modes, 2026-11-28). Inside the same
+        // layer, the higher specificity of the lab's selector wins.
+        for (const info of SAFARI_SPLASH_MODES) {
+            if (info.id === 'off') continue;
+            const css = buildSafariSplashCss(info.id);
+            expect(css.startsWith('@layer utilities{'), `${info.id}: CSS must open with @layer utilities{`).toBe(true);
+            expect(css.endsWith('}'), `${info.id}: CSS must close the layer block`).toBe(true);
+            const inner = css.slice('@layer utilities{'.length, -1);
+            expect(inner, `${info.id}: no rule may sit outside the layer block`).not.toContain('@layer');
+            expect(inner, `${info.id}: the widget's position override must be in the layer`).toMatch(
+                /\[data-pw="new-login-widget"\]\[data-splash-waiting\]\{position:(relative|absolute)!important/,
+            );
+        }
+    });
+
     it('persists lab settings across reloads and resolves browser defaults safely', () => {
         expect(resolveSafariSplashMode(readSafariSplashSettings(), SAFARI_26)).toBe('in-flow');
         expect(resolveSafariSplashMode(readSafariSplashSettings(), CHROME_ANDROID)).toBe('off');
