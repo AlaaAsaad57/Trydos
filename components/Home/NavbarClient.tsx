@@ -43,6 +43,9 @@ function NavbarClient() {
   // whole-store subscription would re-render it on any store write.
   const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
   const loginOpen = useAppStore((s) => s.loginOpen);
+  // A login layer of the new design (start flow, sign-in request) is a
+  // scaled canvas too, so these two widgets wait for it as well.
+  const loginLayerOpen = useAppStore((s) => s.loginLayerOpen);
   const selectedStory = useAppStore((s) => s.selectedStory);
   const LoggingOut = useAppStore((s) => s.LoggingOut);
   const isProductPage = useAppStore((s) => s.isProductPage);
@@ -61,10 +64,11 @@ function NavbarClient() {
       {/* "expired" = the session-expired "please login again" prompt; its
           Login button re-arms the marker as `true`, which swaps in the
           phone-verify widget below. */}
-      {!loginOpen && shouldAuthinticated === "expired" && !LoggingOut && (
+      {!loginOpen && !loginLayerOpen && shouldAuthinticated === "expired" && !LoggingOut && (
         <SessionExpiredWidget />
       )}
       {!loginOpen &&
+        !loginLayerOpen &&
         shouldAuthinticated &&
         shouldAuthinticated !== "expired" &&
         !LoggingOut && <ConfirmMobilePhoneWidget />}

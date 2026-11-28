@@ -58,6 +58,7 @@ export default function AppShell({
   useMotionValueEvent(barShrink, "change", (scale) => appBarShrink.set(scale));
 
   const loginOpen = useAppStore((s) => s.loginOpen);
+  const loginLayerOpen = useAppStore((s) => s.loginLayerOpen);
   const shouldAuthinticated = useAppStore((s) => s.shouldAuthinticated);
   const storyOpen = useAppStore((s) => Boolean(s.selectedStory?.id));
   const addStoryEnable = useAppStore((s) => s.addStoryEnable);
@@ -69,7 +70,7 @@ export default function AppShell({
   // The tab lights at the tap, with the skeleton.
   const coverPath = usePageCover();
   const stepsAside = shellStepsAside(pathname);
-  const covered = Boolean(
+  const coveredByOld = Boolean(
     loginOpen ||
       shouldAuthinticated ||
       storyOpen ||
@@ -77,10 +78,15 @@ export default function AppShell({
       call ||
       openPayIframe,
   );
+  // A login layer of the new design (start flow, sign-in request) hides the
+  // bar too, but the page keeps its bar room under it: the layer closes with
+  // no route change, and a page scrolled to its end would otherwise lose 64 px
+  // of height and jump up when the room went.
+  const covered = coveredByOld || loginLayerOpen;
   // A new screen (appScreenPaths.ts) follows its design: the bar shows on a tab
   // screen only, and the screen keeps its own room for it (ScreenPage `tabBar`).
   const screen = appScreenFromPath(pathname);
-  const pageRoom = !stepsAside && !covered && screen === null;
+  const pageRoom = !stepsAside && !coveredByOld && screen === null;
   // From the tap on, the bar is as the page the tap is going to has it.
   const nextPath = coverPath ?? pathname;
   const nextScreen = appScreenFromPath(nextPath);

@@ -68,4 +68,21 @@ describe("NavbarClient", () => {
     expect(screen.queryByTestId("confirm-phone"), "the phone check showed over the login widget").toBeNull();
     expect(screen.queryByTestId("stories"), "the home story viewer opened on a product page").toBeNull();
   });
+
+  it("no session-expired or phone check widget while a login layer is open", async () => {
+    await renderWithProviders(<NavbarClient />, {
+      store: { loginOpen: false, loginLayerOpen: true, shouldAuthinticated: "expired", LoggingOut: false },
+    });
+    expect(
+      screen.queryByTestId("session-expired"),
+      "the session-expired prompt mounted a second scaled canvas over the start flow / sign-in login layer",
+    ).toBeNull();
+    await renderWithProviders(<NavbarClient />, {
+      store: { loginOpen: false, loginLayerOpen: true, shouldAuthinticated: true, LoggingOut: false },
+    });
+    expect(
+      screen.queryByTestId("confirm-phone"),
+      "the phone check mounted a second scaled canvas over the start flow / sign-in login layer",
+    ).toBeNull();
+  });
 });

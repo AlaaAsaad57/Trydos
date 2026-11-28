@@ -33,15 +33,23 @@ vi.mock("utils/functions", async (importOriginal) => ({
   LogError: (...a: any[]) => LogError(...a),
 }));
 
-vi.mock("utils/PopupCountry", () => ({
+// The start flow (Stage 7e part 2) replaced the old country popup; its own
+// file has its own tests (tests/components/DemoApp1/AppStartFlow.test.tsx).
+vi.mock("components/DemoApp1/AppStartFlow", () => ({
   default: (p: any) => (
     <div
-      data-testid="country-popup"
-      data-changed={String(p.forChanged)}
-      data-no-country={String(p.noCountry)}
-      data-options={JSON.stringify(p.options)}
-    />
+      data-testid="start-flow"
+      data-changed={String(p.changed)}
+      data-countries={JSON.stringify(p.countries)}
+      data-load-failed={String(p.loadFailed)}
+      data-words={JSON.stringify(p.words)}
+    >
+      <button onClick={p.onRetry}>retry</button>
+    </div>
   ),
+}));
+vi.mock("components/DemoApp1/AppSignInAsk", () => ({
+  default: (p: any) => <div data-testid="sign-in-ask" data-words={JSON.stringify(p.words)} />,
 }));
 vi.mock("components/global/NotificationWidget", () => ({
   default: ({ onAllow, onDismiss }: any) => (
@@ -81,7 +89,7 @@ describe("Init", () => {
     await flush();
     expect(routerSpies.refresh, "a rotated session did not refetch the server parts").toHaveBeenCalled();
     expect(installGlobalErrorListeners, "the global error listeners were not installed").toHaveBeenCalled();
-    expect(screen.queryByTestId("country-popup"), "a known country still got the country picker").toBeNull();
+    expect(screen.queryByTestId("start-flow"), "a known country still got the start flow").toBeNull();
     expect(posthog.posthogInit, "the session recorder did not start for a guest").toHaveBeenCalled();
     expect(posthog.posthogIdentify, "a guest was identified").not.toHaveBeenCalled();
   });
@@ -93,14 +101,15 @@ describe("Init", () => {
     expect(routerSpies.refresh, "the page refreshed without a token rotation").not.toHaveBeenCalled();
   });
 
-  it("offers the country picker on the gb placeholder and reads the countries from the server once", async () => {
+  it("offers the start flow on the gb placeholder and reads the countries from the server once", async () => {
     GetCountries.mockResolvedValue([{ iso: "sy", name: "Syria" }]);
-    await renderWithProviders(<Init />);
+    await renderWithProviders(<Init words={{ "Select Your Region": "Pick" }} />);
     await flush();
     expect(GetCountries, "the country list was asked for the wrong locale").toHaveBeenCalledWith({ country: "gb", language: "en" });
-    const popup = await screen.findByTestId("country-popup");
-    expect(popup.dataset.noCountry, "the gb placeholder is not treated as no country").toBe("true");
-    expect(JSON.parse(popup.dataset.options!), "the picker got the wrong options").toEqual([{ label: "Syria", value: "sy" }]);
+    const flow = await screen.findByTestId("start-flow");
+    expect(flow.dataset.changed, "the gb placeholder is not treated as no country change").toBe("null");
+    expect(JSON.parse(flow.dataset.countries!), "the start flow got the wrong country list").toEqual([{ iso: "sy", name: "Syria" }]);
+    expect(JSON.parse(flow.dataset.words!), "the layout's words did not reach the start flow").toEqual({ "Select Your Region": "Pick" });
     expect(sessionStorage.getItem("countries-gb-en"), "the country list was not kept for the session").toBe(
       JSON.stringify([{ iso: "sy", name: "Syria" }]),
     );
@@ -111,8 +120,8 @@ describe("Init", () => {
     await renderWithProviders(<Init />);
     await flush();
     expect(GetCountries, "the server was asked again for a kept list").not.toHaveBeenCalled();
-    expect(JSON.parse((await screen.findByTestId("country-popup")).dataset.options!), "the kept list was not used").toEqual([
-      { label: "Iraq", value: "iq" },
+    expect(JSON.parse((await screen.findByTestId("start-flow")).dataset.countries!), "the kept list was not used").toEqual([
+      { iso: "iq", name: "Iraq" },
     ]);
   });
 
@@ -121,22 +130,42 @@ describe("Init", () => {
     await renderWithProviders(<Init />);
     await flush();
     expect(LogError.mock.calls[0]?.[0].scenario, "a failed country read was not logged").toBe("Init: the country list could not be read");
+    expect((await screen.findByTestId("start-flow")).dataset.loadFailed, "the start flow was not told the list failed (A2-21)").toBe("true");
+    GetCountries.mockResolvedValue([{ iso: "tr", name: "Turkey" }]);
+    fireEvent.click(screen.getByText("retry"));
+    await flush();
+    expect(GetCountries, "the retry did not read the country list again").toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId("start-flow").dataset.loadFailed, "the start flow still shows the failure after a good retry").toBe("false");
   });
 
-  it("offers the picker after a country change and strips the cart flag from the address", async () => {
+  it("shows no start flow on a country address with no flag", async () => {
+    await renderWithProviders(<Init />, { country: "sy", search: "keep=1" });
+    await flush();
+    expect(screen.queryByTestId("start-flow"), "a known country with no popup flag got the start flow").toBeNull();
+    expect(GetCountries, "the country list was read with no start flow to show").not.toHaveBeenCalled();
+  });
+
+  it("mounts the sign-in request on every page, with the layout's words", async () => {
+    await renderWithProviders(<Init words={{ Slide: "Slide" }} />, { country: "sy" });
+    expect(JSON.parse(screen.getByTestId("sign-in-ask").dataset.words!), "the sign-in request is missing or lost its words").toEqual({
+      Slide: "Slide",
+    });
+  });
+
+  it("offers the start flow after a country change and strips the cart flag from the address", async () => {
     GetCountries.mockResolvedValue([]);
     await renderWithProviders(<Init />, { country: "sy", search: "changed-country=1&cart=1&x=2" });
     await flush();
-    expect((await screen.findByTestId("country-popup")).dataset.changed, "a country change did not reach the picker").toBe("1");
+    expect((await screen.findByTestId("start-flow")).dataset.changed, "a country change did not reach the start flow").toBe("1");
     expect(window.location.search, "the cart flag was not stripped").toBe("?changed-country=1&x=2");
   });
 
-  it("offers the picker for no-country, leaving an address with no cart flag alone", async () => {
+  it("offers the start flow for no-country, leaving an address with no cart flag alone", async () => {
     GetCountries.mockResolvedValue([]);
     const replace = vi.spyOn(window.history, "replaceState");
     await renderWithProviders(<Init />, { country: "sy", search: "no-country=1" });
     await flush();
-    expect((await screen.findByTestId("country-popup")).dataset.noCountry, "no-country did not reach the picker").toBe("1");
+    expect(await screen.findByTestId("start-flow"), "no-country did not open the start flow").toBeInTheDocument();
     expect(replace, "an address with nothing to strip was rewritten").not.toHaveBeenCalled();
     replace.mockRestore();
   });

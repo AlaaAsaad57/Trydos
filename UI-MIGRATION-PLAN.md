@@ -1794,6 +1794,66 @@ from `246536cea`, with `9517cb02b` merged (`--no-commit`; `/wf:publish-pr` makes
 - **Not checked yet:** the flags in the browser in `en` / `ar` (unit tests only); the real sign-in and the
   3-wrong-codes lock on the preview (needs the branch pushed, P-3); the full unit suite in CI.
 
+### Where Stage 7e part 2 stopped (2026-11-28) — ticket `ui-migrations-7e-start-flow`, not committed yet
+
+Work item: `_specs/ui-migrations-7e-start-flow/` (implement done; verify next). Branch
+`ticket/ui-migrations-7e-start-flow` from `a4e31b857`. Steps 4 and 5 are real: `AppStartFlow`
+replaces `PopupCountry` (deleted), and `AppSignInAsk` + `SignInAskLayer` bring the sign-in request.
+
+- **The flagged-home hang is fixed and proven (FR-17).** Cause: `Init` loaded the old popup with
+  `next/dynamic({ ssr: false, loading: SheetSkeleton })`. The loader renders on the server as the
+  Suspense fallback, and `CoverBox` (`components/global/PageCover.tsx`) read `window` there. React
+  then logged "Aborted, errored or already flushed boundaries should not be flushed again", and the
+  stream never ended. Fix: `CoverBox` returns `null` with no `document`. A build with only that line
+  served `/gb-en` in 0.5 to 1 s (before: no end after 40 s). Not yet seen on a Vercel build: a
+  `vercel deploy` from this laptop failed at upload (network), so AC-17 is checked on the PR preview.
+- **Speed (S7e-9, NFR-1), production build, Chromium 430 x 932, 4x CPU, median of 5**
+  (`xd-parity/perf/s7e2-speed.cjs`; JS = scripts finished by the load event):
+
+  | Page | JS before | JS after | First paint before | First paint after |
+  |---|---|---|---|---|
+  | `/sy-en` (home) | 372,812 B | 378,163 B (+5,351) | 456 ms | 516 ms |
+  | `/sy-en/about` (old page) | 329,489 B | 334,857 B (+5,368) | 368 ms | 440 ms |
+  | `/gb-en` (the flow) | no load event (hang) | 378,163 B | — | 512 ms |
+
+  - The 1,024 B budget of NFR-1 is **not met**. A module compare of the first-load chunks
+    (`s7e2-moddiff.py`) finds only 6 new modules on `/about`, 1,626 B raw: the sign-in timer, the
+    start covers, the crawler list (copied into two chunks), the lock counter and two lazy loaders.
+    The rest of the growth is Turbopack putting modules into other chunks. The sheet, the toast and
+    the login are lazy (`SignInAskLayer`), so none of them is in the first load.
+  - First paint: the runs vary from 220 to 800 ms on this laptop, so these medians are within the noise.
+- **Browser checks on a production build** (`s7e2-real.cjs`, `s7e2-signin.cjs`): all pass. That
+  covers the cover before the first paint, the rows, the pick (cookies, no reload), the end address,
+  the starter settings on the new address with `x-country=sy`, changed-country (2 rows, the new one
+  chosen, other map countries take no tap), Googlebot (no flow, no cover, no sheet), the sheet on an
+  old page and a product page and never on the login page, the wait while typing, "More Info", the
+  sign-in request's login (no reload, same scroll, the page colour back), a real sign-in from the
+  flow (a wrong code is answered, the right one signs in) and from the sheet, and Safari 26 (WebKit,
+  iPhone user agent: no fixed box at the bottom edge while the cover or the splash waits).
+- **Compared with `/demo` on `development`** (`s7e2-compare.cjs`, `s7e2-diff.py`), 440 x 802,
+  402 x 712, 375 x 635:
+  - Picker, Chromium and WebKit, `en`: 1.1 to 2.1 %. The flipping pill caught at another moment, and
+    `development`'s "Lab" debug pill (removed on purpose in part 1).
+  - Picker, `ar`: 2.3 to 5.0 %. **Difference kept on purpose:** the real rows run right to left (flag
+    on the right), as every real `ar` screen does (A-13, A-14); `/demo` on `development` keeps the
+    picker left to right. The real pill is in Arabic; on `development` it is still English.
+  - Sign-in request, Chromium: `en` 0.00 to 0.08 %; `ar` 0.2 to 0.6 %. The dots start on the right
+    (RTL) and a full stop sits at the other end of the slide line.
+  - Fixed on the way: the card, the "Get Started" box and the country rows used a physical left
+    margin, so on an `ar` page they sat 20 px (12 px for rows) too far right. They now use
+    `marginInlineStart`; left to right nothing moved.
+  - **Not checked yet:** the sign-in request in WebKit. Locally, WebKit drops the `Secure` guest
+    cookies on `http://localhost`, so the profile never loads and the request correctly waits.
+    Check it on the PR preview (https). Also a real iPhone.
+- **Owner's choices (2026-11-28):** changed-country shows only its two countries with the new one
+  chosen; the sheet shows on every page but the login page, `/loginDemo` and `/demo`; "More Info"
+  says "Soon available".
+- **Old reds, not from this ticket:** `Demo1Shell.test.tsx` (the 9 of part 1) and
+  `homepageReducer.test.ts` "setIsNavigating…" and "setLoginOpen…" (page lock, red on `a4e31b857` too).
+- **Left for Stage 8:** e2e files still name `country-popup`, `country-retry`,
+  `personal-info-countries-*` (`tests/e2e/locale.live.spec.ts`, `selectors.ts`, `actions/nav.ts`),
+  and three docs mention `PopupCountry`.
+
 ## Stage 8 — regression, sign-off, merge
 
 1. Run every suite: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, `pnpm e2e:health`, then

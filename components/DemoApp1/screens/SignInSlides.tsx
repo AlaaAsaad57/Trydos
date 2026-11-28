@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { PREVIEW_SLIDES } from "NewLoginDesign/previewSlides";
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoNav } from "../screenNav";
 import { C, fill } from "../demo1Layout";
 
 /**
@@ -133,7 +133,9 @@ export default function SignInSlides({ mt }: { mt: number }) {
         className="relative"
         style={{
           marginTop: mt,
-          marginLeft: 20,
+          // Logical: on an RTL page the column starts on the right, and a
+          // physical left margin put the card 20 px too far right.
+          marginInlineStart: 20,
           width: fill(20),
           height: CARD.height,
           // On a short window the card is the block that gives up height.

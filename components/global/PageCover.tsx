@@ -116,6 +116,13 @@ export function CoverBox({
     return () => window.removeEventListener("scroll", follow);
   }, []);
 
+  // On the server there is no window and no <body>. A `next/dynamic` loader
+  // renders there too, as the Suspense fallback, and a throw inside a fallback
+  // left the page's stream open for ever: `/gb-en` never finished loading
+  // (React: "Aborted, errored or already flushed boundaries should not be
+  // flushed again"). The cover is a portal, so the server never drew it anyway.
+  if (typeof document === "undefined") return null;
+
   return createPortal(
     <div
       ref={box}

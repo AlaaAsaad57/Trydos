@@ -144,11 +144,14 @@ export function Rich({
   text,
   values,
   keepLinks = false,
+  onLink,
 }: {
   text: string;
   values?: Record<string, string | number>;
   /** Never break an `<a>` part across two lines (a short link, as "More Info"). */
   keepLinks?: boolean;
+  /** A tap on an `<a>` part. Without it the part is only drawn blue. */
+  onLink?: () => void;
 }) {
   let line = text;
   for (const [name, value] of Object.entries(values ?? {}))
@@ -159,9 +162,23 @@ export function Rich({
     const at = match.index ?? 0;
     if (at > last) parts.push(line.slice(last, at));
     const tag = match[1];
+    const link = tag === "a" && onLink;
     parts.push(
       <span
         key={at}
+        role={link ? "button" : undefined}
+        tabIndex={link ? 0 : undefined}
+        onClick={link ? onLink : undefined}
+        onKeyDown={
+          link
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onLink();
+                }
+              }
+            : undefined
+        }
         className={
           tag === "b"
             ? "font-bold"
@@ -171,7 +188,11 @@ export function Rich({
             ? "whitespace-nowrap"
             : undefined
         }
-        style={tag === "a" || tag === "c" ? { color: C.blue } : undefined}
+        style={
+          tag === "a" || tag === "c"
+            ? { color: C.blue, cursor: link ? "pointer" : undefined }
+            : undefined
+        }
       >
         {match[2]}
       </span>,

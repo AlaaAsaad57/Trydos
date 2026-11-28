@@ -3,11 +3,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { animate, useReducedMotion } from "framer-motion";
 import { demoAsset } from "../../DemoApp/demoAssetVersion";
-import type { DemoCountry } from "../../DemoApp/DemoData";
-import { COUNTRIES } from "../../DemoApp/demoPlaces";
-import { useDemoNav } from "../Demo1Shell";
-import { C } from "../demo1Layout";
-import CountryRow from "./CountryRow";
+import type { DemoKey } from "../../DemoApp/demoKeys";
+import { useDemoNav } from "../screenNav";
+import { C, fill } from "../demo1Layout";
+import { Skeleton } from "components/Server/Skeleton";
+import { Stroke, Txt } from "../ui";
+import CountryRow, { type RowCountry } from "./CountryRow";
 
 /**
  * The country picker's map and rows: XD `Ramaaz pay signin – 16` (no
@@ -29,6 +30,13 @@ import CountryRow from "./CountryRow";
  * country on the map from the tap (FILL), then the page shows the choice
  * (`– 15`) until HOLD_MS, and calls `onDone`: this part slides out and the
  * Quick Preview's slides in, under the same pill and logo.
+ *
+ * The rows come from the host (`countries`): `/demo` gives the design's four
+ * (COUNTRIES in demoPlaces.ts), the real start flow (AppStartFlow) gives the
+ * real country list. The real flow may also mark a country at first
+ * (`initial`, drawn as `– 15` with no fill motion) and limit which countries a
+ * tap may pick (`only`). An empty list draws skeleton rows in the rows' place;
+ * a list that could not be read draws two rows: the message and "Try again".
  */
 
 /**
@@ -63,7 +71,7 @@ const LAST_ROW_END = 846;
 const ARTBOARD_H = 932;
 
 /** The countries in the file's order on the map: Turkiye last, so it lies on top. */
-const MAP_ORDER: DemoCountry[] = ["sy", "lb", "iq", "tr"];
+const MAP_ORDER = ["sy", "lb", "iq", "tr"] as const;
 
 const MAP_FILE = demoAsset("/assets/demo/xd/countryMap.svg");
 
@@ -71,13 +79,27 @@ const MAP_FILE = demoAsset("/assets/demo/xd/countryMap.svg");
 const EMPTY = "#F4F4F4";
 
 export default function CountryPickerBody({
+  countries,
+  initial = null,
+  only = null,
+  failed = false,
+  onRetry,
   onDone,
 }: {
+  /** The rows, in their order. An empty list draws skeleton rows. */
+  countries: readonly RowCountry[];
+  /** The country drawn as chosen before any tap (`– 15`), or none. */
+  initial?: string | null;
+  /** The countries a tap may pick; every row when not given. */
+  only?: readonly string[] | null;
+  /** The list could not be read: the rows give way to the message and a retry. */
+  failed?: boolean;
+  onRetry?: () => void;
   /** Called once, HOLD_MS after a country is chosen. */
-  onDone: (country: DemoCountry) => void;
+  onDone: (country: string) => void;
 }) {
   const { t } = useDemoNav();
-  const [picked, setPicked] = useState<DemoCountry | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
   const [from, setFrom] = useState<FillFrom>(MIDDLE);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
@@ -87,13 +109,20 @@ export default function CountryPickerBody({
     [],
   );
 
-  const pick = (id: DemoCountry, at: FillFrom = MIDDLE) => {
+  /** A tap may pick a country of the rows, and of `only` when it is given. */
+  const canPick = (id: string) =>
+    countries.some((c) => c.id === id) && (!only || only.includes(id));
+
+  const pick = (id: string, at: FillFrom = MIDDLE) => {
     // The first choice wins: the next step is already on its way.
-    if (picked) return;
+    if (picked || !canPick(id)) return;
     setFrom(at);
     setPicked(id);
     timer.current = setTimeout(() => onDone(id), HOLD_MS);
   };
+
+  const chosen = picked ?? initial;
+  const rowsTop = 594 - (MAP.y + MAP.h);
 
   return (
     <div
@@ -102,8 +131,10 @@ export default function CountryPickerBody({
       style={{ paddingBottom: ARTBOARD_H - LAST_ROW_END }}
     >
       <CountryMap
-        picked={picked}
+        chosen={chosen}
+        instant={!picked}
         from={from}
+        canPick={canPick}
         onPick={pick}
         mt={MAP.y - LOGO_END}
       />
@@ -113,19 +144,98 @@ export default function CountryPickerBody({
         aria-label={t("Select Your Region")}
         className="flex flex-col w-full"
       >
-        {COUNTRIES.map((c, i) => (
-          <CountryRow
-            key={c.id}
-            country={c}
-            on={c.id === picked}
-            label={t(c.name)}
-            mt={i === 0 ? 594 - (MAP.y + MAP.h) : 4}
-            testId={`demo-picker-country-${c.id}`}
-            onPick={() => pick(c.id)}
-          />
-        ))}
+        {failed ? (
+          <>
+            <PickerNote mt={rowsTop} testId="country-load-failed">
+              {t("The country list could not be loaded")}
+            </PickerNote>
+            <PickerNote mt={4} testId="country-retry" onTap={onRetry}>
+              {t("Try again")}
+            </PickerNote>
+          </>
+        ) : countries.length === 0 ? (
+          [0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              data-pw="demo-picker-country-skeleton"
+              aria-hidden="true"
+              className="shrink-0"
+              style={{
+                marginTop: i === 0 ? rowsTop : 4,
+                marginInlineStart: 12,
+                width: fill(12),
+                height: 60,
+              }}
+            >
+              <Skeleton borderRadius="15px" />
+            </div>
+          ))
+        ) : (
+          countries.map((c, i) => (
+            <CountryRow
+              key={c.id}
+              country={c}
+              on={c.id === chosen}
+              label={t(c.name as DemoKey)}
+              mt={i === 0 ? rowsTop : 4}
+              testId={`demo-picker-country-${c.id}`}
+              onPick={() => pick(c.id)}
+            />
+          ))
+        )}
       </div>
     </div>
+  );
+}
+
+/**
+ * A row of the picker with words only, in the row's box: the message when the
+ * list could not be read (no tap), and "Try again" under it (a button, in the
+ * blue of a link).
+ */
+function PickerNote({
+  children,
+  mt,
+  testId,
+  onTap,
+}: {
+  children: React.ReactNode;
+  mt: number;
+  testId: string;
+  onTap?: () => void;
+}) {
+  const box: React.CSSProperties = {
+    marginTop: mt,
+    marginInlineStart: 12,
+    width: fill(12),
+    height: 60,
+    borderRadius: 15,
+    background: C.card,
+  };
+  if (!onTap)
+    return (
+      <div
+        data-pw={testId}
+        role="status"
+        className="relative flex items-center justify-center shrink-0"
+        style={box}
+      >
+        <Txt size={14}>{children}</Txt>
+      </div>
+    );
+  return (
+    <button
+      type="button"
+      data-pw={testId}
+      onClick={onTap}
+      className="relative flex items-center justify-center shrink-0 cursor-pointer"
+      style={box}
+    >
+      <Txt size={14} color={C.blue}>
+        {children}
+      </Txt>
+      <Stroke color={C.line} radius={15} visible />
+    </button>
   );
 }
 
@@ -138,34 +248,42 @@ export default function CountryPickerBody({
  * The chosen country fills with a radial gradient, in the country's own box:
  * a grey disc that grows from the tap (FILL), with a soft edge (FILL_EDGE). Once it
  * covers the country, the fill is the plain grey of `– 15`. Its purple line
- * fades in over the same time. With "reduce motion" on, the grey and the line
- * come at once.
+ * fades in over the same time. With "reduce motion" on, or for a country
+ * marked before any tap (`instant`), the grey and the line come at once.
+ *
+ * A country no tap may pick (not in the rows, or outside `only`) takes no tap
+ * and shows no hand cursor.
  *
  * The map keeps the file's width (406.5) on a 430 px phone, and its distance
  * to both edges on a narrower one; its height follows its width.
  */
 function CountryMap({
-  picked,
+  chosen,
+  instant,
   from,
+  canPick,
   onPick,
   mt,
 }: {
-  picked: DemoCountry | null;
+  chosen: string | null;
+  instant: boolean;
   from: FillFrom;
-  onPick: (id: DemoCountry, at: FillFrom) => void;
+  canPick: (id: string) => boolean;
+  onPick: (id: string, at: FillFrom) => void;
   mt: number;
 }) {
   const calm = useReducedMotion();
   const grey = useRef<SVGStopElement>(null);
   const edge = useRef<SVGStopElement>(null);
-  const [filled, setFilled] = useState(false);
+  const [filled, setFilled] = useState(Boolean(chosen) && instant);
 
   useEffect(() => {
-    if (!picked) return;
-    if (calm) {
+    if (!chosen) return;
+    if (calm || instant) {
       setFilled(true);
       return;
     }
+    setFilled(false);
     // The disc's edge, as a share of the gradient's radius. Past 1 the
     // whole box is grey, from any start.
     const run = animate(0, 1.05, {
@@ -177,7 +295,7 @@ function CountryMap({
       onComplete: () => setFilled(true),
     });
     return () => run.stop();
-  }, [picked, calm]);
+  }, [chosen, calm, instant]);
 
   /** Where in the country's box the tap landed, as shares of the box. */
   const tapIn = (e: React.MouseEvent<SVGUseElement>): FillFrom => {
@@ -212,7 +330,7 @@ function CountryMap({
         overflow: "visible",
       }}
     >
-      {picked && !filled && (
+      {chosen && !filled && (
         <defs>
           {/* r 1.5: the disc covers the box from any corner (its diagonal is 1.42). */}
           <radialGradient
@@ -229,7 +347,8 @@ function CountryMap({
         </defs>
       )}
       {MAP_ORDER.map((id) => {
-        const on = id === picked;
+        const on = id === chosen;
+        const tappable = canPick(id);
         return (
           <use
             key={id}
@@ -239,9 +358,9 @@ function CountryMap({
             fill={!on ? EMPTY : filled ? C.grey : "url(#demo-country-fill)"}
             stroke={on ? C.purple : C.line}
             strokeWidth={0.5}
-            onClick={(e) => onPick(id, tapIn(e))}
+            onClick={tappable ? (e) => onPick(id, tapIn(e)) : undefined}
             style={{
-              cursor: "pointer",
+              cursor: tappable ? "pointer" : undefined,
               transition: `stroke ${FILL.duration}s`,
             }}
           />
@@ -256,8 +375,8 @@ function CountryMap({
           strokeWidth={0.5}
           pointerEvents="none"
           style={{
-            opacity: id === picked ? 1 : 0,
-            transition: calm ? undefined : `opacity ${FILL.duration}s`,
+            opacity: id === chosen ? 1 : 0,
+            transition: calm || instant ? undefined : `opacity ${FILL.duration}s`,
           }}
         />
       ))}

@@ -42,6 +42,7 @@ import { NavCtx } from "./screenNav";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
 import { usePageDir } from "./rtl";
 import CountryPickerBody from "./screens/CountryPickerBody";
+import { COUNTRIES } from "../DemoApp/demoPlaces";
 import { anyLayerOpen, usePageColor } from "./ui";
 import SignInRequestSheet from "./screens/SignInRequestSheet";
 import NewLoginWidget, { type AuthStep } from "NewLoginDesign/NewLoginWidget";
@@ -547,7 +548,9 @@ function Demo1ShellInner({
           <NewLoginWidget
             initialStep={signing}
             onFinish={endLogin}
-            countryPicker={(onPicked) => <CountryPickerBody onDone={onPicked} />}
+            countryPicker={(onPicked) => (
+              <CountryPickerBody countries={COUNTRIES} onDone={onPicked} />
+            )}
           />
         )}
       </DemoChatProvider>

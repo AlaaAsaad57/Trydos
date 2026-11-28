@@ -43,6 +43,7 @@ import {
   top,
 } from "./demo1Layout";
 import { mirrorFor, usePageDir } from "./rtl";
+import { addLayerLock, removeLayerLock } from "./layerLocks";
 
 /**
  * The building blocks of the fluid demo (/demo).
@@ -167,11 +168,9 @@ export function usePageColor(color: string) {
   }, [present, color]);
 }
 
-/** How many layers hold the page still right now. */
-let locks = 0;
-
-/** True while a layer (a sheet, a modal) is open over the page. */
-export const anyLayerOpen = () => locks > 0;
+// The count of open layers lives in layerLocks.ts, so a part on every page
+// can read it without this file.
+export { anyLayerOpen } from "./layerLocks";
 
 /**
  * True for a box that scrolls on its own and can still move the way the
@@ -247,17 +246,15 @@ function useScrollLock(on: boolean) {
   React.useEffect(() => {
     if (!on) return;
     const html = document.documentElement;
-    if (locks === 0) {
+    if (addLayerLock()) {
       html.style.setProperty("overscroll-behavior", "none");
       // `passive: false`: a passive listener cannot stop the scroll.
       document.addEventListener("touchstart", startTouch, { passive: true });
       document.addEventListener("touchmove", holdPage, { passive: false });
       document.addEventListener("wheel", holdPage, { passive: false });
     }
-    locks += 1;
     return () => {
-      locks -= 1;
-      if (locks === 0) {
+      if (removeLayerLock()) {
         html.style.removeProperty("overscroll-behavior");
         document.removeEventListener("touchstart", startTouch);
         document.removeEventListener("touchmove", holdPage);
