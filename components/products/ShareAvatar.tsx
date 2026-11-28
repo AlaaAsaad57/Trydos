@@ -1,12 +1,18 @@
 import Image from "next/image";
 import profilePng from "public/images/profileNo.png";
+import { getMediaImageBaseUrl } from "utils/mediaUrl";
 
 function ShareAvatar({ active, setActive, contact, name, disable }: any) {
   const normializePhoto = (path) => {
-    if (path?.includes(process.env.NEXT_PUBLIC_BASE_MEDIA_URL)) {
+    const imageBase = getMediaImageBaseUrl();
+    if (
+      !path ||
+      path.startsWith("http") ||
+      (imageBase && path.includes(imageBase))
+    ) {
       return path;
     }
-    return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + path;
+    return `${imageBase}${path.startsWith("/") ? path : "/" + path}`;
   };
   return (
     <div

@@ -5,6 +5,7 @@
     "app/**/{sitemap,robots,manifest,icon,apple-icon,opengraph-image,twitter-image}.{ts,tsx}",
     "app/api/**/route.{ts,tsx}",
     "proxy.ts",
+    "server.mjs",
     "instrumentation.ts",
     "instrumentation-client.ts",
     "sentry.*.config.ts",

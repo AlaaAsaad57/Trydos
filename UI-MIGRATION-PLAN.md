@@ -1757,6 +1757,43 @@ Not in Stage 7e (not committed on 2026-11-28): 3 changed demo files in `../trydo
 2. The login from the start flow and the sign-in sheet: the default opens the login as a layer over the page, as `/demo` does (S7e-1). The other openers keep `/[lang]/login?next=` (D-11).
 3. The orders' old actions: the default redraws them in the new style (S7d-11). Ask the designer for boards.
 
+### Where Stage 7e part 1 stopped (2026-11-28) — ticket `ui-migrations-7e-merge`, not committed yet
+
+Work item: `_specs/ui-migrations-7e-merge/` (implement done; verify next). Branch `ticket/ui-migrations-7e-merge`
+from `246536cea`, with `9517cb02b` merged (`--no-commit`; `/wf:publish-pr` makes the one commit).
+
+- **Speed (S7e-9, AC-15)**, production build, Chromium 430 x 932, 4x CPU, cache off, median of 5
+  (`xd-parity/perf/s7e-speed.cjs`; JS = scripts finished by the load event):
+
+  | Page | JS before | JS after | First paint before | First paint after |
+  |---|---|---|---|---|
+  | `/sy-en/login` | 396,623 B | 400,245 B (+3,622) | 484 ms | 540 ms |
+  | `/sy-en` (home) | 370,974 B | 372,812 B (+1,838) | 560 ms | 652 ms |
+
+  - Login budget (P-8): before + the picker parts (about 6.1 KB, source gzip): **met**. The +3.6 KB holds
+    `previewSlides` and the slim splash fix (the full lab of `development` is 12.4 KB source gzip).
+  - Home budget (after ≤ before): **not met, +1,838 B (+0.5%)**. No word list reaches the home page's client
+    code, so the likely source is the merged shared fixes (`fetchData` session hold, media helpers, the
+    `through` fade). Not proven: the "before" build is gone and no bundle analysis was run on it.
+  - First paint: the runs vary from 348 to 2,220 ms on this laptop, so the medians are within the noise.
+- **Splash (AC-8, P-1)**, real `/sy-en/login`, WebKit with an iPhone Safari 26 user agent
+  (`xd-parity/perf/s7e-splash.cjs`): mode `in-flow`, `<main>` relative, stage `contain: none`, frame-0
+  style and in-flow badge present, no debug menu, **no fixed box at the bottom edge**. Chromium: unchanged
+  (`<main>` fixed, no style). Not yet seen on a real iPhone.
+- **`/demo` against `development` (AC-4)**, Chromium 430 x 932 (`s7e-demoflow.cjs`, `s7e-diff.py`;
+  `development` = Vercel preview of `9517cb02b`): the same steps in the same order. Pixel difference:
+  sign-in sheet 0.00%, Get Started 0.02%; splash, picker and Quick Preview about 1% = `development`'s "Lab"
+  debug pill (removed here on purpose) and the flipping pill / logo frame; the page 1.7% = the Home slider
+  caught mid-move.
+- **Build fix outside the plan (owner's OK):** `app/(client)/[lang]/demo/settings/orders/[id]/page.tsx`
+  got `generateStaticParams` (the 2 demo orders) and awaits its params, as the real orders page does.
+  Without it the build failed: the `[lang]` layout's screen mount reads the path outside Suspense.
+- **Old reds, not from this ticket:** `tests/utils/tinyUtils.test.ts` (4, page lock) and
+  `tests/components/DemoApp1/Demo1Shell.test.tsx` (9: the 3 listed in Stage 7b, plus the empty address list
+  ×2, "Add & save" ×2, the delivery sheet's bottom blocks ×2). The same 13 fail on `246536cea`.
+- **Not checked yet:** the flags in the browser in `en` / `ar` (unit tests only); the real sign-in and the
+  3-wrong-codes lock on the preview (needs the branch pushed, P-3); the full unit suite in CI.
+
 ## Stage 8 — regression, sign-off, merge
 
 1. Run every suite: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, `pnpm e2e:health`, then

@@ -159,6 +159,12 @@ describe("the profile tab on real data", () => {
     ).toContain("1000 USD");
   });
 
+  it("the Orders card opens the old orders page (D-17)", () => {
+    draw(<ProfileScreen />);
+    fireEvent.click(document.querySelector('[data-pw="demo-profile-orders"]')!);
+    expect(router.push, "the Orders card should open the old orders page until Stage 7e part 3").toHaveBeenCalledWith("/sy-en/settings/orders");
+  });
+
   it("shows no orders count before the count is known, not a false 0", () => {
     ordersCount.value = null;
     draw(<ProfileScreen />);
@@ -247,17 +253,21 @@ describe("personal info on real data", () => {
     await act(async () => fireEvent.change(input, { target: { value: code } }));
   };
 
-  it("sends a new e-mail, and opens the code sheet when the core backend wants a code", async () => {
-    await wantsCode();
+  const save = async () => {
+    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
+  };
+  const sheetOpen = () => screen.queryByText("verification Email !") !== null;
+
+  // b48a3e999 on development, ported (Stage 7e, Step 3): the screen asks for
+  // the code itself, before any save. Backend PR #699 (the 400 that asks for
+  // the code) is not live, so without this a new e-mail was saved unproved.
+  it("a new e-mail opens the code sheet before any save, and the save never carries it", async () => {
     draw(<PersonalInfoScreen />);
     edit();
     type("demo-personal-email", " New@Example.com");
-    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
-    expect(auth.UpdateProfile, "the new e-mail should be sent, trimmed and in lowercase").toHaveBeenCalledWith(
-      { email: "new@example.com" },
-      expect.anything(),
-    );
-    expect(screen.queryByText("verification Email !"), "the 'verify the new email' answer should open the code sheet").not.toBeNull();
+    await save();
+    expect(sheetOpen(), "a new e-mail should open the code sheet at once").toBe(true);
+    expect(auth.UpdateProfile, "no profile save may go out before the new e-mail is proved").not.toHaveBeenCalled();
     await waitFor(() =>
       expect(auth.SendEmailOtp, "the code sheet should ask the core backend for a code for the new e-mail").toHaveBeenCalledWith(
         "new@example.com",
@@ -265,42 +275,109 @@ describe("personal info on real data", () => {
     );
   });
 
-  it("does not open the code sheet when the core backend takes the save", async () => {
-    draw(<PersonalInfoScreen />);
-    edit();
-    type("demo-personal-email", "new@example.com");
-    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
-    expect(screen.queryByText("verification Email !"), "a save the backend took must not ask for a code").toBeNull();
-    expect(auth.SendEmailOtp, "a save the backend took must not send a code").not.toHaveBeenCalled();
-  });
-
-  it("after a right code, sends the rest of the change again without the e-mail", async () => {
-    await wantsCode();
+  it("after a right code, only the other changed fields are saved", async () => {
     draw(<PersonalInfoScreen />);
     edit();
     type("demo-personal-name", "Sara A.");
     type("demo-personal-email", "new@example.com");
-    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
+    await save();
     await typeCode("048213");
     expect(auth.VerifyEmailOtp, "the code should be checked for the new e-mail, as a string").toHaveBeenCalledWith(
       "new@example.com",
       "048213",
     );
     await waitFor(() =>
-      expect(auth.UpdateProfile, "the refused save should go again after the right code").toHaveBeenCalledTimes(2),
+      expect(auth.UpdateProfile, "after a right code the waiting save should go out once").toHaveBeenCalledTimes(1),
     );
-    expect(auth.UpdateProfile.mock.calls[1][0], "the second save should carry the name and leave the verified e-mail out").toEqual({
+    expect(auth.UpdateProfile.mock.calls[0][0], "the save should carry the name and leave the proved e-mail out").toEqual({
       name: "Sara A.",
     });
   });
 
-  it("shows a wrong code with the tries left, and saves nothing", async () => {
+  it("after a right code, nothing more is sent when only the e-mail changed", async () => {
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-email", "new@example.com");
+    await save();
+    await typeCode("048213");
+    // jsdom never finishes the sheet's exit animation, so the edit's end is the sign.
+    await waitFor(() => expect(screen.queryByText("Edit"), "a right code should end the edit").not.toBeNull());
+    expect(auth.UpdateProfile, "verify-otp already saved the e-mail; no profile save is needed").not.toHaveBeenCalled();
+  });
+
+  it("a later save asks no second code for the e-mail a right code proved", async () => {
+    // The first save after the code is refused for another field.
+    auth.UpdateProfile.mockRejectedValueOnce(new Error("name refused"));
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-name", "Sara A.");
+    type("demo-personal-email", "new@example.com");
+    await save();
+    await typeCode("048213");
+    await waitFor(() => expect(auth.UpdateProfile, "the waiting save should go out after the code").toHaveBeenCalledTimes(1));
+    auth.SendEmailOtp.mockClear();
+    type("demo-personal-name", "Sara B.");
+    await save();
+    expect(auth.SendEmailOtp, "a proved e-mail must not ask for a second code").not.toHaveBeenCalled();
+    expect(auth.UpdateProfile, "the second save should go out").toHaveBeenCalledTimes(2);
+    expect(auth.UpdateProfile.mock.calls[1][0], "the second save must not carry the proved e-mail").toEqual({ name: "Sara B." });
+  });
+
+  it("the same e-mail in other capitals opens no sheet and asks no code", async () => {
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-name", "Sara A.");
+    type("demo-personal-email", "SARA@Example.com");
+    await save();
+    expect(sheetOpen(), "the saved e-mail in other capitals is not a new e-mail").toBe(false);
+    expect(auth.SendEmailOtp, "the saved e-mail in other capitals must not ask for a code").not.toHaveBeenCalled();
+    expect(auth.UpdateProfile, "the other change should be saved at once").toHaveBeenCalledTimes(1);
+  });
+
+  it("a cleared e-mail opens no sheet and asks no code", async () => {
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-name", "Sara A.");
+    type("demo-personal-email", "");
+    await save();
+    expect(sheetOpen(), "a cleared e-mail is not a new e-mail").toBe(false);
+    expect(auth.SendEmailOtp, "a cleared e-mail must not ask for a code").not.toHaveBeenCalled();
+    expect(auth.UpdateProfile.mock.calls[0]?.[0], "the name should be saved, with no e-mail").toEqual({ name: "Sara A." });
+  });
+
+  it("the core backend's 'verify the new email' answer still opens the sheet", async () => {
+    // A save the screen sent with no new e-mail, refused for the code anyway
+    // (the second net, backend PR #699).
     await wantsCode();
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-name", "Sara A.");
+    await save();
+    expect(auth.UpdateProfile, "the name save should go out").toHaveBeenCalledTimes(1);
+    expect(sheetOpen(), "the 'verify the new email' answer should open the code sheet").toBe(true);
+  });
+
+  it("closing the sheet without a right code saves nothing and keeps what was typed", async () => {
+    draw(<PersonalInfoScreen />);
+    edit();
+    type("demo-personal-email", "new@example.com");
+    await save();
+    expect(sheetOpen(), "a new e-mail should open the code sheet").toBe(true);
+    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-sheet-backdrop"]')!));
+    await waitFor(() => expect(sheetOpen(), "a tap on the dimmed page should close the code sheet").toBe(false));
+    expect(auth.UpdateProfile, "closing the sheet must save nothing").not.toHaveBeenCalled();
+    expect(
+      (document.querySelector('[data-pw="demo-personal-email"]') as HTMLInputElement).value,
+      "closing the sheet must keep the typed e-mail",
+    ).toBe("new@example.com");
+  });
+
+  it("shows a wrong code with the tries left, and saves nothing", async () => {
     auth.VerifyEmailOtp.mockResolvedValueOnce({ ok: false, problem: "wrong-code", attemptsLeft: 4 });
     draw(<PersonalInfoScreen />);
     edit();
     type("demo-personal-email", "new@example.com");
-    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-personal-save"]')!));
+    await save();
     await typeCode("111111");
     await waitFor(() =>
       expect(
@@ -308,7 +385,7 @@ describe("personal info on real data", () => {
         "a wrong code should say so, with the tries left",
       ).toContain("Wrong Code. Tries left: 4"),
     );
-    expect(auth.UpdateProfile, "a wrong code must not send the save again").toHaveBeenCalledTimes(1);
+    expect(auth.UpdateProfile, "a wrong code must not save anything").not.toHaveBeenCalled();
   });
 });
 
@@ -488,6 +565,21 @@ describe("the address form on real data", () => {
     fireEvent.click(document.querySelector('[data-pw="demo-address-country"]')!);
     expect(document.querySelector('[data-pw="demo-country-sy"]'), "the page's country (sy) should be listed").not.toBeNull();
     expect(document.querySelector('[data-pw="demo-country-tr"]'), "no other country should be listed").toBeNull();
+  });
+
+  // OQ-5 of Stage 7e: the design's row flag for its four countries, else the standard flag.
+  it("the page's country row shows the design's Syria flag", () => {
+    draw(<AddressFormScreen />);
+    fireEvent.click(document.querySelector('[data-pw="demo-address-country"]')!);
+    const flag = document.querySelector('[data-pw="demo-country-sy"] img') as HTMLImageElement | null;
+    expect(flag?.getAttribute("src"), "Syria's row should show the design's Syria row flag (flagSyRow)").toContain("flagSyRow.svg");
+  });
+
+  it("a country with no design flag shows its standard flag", () => {
+    draw(<AddressFormScreen />, "jo-en");
+    fireEvent.click(document.querySelector('[data-pw="demo-address-country"]')!);
+    const flag = document.querySelector('[data-pw="demo-country-jo"] img') as HTMLImageElement | null;
+    expect(flag?.getAttribute("src"), "Jordan has no design flag, so its row should show the standard flag").toBe("/icons/flag/jo.svg");
   });
 
   it("saves a new address with the shopper's name and phone as the contact (D-29)", async () => {

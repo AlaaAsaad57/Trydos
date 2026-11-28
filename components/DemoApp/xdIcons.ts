@@ -79,6 +79,8 @@ export const XD_ICON_SIZE = {
   flagTr: { w: 30, h: 30 },
   flagIq: { w: 30, h: 30 },
   flagLb: { w: 30, h: 30 },
+  /** Syria's row flag: not in the files (they draw the Turkish one), made from flagIq. */
+  flagSyRow: { w: 30, h: 30 },
   searchSmall: { w: 18, h: 18 },
   pin: { w: 28.96, h: 37.53 },
   edit: { w: 15, h: 15 },
@@ -308,6 +310,41 @@ export const XD_ICON_SIZE = {
   orderNumber: { w: 16.68, h: 20 },
   orderDate: { w: 20, h: 20 },
   orderTrack: { w: 18, h: 18 },
+  // The country picker at the start, `Ramaaz pay signin – 16` (the logo with the purple eyes).
+  // Its map, countryMap.svg, is not an icon: CountryPickerScreen paints each country itself.
+  countryLogo: { w: 150.01, h: 150 },
+  // The sign-in request sheet, `Sign In request` (the same logo, all dark).
+  signInLogo: { w: 150.01, h: 150 },
+  // Profile Orders & Order Details (`Home Page – 53`, `– 60`..`– 66`).
+  orderTitleIcon: { w: 15.85, h: 19 },
+  orderCardIcon: { w: 24.47, h: 29.36 },
+  orderMore: { w: 6, h: 20 },
+  orderWorkSmall: { w: 14.29, h: 13.72 },
+  orderWorkTrack: { w: 20.4, h: 19.6 },
+  orderWorkGrey: { w: 20.4, h: 19.6 },
+  orderCartPurple: { w: 20.41, h: 20.15 },
+  orderCartGrey: { w: 20.41, h: 20.15 },
+  orderCarryGrey: { w: 15, h: 20 },
+  orderCarryPurple: { w: 15, h: 20 },
+  orderRocketUpPurple: { w: 19.69, h: 20 },
+  orderRocketUpSmall: { w: 13.78, h: 14 },
+  orderRocketUpGrey: { w: 19.69, h: 20 },
+  orderRocketDownSmall: { w: 13.78, h: 14 },
+  orderRocketDownGrey: { w: 19.69, h: 20 },
+  orderRocketDownPurple: { w: 19.69, h: 20 },
+  orderTruckTrack: { w: 19.78, h: 11.79 },
+  orderTruckSmall: { w: 14.15, h: 8.5 },
+  orderPinSmall: { w: 14.01, h: 13.8 },
+  orderHelpDark: { w: 14.01, h: 14 },
+  orderWalletSmall: { w: 19.93, h: 20.01 },
+  orderQrSmall: { w: 17.88, h: 17.88 },
+  orderQrBig: { w: 300.91, h: 300.91 },
+  orderRateStarsCard: { w: 24.8, h: 20.1 },
+  orderRateStarsBtn: { w: 16.01, h: 12.98 },
+  orderRateStarsPoint: { w: 13.89, h: 11.26 },
+  orderStarOutline: { w: 14.61, h: 14.61 },
+  orderStarFilled: { w: 14.61, h: 14.61 },
+  orderCommentDots: { w: 14, h: 14 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

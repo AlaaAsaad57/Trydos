@@ -60,7 +60,7 @@ const resetStore = () =>
 
 describe("toHomeStory (one person of the stories backend as a card)", () => {
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_BASE_MEDIA_URL = MEDIA;
+    process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL = MEDIA;
   });
 
   it("keeps the person's id as text", () => {
@@ -151,7 +151,7 @@ describe("toHomeStory (one person of the stories backend as a card)", () => {
 
 describe("useHomeStories (the stories row)", () => {
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_BASE_MEDIA_URL = MEDIA;
+    process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL = MEDIA;
     fetchData.mockReset();
     resetStore();
   });

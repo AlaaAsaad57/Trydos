@@ -56,6 +56,7 @@ vi.mock("utils/functions", async (importOriginal) => ({
 }));
 
 const MEDIA = "https://example.com";
+const MEDIA_IMAGE = `${MEDIA}/image/upload`;
 
 /** Holds the images and loading flag like the real parent form does. */
 function Harness({
@@ -143,7 +144,7 @@ describe("UploadImageComponent", () => {
     });
     const img = screen.getByAltText("image") as HTMLImageElement;
     expect(img.src, "a return photo is not read from the return folder").toBe(
-      `${MEDIA}/return_request_products/new.webp`,
+      `${MEDIA_IMAGE}/return_request_products/new.webp`,
     );
   });
 
@@ -163,7 +164,7 @@ describe("UploadImageComponent", () => {
     expect(
       (screen.getAllByAltText("image")[1] as HTMLImageElement).src,
       "a rating photo is not read from the rating folder",
-    ).toBe(`${MEDIA}/rating_orders/r.webp`);
+    ).toBe(`${MEDIA_IMAGE}/rating_orders/r.webp`);
   });
 
   it("warns and keeps the list when the upload fails", async () => {

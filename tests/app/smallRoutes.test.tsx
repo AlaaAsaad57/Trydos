@@ -6,10 +6,20 @@ import { describe, expect, it, vi } from "vitest";
 
 import { navigationSpies } from "../mocks/nextNavigation";
 
-vi.mock("NewLoginDesign/NewLoginWidget", () => ({ default: () => <div data-testid="new-login-widget" /> }));
+vi.mock("NewLoginDesign/NewLoginWidget", () => ({
+  default: ({ initialStep, exitTo }: { initialStep?: string; exitTo?: string }) => (
+    <div data-testid="new-login-widget" data-step={initialStep ?? ""} data-exit={exitTo ?? ""} />
+  ),
+}));
 // The locale segment the login page's title is read for.
 const root = vi.hoisted(() => ({ lang: "sy-ar" }));
 vi.mock("next/root-params", () => ({ lang: async () => root.lang }));
+
+/** The page's props, as the router gives them: the locale, and the query. */
+const loginDemoProps = (query: Record<string, string> = {}) => ({
+  params: Promise.resolve({ lang: "sy-en" }),
+  searchParams: Promise.resolve(query),
+});
 
 import ModalDefault from "app/(client)/[lang]/@modal/default";
 import LangLoginDemoPage, { metadata as loginDemoMeta } from "app/(client)/[lang]/loginDemo/page";
@@ -29,10 +39,12 @@ describe("the small routes", () => {
     expect(navigationSpies.redirect, "the login demo went to the wrong place").toHaveBeenCalledWith("/gb-en/loginDemo");
   });
 
-  it("the locale login demo shows the new login widget", () => {
-    render(<LangLoginDemoPage />);
+  it("the locale login demo shows the new login widget", async () => {
+    render(await LangLoginDemoPage(loginDemoProps()));
 
-    expect(screen.getByTestId("new-login-widget"), "the login widget is missing").toBeInTheDocument();
+    const widget = screen.getByTestId("new-login-widget");
+    expect(widget, "the login widget is missing").toBeInTheDocument();
+    expect(widget.dataset.exit, "the login demo on its own must not send the visitor anywhere at its end").toBe("");
     expect(loginDemoMeta.title, "the login demo lost its title").toContain("Login & Registration Demo");
   });
 
@@ -43,6 +55,14 @@ describe("the small routes", () => {
     const meta = await loginMetadata();
     expect(meta.robots, "search engines may index the login page").toEqual({ index: false, follow: false });
     expect(meta.title, "the Arabic login page's title is not in Arabic").toBe("تسجيل الدخول");
+  });
+
+  it("the login demo opened from the demo starts on Get Started and goes back to the demo", async () => {
+    render(await LangLoginDemoPage(loginDemoProps({ from: "demo" })));
+
+    const widget = screen.getByTestId("new-login-widget");
+    expect(widget.dataset.step, "the login from the demo's sign-in request must open on Get Started").toBe("get-started");
+    expect(widget.dataset.exit, "the login from the demo must end on the demo of the same locale").toBe("/sy-en/demo");
   });
 
   it("the empty modal slot renders nothing", () => {

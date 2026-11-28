@@ -439,12 +439,23 @@ messaging.onBackgroundMessage(async function (payload) {
         );
       }
       if (JSON.parse(payload.data.body).type === "order placed") {
+        // Open the order this card is about, like every other order card
+        // (the in-page toast and the bell list do the same). Reuse a tab
+        // already on that order. Without an order id, open the orders list
+        // instead of a "settings/orders/undefined" page.
+        const placedGroupId = JSON.parse(payload.data.body).order_group_id;
+        const hasPlacedGroupId =
+          placedGroupId !== undefined && placedGroupId !== null && placedGroupId !== "";
         notificationOptions = {
           body: JSON.parse(payload.data.body)?.description,
           // image: JSON.parse(payload.data.body)?.image,
-          data: {
-            url: buildUrl(`settings/orders`, localePrefix),
-          }, // The URL which we are going to use later
+          data: hasPlacedGroupId
+            ? {
+                url: buildUrl(`settings/orders/${placedGroupId}`, localePrefix),
+                refreshOrderTab: true,
+                order_group_id: placedGroupId,
+              }
+            : { url: buildUrl(`settings/orders`, localePrefix) },
         };
         showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ??

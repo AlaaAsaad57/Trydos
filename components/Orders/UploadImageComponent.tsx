@@ -4,6 +4,7 @@ import Webcam from "react-webcam";
 import Image from "next/image";
 import { showErrorNotification } from "store/notifications/reducer";
 import { LogError, translateFunction } from "utils/functions";
+import { getMediaImageBaseUrl } from "utils/mediaUrl";
 import Spinner from "components/global/Spinner";
 
 import { ImageCropWidget } from "components/global/ImageCropWidget";
@@ -178,12 +179,14 @@ const UploadImageComponent = ({
   }, []);
 
   const GetImageUrl = (img: string) => {
-    let url_file_path = isForRating
+    const imageBase = getMediaImageBaseUrl();
+    const url_file_path = isForRating
       ? "/rating_orders/"
       : "/return_request_products/";
-    if (img.includes(process.env.NEXT_PUBLIC_BASE_MEDIA_URL)) return img;
-    else
-      return process.env.NEXT_PUBLIC_BASE_MEDIA_URL + url_file_path + img;
+    if (img.startsWith("http") || (imageBase && img.includes(imageBase))) {
+      return img;
+    }
+    return `${imageBase}${url_file_path}${img.replace(/^\/+/, "")}`;
   };
 
   const removeImage = async (e: React.MouseEvent, i: string) => {

@@ -98,6 +98,7 @@ const isTextField = (el: Element | null): el is HTMLElement =>
 export default function AppScaler({
   children,
   maxDeficit = MAX_DEFICIT,
+  inDocument = false,
 }: {
   children: React.ReactNode;
   /**
@@ -106,15 +107,27 @@ export default function AppScaler({
    * tightest one — see canvasFit.ts.
    */
   maxDeficit?: number;
+  /**
+   * Keep `#app-outer` out of `position: fixed` and leave `<body>` scrollable in
+   * CSS while Safari 26 splash under-bar mode is active.
+   */
+  inDocument?: boolean;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-
+    if (inDocument) return;
     document.body.style.overflow = 'hidden';
     document.body.style.background = 'transparent';
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.background = '';
+    };
+  }, [inDocument]);
+
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
 
     // Inject --xd-unit on :root from scale.config.ts (overrides CSS SSR fallback)
     document.documentElement.style.setProperty(
@@ -308,14 +321,12 @@ export default function AppScaler({
       vv?.removeEventListener('scroll', updateLift);
       anchors.disconnect();
       document.documentElement.style.removeProperty(LIFT_VAR);
-      document.body.style.overflow = '';
-      document.body.style.background = '';
     };
     // A new cap (the widget moved to another screen) is a new fit.
   }, [maxDeficit]);
 
   return (
-    <div id="app-outer" style={{ position: 'fixed', inset: 0 }}>
+    <div id="app-outer" style={inDocument ? { position: 'relative', width: '100%', height: '100%' } : { position: 'fixed', inset: 0 }}>
       {/*
         * Runs as the browser parses the html, ahead of the canvas, so the
         * canvas is scaled before it is ever painted. The browser does not run
@@ -340,7 +351,7 @@ export default function AppScaler({
           height: `calc(${DESIGN_H}px - var(--xd-flex-deficit, 0px))`,
           transformOrigin: 'top left',
           transform: 'scale(var(--app-scale, 1))',
-          overflow: 'hidden',
+          overflow: inDocument ? 'visible' : 'hidden',
         }}
       >
         {children}

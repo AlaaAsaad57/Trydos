@@ -27,6 +27,16 @@ interface AuthStageProps {
     children: React.ReactNode;
     /** Drawn over the stage and not slid with the screens (the QR sheet). */
     overlay?: React.ReactNode;
+    /**
+     * The slide's key, when two steps are one screen on stage (the country
+     * picker and the Quick Preview: one column, no slide between them).
+     * Defaults to `step`.
+     */
+    slideKey?: string;
+    /** The stage box, for a host that measures against it too (the Safari 26 splash badge). */
+    stageRef?: React.RefObject<HTMLDivElement | null>;
+    /** Hide the badge mark without unmounting it, while the Safari 26 splash badge draws it. */
+    logoHidden?: boolean;
 }
 
 /**
@@ -50,12 +60,16 @@ export default function AuthStage({
     live = false,
     children,
     overlay,
+    slideKey,
+    stageRef: hostStageRef,
+    logoHidden = false,
 }: AuthStageProps) {
     const pageDir = usePageDir();
     /** The side a next screen comes in from: the right, or the left on a right-to-left page. */
     const side = pageDir === 'rtl' ? -1 : 1;
     /** The box the screens slide inside. `AuthLogoLayer` measures against it. */
-    const stageRef = useRef<HTMLDivElement>(null);
+    const ownStageRef = useRef<HTMLDivElement>(null);
+    const stageRef = hostStageRef ?? ownStageRef;
 
     return (
         // The provider's own animation is only a fallback: each logo gets its
@@ -64,6 +78,8 @@ export default function AuthStage({
             <LogoAnimationProvider>
                 <div
                     ref={stageRef}
+                    // The Safari 26 splash fix's CSS finds the stage by this name.
+                    data-pw="login-stage"
                     /**
                      * Never let the stage scroll, and put it back if it does.
                      *
@@ -98,7 +114,7 @@ export default function AuthStage({
                       */}
                     <AnimatePresence initial={false} custom={direction}>
                         <motion.div
-                            key={step}
+                            key={slideKey ?? step}
                             data-auth-step={step}
                             custom={direction}
                             initial={{ x: direction * side > 0 ? '100%' : '-100%', opacity: 0 }}
@@ -129,6 +145,7 @@ export default function AuthStage({
                         dotColor={dotColor}
                         ringColor={ringColor}
                         slot={slot}
+                        hidden={logoHidden}
                     />
 
                     {overlay}

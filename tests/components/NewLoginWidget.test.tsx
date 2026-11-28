@@ -237,3 +237,20 @@ describe("the login page — QR login before its backend (A-23)", () => {
     expect(pw("qr-show-new-code"), "the QR sheet still offers \"Show a new code\"").toBeNull();
   });
 });
+
+describe("the login page — the Safari 26 splash fix on the real structure (Stage 7e, AC-8)", () => {
+  const SAFARI_26 =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1";
+
+  it("on iPhone Safari 26, while the splash waits, the widget is marked waiting with mode in-flow and the stage carries data-pw=login-stage", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(SAFARI_26);
+    await renderWithProviders(<NewLoginWidget />, { country: "sy", path: "/login" });
+    const widget = await find("new-login-widget");
+    await waitFor(() =>
+      expect(widget.getAttribute("data-safari-splash-mode"), "the real login did not take the in-flow fix on Safari 26").toBe("in-flow"),
+    );
+    expect(widget.hasAttribute("data-splash-waiting"), "the real login is not marked as waiting during the splash").toBe(true);
+    expect(pw("login-stage"), "the stage has no data-pw=login-stage: the fix CSS cannot reach it").not.toBeNull();
+    expect(widget.contains(pw("login-stage")), "the named stage is not inside the login widget").toBe(true);
+  });
+});

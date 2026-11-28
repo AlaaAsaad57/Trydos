@@ -143,9 +143,12 @@ const MARK = /<(b|m|a|c)>([\s\S]*?)<\/\1>/g;
 export function Rich({
   text,
   values,
+  keepLinks = false,
 }: {
   text: string;
   values?: Record<string, string | number>;
+  /** Never break an `<a>` part across two lines (a short link, as "More Info"). */
+  keepLinks?: boolean;
 }) {
   let line = text;
   for (const [name, value] of Object.entries(values ?? {}))
@@ -159,7 +162,15 @@ export function Rich({
     parts.push(
       <span
         key={at}
-        className={tag === "b" ? "font-bold" : tag === "m" || tag === "c" ? "font-medium" : undefined}
+        className={
+          tag === "b"
+            ? "font-bold"
+            : tag === "m" || tag === "c"
+            ? "font-medium"
+            : keepLinks && tag === "a"
+            ? "whitespace-nowrap"
+            : undefined
+        }
         style={tag === "a" || tag === "c" ? { color: C.blue } : undefined}
       >
         {match[2]}

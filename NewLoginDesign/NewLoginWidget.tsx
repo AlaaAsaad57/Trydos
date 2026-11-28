@@ -22,6 +22,13 @@ import { LOGIN_RETURN_PARAM, safeReturnPath } from 'utils/loginPath';
 // counter agrees on the number.
 import { MAX_VERIFY_ATTEMPTS } from 'components/Login/Enhanced/usePhoneVerifyFlow';
 import AuthStage, { LOGO_PURPLE } from './AuthStage';
+import {
+    SafariSplashBadgeRenderer,
+    buildSafariSplashPrepaintScript,
+    useSafariSplashMode,
+    useSafariSplashRuntime,
+    DEFAULT_BAND_PX,
+} from './SafariSplashGapLab';
 import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
 import type { LogoSlotId } from './logoScreenConfig';
 
@@ -40,6 +47,7 @@ import QrBottomSheet from './QrBottomSheet';
 
 export type AuthStep =
     | 'quick-preview'
+    | 'country-picker'
     | 'get-started'
     | 'terms'
     | 'enter-phone'
@@ -81,6 +89,9 @@ const STEP_LOGO_COLOR: Partial<Record<AuthStep, { dot: string; ring: string }>> 
  */
 const STEP_LOGO_SLOT: Record<AuthStep, LogoSlotId> = {
     'quick-preview': 'quick-preview-badge',
+    // The picker is the top of the same column, so its badge has the same
+    // two jobs (see `opensWithColumn` below).
+    'country-picker': 'quick-preview-badge',
     'get-started': 'get-started',
     terms: 'terms',
     'enter-phone': 'enter-phone',
@@ -124,6 +135,15 @@ const AUTHENTICATED_STEPS: AuthStep[] = [
 const hasRealName = (name?: string | null) =>
     typeof name === 'string' && name.trim().length > 1;
 
+/**
+ * The two steps of the one rising column (QuickPreviewScreen): the country
+ * picker, then the Quick Preview. They are one screen on stage, so the pill
+ * and the badge at the top stay put between them, and only the part under
+ * the badge slides.
+ */
+const opensWithColumn = (step: AuthStep) => step === 'quick-preview' || step === 'country-picker';
+const SAFARI_SPLASH_PREPAINT_SCRIPT = buildSafariSplashPrepaintScript();
+
 interface NewLoginWidgetProps {
     initialStep?: AuthStep;
     /**
@@ -132,11 +152,25 @@ interface NewLoginWidgetProps {
      * the page in `?next=` (A-20 in UI-MIGRATION-PLAN.md).
      */
     onFinish?: () => void;
+    /**
+     * With no `onFinish`: the page the flow goes to when it ends, instead of
+     * `?next=`. `/loginDemo?from=demo` sets it, so the shopper comes back to
+     * the demo.
+     */
+    exitTo?: string;
+    /**
+     * The country picker's map and rows, for the `country-picker` step. The
+     * host draws them, and calls `onPicked` once a country is chosen; the
+     * flow then goes on to the Quick Preview. The demo at /demo sets it.
+     */
+    countryPicker?: (onPicked: () => void) => React.ReactNode;
 }
 
 export default function NewLoginWidget({
     initialStep = 'quick-preview',
     onFinish,
+    exitTo,
+    countryPicker,
 }: NewLoginWidgetProps) {
     const { lang } = useParams();
     const router = useRouter();
@@ -184,14 +218,29 @@ export default function NewLoginWidget({
     const [previewExpanded, setPreviewExpanded] = useState<boolean>(false);
     const [isQrOpen, setIsQrOpen] = useState<boolean>(false);
 
+    /**
+     * The Safari 26 splash fix (SafariSplashGapLab.tsx): while the column
+     * waits at the bottom edge, iPhone Safari 26 runs the login in the
+     * document flow. Every other browser gets `off`.
+     */
+    const safariMode = useSafariSplashMode();
+    const inColumn = opensWithColumn(step);
+    const isSplashWaiting = inColumn && !previewExpanded;
+    const safariWaitingActive = isSplashWaiting && safariMode !== 'off';
+    useSafariSplashRuntime(safariWaitingActive, safariMode);
+    /** The stage box: `AuthLogoLayer` and the waiting splash badge measure against it. */
+    const stageRef = useRef<HTMLDivElement>(null);
+
 
     const goTo = (nextStep: AuthStep, dir: number = 1) => {
         setDirection(dir);
         setError('');
         setStep(nextStep);
-        // Walking back to the Quick Preview restarts its 8 second timer, so the
-        // badge has to go back to its first job as well.
-        if (nextStep === 'quick-preview') setPreviewExpanded(false);
+        // Walking back to the column from another screen mounts it again and
+        // restarts its 8 second timer, so the badge has to go back to its
+        // first job as well. The picker into the Quick Preview is the same
+        // column, already up, so the badge keeps its job there.
+        if (opensWithColumn(nextStep) && !opensWithColumn(step)) setPreviewExpanded(false);
     };
 
     // One screen_view per step, as the live widget sends.
@@ -211,6 +260,10 @@ export default function NewLoginWidget({
     const leave = () => {
         if (onFinish) {
             onFinish();
+            return;
+        }
+        if (exitTo) {
+            router.push(exitTo);
             return;
         }
         const next = new URLSearchParams(window.location.search).get(LOGIN_RETURN_PARAM);
@@ -535,21 +588,28 @@ export default function NewLoginWidget({
 
     const logoColor = STEP_LOGO_COLOR[step] ?? LOGO_PURPLE;
     const logoSlotId: LogoSlotId =
-        step === 'quick-preview' && previewExpanded
+        opensWithColumn(step) && previewExpanded
             ? 'quick-preview-badge-expanded'
             : STEP_LOGO_SLOT[step];
     const activeSlot = logoConfig[logoSlotId];
 
     return (
+        <>
+        {isSplashWaiting && (
+            <script dangerouslySetInnerHTML={{ __html: SAFARI_SPLASH_PREPAINT_SCRIPT }} />
+        )}
         <main
             data-pw="new-login-widget"
+            data-splash-waiting={isSplashWaiting ? '' : undefined}
+            data-safari-splash-mode={safariWaitingActive ? safariMode : undefined}
             dir={pageDir}
             className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
             style={{ backgroundColor: getScreenBg() }}
         >
             <Page
                 variant="scaled"
-                maxDeficit={step === 'quick-preview' ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
+                inDocument={safariWaitingActive}
+                maxDeficit={inColumn ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
                 outerBg={
                     step === 'input-name'
                         ? 'passcode'
@@ -566,8 +626,13 @@ export default function NewLoginWidget({
             >
                 <AuthStage
                     step={step}
+                    // The picker and the Quick Preview are one screen:
+                    // one key, so the stage does not slide between them.
+                    slideKey={inColumn ? 'column' : step}
+                    stageRef={stageRef}
+                    logoHidden={safariWaitingActive}
                     direction={direction}
-                    live={step === 'quick-preview'}
+                    live={inColumn}
                     dotColor={logoColor.dot}
                     ringColor={logoColor.ring}
                     slot={activeSlot}
@@ -580,8 +645,8 @@ export default function NewLoginWidget({
                         />
                     }
                 >
-                            {/* 1. Quick Preview Screen */}
-                            {step === 'quick-preview' && (
+                            {/* 1. Country Picker, then Quick Preview: one column */}
+                            {inColumn && (
                                 <QuickPreviewScreen
                                     onComplete={() => goTo('get-started', 1)}
                                     onExpand={() => setPreviewExpanded(true)}
@@ -591,6 +656,12 @@ export default function NewLoginWidget({
                                     // (the screen's own defaults would be 35 and 56). Decided in Stage 1.
                                     belowButtonMin={0}
                                     abovePill={0}
+                                    safariBandPx={safariWaitingActive ? DEFAULT_BAND_PX : 0}
+                                    picker={
+                                        step === 'country-picker' && countryPicker
+                                            ? countryPicker(() => goTo('quick-preview', 1))
+                                            : undefined
+                                    }
                                 />
                             )}
 
@@ -765,6 +836,16 @@ export default function NewLoginWidget({
                             )}
                 </AuthStage>
             </Page>
+            {/* The waiting badge of the Safari 26 fix, in the document flow. */}
+            <SafariSplashBadgeRenderer
+                active={safariWaitingActive}
+                mode={safariMode}
+                stageRef={stageRef}
+                dotColor={logoColor.dot}
+                ringColor={logoColor.ring}
+                slot={activeSlot}
+            />
         </main>
+        </>
     );
 }

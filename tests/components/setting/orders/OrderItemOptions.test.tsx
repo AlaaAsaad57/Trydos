@@ -359,16 +359,29 @@ describe("starting a return", () => {
     expect(screen.queryByTestId("return-screen"), "the return screen opened for a product not in the request").not.toBeInTheDocument();
   });
 
-  it("jumps straight to the return screen for a pack that already has a request, and logs a failed create", async () => {
-    orderService.CreateReturnRequest.mockResolvedValue(null);
+  it("jumps straight to the return screen for a pack that already has a request without creating another", async () => {
     await setup({ parentOrder: delivered({ return_request_id: 50 } as any), orderItem: buildOrderLine({ can_return_product: true }) });
     await userEvent.setup().click(screen.getByText("Return This Product"));
     expect(screen.getByTestId("return-screen"), "a pack with a request did not open the return screen").toBeInTheDocument();
+    expect(
+      orderService.CreateReturnRequest,
+      "an existing return request still called CreateReturnRequest",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("logs an error and stays on options when creating a return request fails", async () => {
+    orderService.CreateReturnRequest.mockResolvedValue(null);
+    await setup({ parentOrder: delivered({ return_request_id: null } as any), orderItem: buildOrderLine({ can_return_product: true }) });
+    await userEvent.setup().click(screen.getByText("Return This Product"));
     await waitFor(() =>
       expect(logError, "a return that could not be created was not logged").toHaveBeenCalledWith(
         expect.objectContaining({ scenario: "Error In initializeReturn in OrderItemOptions" }),
       ),
     );
+    expect(
+      screen.queryByTestId("return-screen"),
+      "a failed return request creation still opened the return screen",
+    ).not.toBeInTheDocument();
   });
 });
 

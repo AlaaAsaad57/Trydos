@@ -15,9 +15,15 @@ const spies = vi.hoisted(() => ({
   AppShell: function AppShell() {
     return null;
   },
+  preconnect: vi.fn(),
 }));
 
 vi.mock("next/root-params", () => ({ lang: async () => spies.lang.current }));
+// The early connections the layout opens (react-dom resource hints).
+vi.mock("react-dom", async (importOriginal) => ({
+  ...((await importOriginal()) as Record<string, unknown>),
+  preconnect: (...a: unknown[]) => spies.preconnect(...a),
+}));
 vi.mock("next/font/local", () => ({
   default: (opts: { variable: string }) => ({ variable: opts.variable, className: "font" }),
 }));
@@ -148,6 +154,29 @@ describe("the locale root layout", () => {
     expect(find(tree, (n) => n.type === "body").props.className, `${lang} is not marked right-to-left`).toContain(
       "text-rtl",
     );
+  });
+});
+
+describe("the locale root layout — media and words (Stage 7e part 1)", () => {
+  it("opens an early connection to the single media origin", async () => {
+    const { default: RootLayout } = await loadLayout();
+    await RootLayout({ children: null, modal: null });
+    // vitest.config.mts sets NEXT_PUBLIC_MEDIA_SERVER_BASE_URL to https://example.com.
+    expect(spies.preconnect, "the layout did not open an early connection to the media origin (utils/mediaUrl.ts)").toHaveBeenCalledWith(
+      "https://example.com",
+    );
+  });
+
+  it("the real layout skips the preview-only words", async () => {
+    const { default: RootLayout } = await loadLayout();
+    const { default: AppScreens } = await import("components/DemoApp1/AppScreens");
+    const tree: any = await RootLayout({ children: null, modal: null });
+    const words = find(tree, (n) => n.type === AppScreens)?.props.dictionary ?? {};
+    expect("Orders Details" in words, "an orders word (only /demo shows it yet) reached every real page").toBe(false);
+    expect("Get Started" in words, "a start-flow word (only /demo shows it yet) reached every real page").toBe(false);
+    expect("All" in words, "\"All\" is used by the real chat reaction sheet and must stay").toBe(true);
+    expect("usd" in words, "\"usd\" is used by the real profile and must stay").toBe(true);
+    expect("Home" in words, "the other screen words must stay").toBe(true);
   });
 });
 

@@ -7,6 +7,7 @@ import { isSearchPath } from "components/DemoApp1/appRoutes";
 import { fetchData, abortInFlightForLogout } from "./fetchData";
 import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
+import { getMediaImageBaseUrl, getMediaVideoBaseUrl } from "./mediaUrl";
 
 export const ChatConroller = (payload) => {
   try {
@@ -335,7 +336,7 @@ export const GetImageUrl = (url) => {
       // whose path has no leading slash ran the host and the path together.
       const filePath = url.file_path;
       return (
-        process.env.NEXT_PUBLIC_BASE_MEDIA_URL +
+        getMediaImageBaseUrl() +
         (filePath.startsWith("/") ? filePath : "/" + filePath)
       );
     }
@@ -347,7 +348,7 @@ export const GetImageUrl = (url) => {
   // Ensure exactly one slash between the media base and a relative path so both
   // forms resolve correctly.
   return (
-    process.env.NEXT_PUBLIC_BASE_MEDIA_URL + (url.startsWith("/") ? url : "/" + url)
+    getMediaImageBaseUrl() + (url.startsWith("/") ? url : "/" + url)
   );
 };
 
@@ -376,7 +377,7 @@ export const getVideoUrl = (
     );
   }
 
-  const mediaBase = process.env.NEXT_PUBLIC_BASE_VIDEO_MEDIA_URL;
+  const mediaBase = getMediaVideoBaseUrl();
   // const version = "v1";
   const folder = "product/videos";
 

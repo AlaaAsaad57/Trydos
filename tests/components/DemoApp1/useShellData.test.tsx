@@ -23,7 +23,7 @@ const reset = () =>
 
 describe("useShellData", () => {
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_BASE_MEDIA_URL = MEDIA;
+    process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL = MEDIA;
     reset();
   });
 

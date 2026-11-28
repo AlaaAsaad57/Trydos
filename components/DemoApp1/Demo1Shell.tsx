@@ -36,11 +36,15 @@ import {
 } from "../DemoApp/demoRoutes";
 import Demo1BottomNav, { useTabBarShrink } from "./Demo1BottomNav";
 import Demo1ScreenView from "./Demo1ScreenView";
-import { PAGE_MAX } from "./demo1Layout";
-import { ScreenFrame, type Leave, type Origin, type Slide } from "./ScreenFrame";
+import { C, PAGE_MAX } from "./demo1Layout";
+import { ScreenFrame, THROUGH, type Leave, type Origin, type Slide } from "./ScreenFrame";
 import { NavCtx } from "./screenNav";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
 import { usePageDir } from "./rtl";
+import CountryPickerBody from "./screens/CountryPickerBody";
+import { anyLayerOpen, usePageColor } from "./ui";
+import SignInRequestSheet from "./screens/SignInRequestSheet";
+import NewLoginWidget, { type AuthStep } from "NewLoginDesign/NewLoginWidget";
 
 // The screens read the shell through useDemoNav; it lives in screenNav.ts,
 // so the real app's screen mount can give it too. Kept here for the files
@@ -106,6 +110,52 @@ export { useDemoNav } from "./screenNav";
  * "reduce motion" on, the page only fades in and out.
  */
 
+/*
+ * The start: the country picker, the Quick Preview, the login, the page
+ * -----------------------------------------------------------------------
+ * With `intro` on (the /demo layout turns it on), every fresh load of the
+ * demo opens in these steps, whatever the URL. All of them are the login
+ * widget (the same as /loginDemo), as a fixed layer over the page:
+ *
+ * 1. The start animation of the Quick Preview: the wordmark in the middle,
+ *    and the column waiting at the bottom edge.
+ * 2. The column rises with the country picker (XD `Ramaaz pay signin – 16`)
+ *    under the Quick Preview's flipping pill and badge logo. The map and the
+ *    rows are CountryPickerBody.
+ * 3. A country is picked: the pill and the logo stay where they are, and the
+ *    part under them slides from the picker to the Quick Preview's slider.
+ * 4. The Quick Preview's "Get Started": the Get Started screen slides in.
+ *    The shopper taps "Later" or goes through the login.
+ * 5. The screen of the URL: the login's white fades out and the screen fades
+ *    in (THROUGH in ScreenFrame.tsx).
+ *
+ * The screen of the URL waits under the login as a white page (IntroBlank),
+ * so it never shows before the login's end.
+ *
+ * SIGN_IN_ASK_MS after the screen of the URL shows, the sign-in request sheet
+ * (`Sign In request`) comes up over it, once. Its "Get Started" opens the same
+ * login layer again, over the screen; the login's end goes back to it.
+ */
+
+/** How long after the screen of the URL shows the sign-in request comes up, in ms. */
+export const SIGN_IN_ASK_MS = 5000;
+
+/**
+ * When the sign-in request is due but another sheet is open, or the shopper
+ * is typing, it waits and looks again this often, in ms.
+ */
+const SIGN_IN_RETRY_MS = 1000;
+
+/**
+ * The start's state for this load of the page. It lives as long as the page's
+ * scripts: a move inside the site keeps it, so the start (the picker and the
+ * login) and the sign-in request come once; a reload opens the site again.
+ */
+const introRun = { done: false, asked: false };
+
+/** The screen frame's key while the start's login is on show. */
+const INTRO_KEY = "intro";
+
 /** True for a move between Home and a store's page, either way. */
 const homeAndStore = (a: DemoScreen | null, b: DemoScreen | null) =>
   a === "home" && b !== null && isStoreScreen(b);
@@ -127,17 +177,22 @@ const slidesLikeHome = (from: DemoScreen | null, to: DemoScreen | null) =>
 export default function Demo1Shell({
   children,
   dictionary,
+  intro = false,
 }: {
   children: React.ReactNode;
   /** The demo's words in the page's language, looked up on the server — see demoKeys.ts. */
   dictionary: DemoDictionary;
+  /** Open on the country picker, then the login (see "The start" above). */
+  intro?: boolean;
 }) {
   return (
     // A shopper who turned motion off gets no slides: framer-motion makes every
     // move instant and keeps the fades (decided in Stage 1 of UI-MIGRATION-PLAN.md).
     <MotionConfig reducedMotion="user">
       <DemoDataProvider>
-        <Demo1ShellInner dictionary={dictionary}>{children}</Demo1ShellInner>
+        <Demo1ShellInner dictionary={dictionary} intro={intro}>
+          {children}
+        </Demo1ShellInner>
       </DemoDataProvider>
     </MotionConfig>
   );
@@ -146,9 +201,11 @@ export default function Demo1Shell({
 function Demo1ShellInner({
   children,
   dictionary,
+  intro,
 }: {
   children: React.ReactNode;
   dictionary: DemoDictionary;
+  intro: boolean;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -174,15 +231,96 @@ function Demo1ShellInner({
   );
   const column = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
+  const [signing, setSigning] = useState<AuthStep | null>(
+    intro && !introRun.done ? "country-picker" : null,
+  );
+  /** True while the start's login is open: the screen of the URL waits under it. */
+  const [picking, setPicking] = useState(intro && !introRun.done);
+  // The tab bar waits while the start's white fades out, then comes in with the app.
+  const [barHeld, setBarHeld] = useState(false);
+  const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [askSignIn, setAskSignIn] = useState(false);
+  const askTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /**
+   * The sign-in request, SIGN_IN_ASK_MS from now. It never opens over another
+   * sheet, or while the shopper types: it waits for them to finish.
+   */
+  const planAsk = () => {
+    if (askTimer.current) clearTimeout(askTimer.current);
+    const due = () => {
+      const typing = document.activeElement?.matches(
+        "input, textarea, [contenteditable]",
+      );
+      if (anyLayerOpen() || typing) {
+        askTimer.current = setTimeout(due, SIGN_IN_RETRY_MS);
+        return;
+      }
+      introRun.asked = true;
+      setAskSignIn(true);
+    };
+    askTimer.current = setTimeout(due, SIGN_IN_ASK_MS);
+  };
+
+  useEffect(() => {
+    // The shell came back after the pick, before the request came up: it is still due.
+    if (intro && introRun.done && !introRun.asked) planAsk();
+    return () => {
+      if (askTimer.current) clearTimeout(askTimer.current);
+      if (barTimer.current) clearTimeout(barTimer.current);
+    };
+    // Once, on mount: the request is planned again only by a new pick.
+  }, []);
+
+  /**
+   * The login's page scaler (scaling/AppScaler.tsx) sets <body> transparent
+   * while it is open and clears <body>'s colour when it closes. It also leaves
+   * its own `--xd-unit` on <html>. A layer does not remount the demo's
+   * screens, so the shell puts the page back as it was: <body> gets the
+   * screen's colour again from <html> (usePageColor in ui.tsx sets both the
+   * same, and Safari 26 reads <body> for the room under its bars), and
+   * `--xd-unit` goes back to its value from rdb-auth.css.
+   */
+  const loginWasOpen = useRef(Boolean(signing));
+  useEffect(() => {
+    if (signing) {
+      loginWasOpen.current = true;
+      return;
+    }
+    if (!loginWasOpen.current) return;
+    loginWasOpen.current = false;
+    const root = document.documentElement;
+    root.style.removeProperty("--xd-unit");
+    const color = root.style.getPropertyValue("background-color");
+    if (color)
+      document.body.style.setProperty("background-color", color, "important");
+  }, [signing]);
+
+  /** "Later", or the login's end: at the start the app comes in, later the screen under it stays. */
+  const endLogin = () => {
+    setSigning(null);
+    if (picking) endIntro();
+  };
+
+  /** The start's login is over: its white fades out, the app fades in, and the sign-in request waits. */
+  const endIntro = () => {
+    introRun.done = true;
+    setLeave({ dir: 1, scrollY: window.scrollY, through: true });
+    setPicking(false);
+    setBarHeld(true);
+    barTimer.current = setTimeout(() => setBarHeld(false), THROUGH.out * 1000);
+    planAsk();
+  };
 
   const key = shown ?? `page:${pathname}`;
+  const frameKey = picking ? INTRO_KEY : key;
   const barShrink = useTabBarShrink(key);
   // The tab bar shows on the tab screens, and on a store's page too (it
   // belongs to the Home tab, so Home is the active tab there). A product's
   // page has no tab bar: XD `Home Page – 49` draws none, and the bar slides
   // away as the product opens.
   const barScreen = shown !== null && (isTabRoot(shown) || isStoreScreen(shown));
-  const showBar = barScreen;
+  const showBar = barScreen && !picking && !barHeld && !signing;
   const move: Slide = { ...leave, side: pageDir === "rtl" ? -1 : 1 };
 
   // The shell keeps each screen's scroll itself, so the browser must not
@@ -220,7 +358,7 @@ function Demo1ShellInner({
   useLayoutEffect(() => {
     const y = leave.dir < 0 ? (scrolls.current.get(key) ?? 0) : 0;
     window.scrollTo(0, y);
-  }, [key]);
+  }, [frameKey]);
 
   /**
    * Starts a change of screen: remembers where the screen on show was left,
@@ -355,11 +493,25 @@ function Demo1ShellInner({
           // `clip` and not `hidden`: it cuts the screen sliding in at the
           // column's edges without making the column a scroll box, so the
           // document still scrolls and the sticky headers still stick.
-          style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
+          style={{
+            maxWidth: PAGE_MAX,
+            minHeight: "100dvh",
+            overflowX: "clip",
+            // Under the login at the start, the white page is cut to the window,
+            // so the document has nothing to scroll behind the login's fixed
+            // layer. A screen under a later login keeps its height and scroll.
+            ...(signing && picking && { height: "100dvh", overflowY: "clip" }),
+          }}
         >
           <AnimatePresence initial={false} custom={move}>
-            <ScreenFrame key={key} id={key} move={move}>
-              {shown ? <Demo1ScreenView screen={shown} /> : children}
+            <ScreenFrame key={frameKey} id={frameKey} move={move}>
+              {picking ? (
+                <IntroBlank />
+              ) : shown ? (
+                <Demo1ScreenView screen={shown} />
+              ) : (
+                children
+              )}
             </ScreenFrame>
           </AnimatePresence>
         </div>
@@ -379,8 +531,35 @@ function Demo1ShellInner({
           t={t}
         />
 
-        <DemoKeyboard locale={locale} t={t} />
+        <SignInRequestSheet
+          open={askSignIn}
+          onClose={() => setAskSignIn(false)}
+          onStart={() => {
+            setAskSignIn(false);
+            // The same login layer as at the start: no route change, no wait.
+            setSigning("get-started");
+          }}
+        />
+        {/* The login brings its own keypad: the demo's keyboard waits for its end. */}
+        {!signing && <DemoKeyboard locale={locale} t={t} />}
+        {/* The start (from the country picker) and the sign-in request's login. */}
+        {signing && (
+          <NewLoginWidget
+            initialStep={signing}
+            onFinish={endLogin}
+            countryPicker={(onPicked) => <CountryPickerBody onDone={onPicked} />}
+          />
+        )}
       </DemoChatProvider>
     </NavCtx.Provider>
   );
+}
+
+/**
+ * The page under the start's login: white, the colour of the login's own
+ * screens, so its end fades from white into the app (THROUGH).
+ */
+function IntroBlank() {
+  usePageColor(C.white);
+  return <div data-pw="demo-intro-blank" style={{ minHeight: "100dvh", background: C.white }} />;
 }

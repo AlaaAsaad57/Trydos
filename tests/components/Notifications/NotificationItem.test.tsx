@@ -57,10 +57,10 @@ describe("a notification row", () => {
     expect(JSON.parse(link()?.getAttribute("data-link-data") || "{}").is_boutique, "the loader must know a boutique is opening").toBe(
       true,
     );
-    expect(screen.getByRole("img"), "the boutique icon must be the row picture").toHaveAttribute(
-      "src",
-      "https://example.com/icons/zara.png",
-    );
+    // One media origin since bfae3eb6e: <origin>/image/upload/<size>/<path>.
+    const boutiqueSrc = screen.getByRole("img").getAttribute("src") ?? "";
+    expect(boutiqueSrc.startsWith("https://example.com/image/upload/"), `the boutique icon must come from the media image path: ${boutiqueSrc}`).toBe(true);
+    expect(boutiqueSrc.endsWith("/icons/zara.png"), `the boutique icon must be the row picture: ${boutiqueSrc}`).toBe(true);
     expect(container.querySelector('[data-pw="tester-not-know"]')?.innerHTML, "the boutique text must be shown without its script").toBe(
       "<b>Fashion</b>",
     );
@@ -78,10 +78,9 @@ describe("a notification row", () => {
     });
 
     expect(link(), "a hurry-up notice opens the cart, not a page").toBeNull();
-    expect(screen.getByRole("img"), "the product image must be the row picture").toHaveAttribute(
-      "src",
-      "https://example.com/products/shoe.png",
-    );
+    const productSrc = screen.getByRole("img").getAttribute("src") ?? "";
+    expect(productSrc.startsWith("https://example.com/image/upload/"), `the product image must come from the media image path: ${productSrc}`).toBe(true);
+    expect(productSrc.endsWith("/products/shoe.png"), `the product image must be the row picture: ${productSrc}`).toBe(true);
     fireEvent.click(screen.getByText("Hurry"));
     expect(enableCart, "a hurry-up notice must open the cart").toHaveBeenCalledWith(true);
     expect(disableAddToCartOption, "a hurry-up notice must close the add-to-cart option").toHaveBeenCalled();

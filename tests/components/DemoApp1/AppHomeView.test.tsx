@@ -41,7 +41,7 @@ async function view(slug: string | null) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  process.env.NEXT_PUBLIC_BASE_MEDIA_URL = MEDIA;
+  process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL = MEDIA;
   spies.lang = "sy-en";
   spies.getCachedCategories.mockResolvedValue([
     { slug: "men", name: "Men" },

@@ -62,7 +62,10 @@ describe("the product JSON-LD", () => {
       description: "A long red dress",
       url: `${SITE}/sy-en/products/red-dress`,
       brand: { "@type": "Brand", name: "Acme" },
-      image: ["https://example.com/a.jpg", "https://example.com/b.jpg"],
+      image: [
+        "https://example.com/image/upload/a.jpg",
+        "https://example.com/image/upload/b.jpg",
+      ],
       sku: "SKU-7",
       color: "Red",
       aggregateRating: { ratingValue: "4.5", reviewCount: "8" },
